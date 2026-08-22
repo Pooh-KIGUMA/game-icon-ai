@@ -505,4 +505,700 @@ textarea:focus,
         画像から作る
       </div>
 
-      <div class="option-description" data-i18n="from
+      <div class="option-description" data-i18n="fromImageDesc">
+        キャラクター画像をアップロード
+      </div>
+
+    </div>
+
+
+    <div class="option" data-mode="idea">
+
+      <div class="option-icon">✨</div>
+
+      <div class="option-title" data-i18n="fromIdea">
+        イメージから作る
+      </div>
+
+      <div class="option-description" data-i18n="fromIdeaDesc">
+        文章だけでAIに作ってもらう
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+
+
+<!-- 02 -->
+
+<div class="card" id="uploadCard">
+
+  <div class="section-title">
+
+    <div class="number">02</div>
+
+    <span data-i18n="character">
+      キャラクター画像
+    </span>
+
+  </div>
+
+  <label class="upload-area" for="imageInput">
+
+    <input
+      type="file"
+      id="imageInput"
+      accept="image/png,image/jpeg,image/webp"
+    >
+
+    <div class="upload-content" id="uploadContent">
+
+      <div class="upload-plus">＋</div>
+
+      <div
+        class="upload-title"
+        data-i18n="upload"
+      >
+        画像をアップロード
+      </div>
+
+      <div
+        class="upload-sub"
+        data-i18n="formats"
+      >
+        JPG / PNG / WEBP
+      </div>
+
+    </div>
+
+    <img id="preview" class="preview">
+
+  </label>
+
+</div>
+
+
+<!-- 03 -->
+
+<div class="card">
+
+  <div class="section-title">
+
+    <div class="number">03</div>
+
+    <span data-i18n="idea">
+      あなたのイメージ
+    </span>
+
+  </div>
+
+  <div class="field-label" data-i18n="ideaLabel">
+    どんなアイコンにしたい？
+  </div>
+
+  <textarea
+    id="prompt"
+    data-placeholder="promptPlaceholder"
+    placeholder="例：青い炎をまとったクールな戦士。黒い服。迫力のあるポーズ。"
+  ></textarea>
+
+
+  <div class="player">
+
+    <div
+      class="field-label"
+      data-i18n="playerName"
+    >
+      プレイヤー名
+    </div>
+
+    <input
+      class="text-input"
+      id="playerName"
+      data-placeholder="namePlaceholder"
+      placeholder="例：Roki"
+    >
+
+  </div>
+
+</div>
+
+
+<!-- 04 -->
+
+<div class="card">
+
+  <div class="section-title">
+
+    <div class="number">04</div>
+
+    <span data-i18n="style">
+      スタイル
+    </span>
+
+  </div>
+
+  <div class="styles">
+
+    <div class="style active" data-style="anime">
+      ⚔️ <span data-i18n="anime">アニメ</span>
+    </div>
+
+    <div class="style" data-style="dark">
+      🌑 <span data-i18n="dark">ダーク</span>
+    </div>
+
+    <div class="style" data-style="cyber">
+      🤖 <span data-i18n="cyber">サイバー</span>
+    </div>
+
+    <div class="style" data-style="battle">
+      🔥 <span data-i18n="battle">バトル</span>
+    </div>
+
+    <div class="style" data-style="fantasy">
+      🐉 <span data-i18n="fantasy">ファンタジー</span>
+    </div>
+
+    <div class="style" data-style="cute">
+      ✨ <span data-i18n="cute">かわいい</span>
+    </div>
+
+  </div>
+
+</div>
+
+
+<!-- 05 -->
+
+<div class="card">
+
+  <div class="section-title">
+
+    <div class="number">05</div>
+
+    <span data-i18n="color">
+      メインカラー
+    </span>
+
+  </div>
+
+  <div class="colors">
+
+    <div class="color black active" data-color="black"></div>
+    <div class="color blue" data-color="blue"></div>
+    <div class="color red" data-color="red"></div>
+    <div class="color purple" data-color="purple"></div>
+    <div class="color gold" data-color="gold"></div>
+    <div class="color white" data-color="white"></div>
+
+  </div>
+
+</div>
+
+
+<!-- GENERATE -->
+
+<div class="card">
+
+  <button
+    class="generate"
+    id="generate"
+    data-i18n="generate"
+  >
+    ✨ AIでアイコンを生成する
+  </button>
+
+</div>
+
+
+<!-- RESULT -->
+
+<div class="card result" id="result">
+
+  <div class="section-title">
+    <div class="number">✓</div>
+    <span data-i18n="result">
+      完成したアイコン
+    </span>
+  </div>
+
+  <img id="resultImage">
+
+  <br>
+
+  <a
+    id="download"
+    class="download"
+    download="game-icon.png"
+    data-i18n="download"
+  >
+    画像を保存
+  </a>
+
+</div>
+
+</div>
+
+
+<script>
+
+/* =========================
+   LANGUAGE
+========================= */
+
+const translations = {
+
+ja:{
+ badge:"AI GAME ICON GENERATOR",
+ hero:"AIであなただけのゲームアイコンを作成",
+ choose:"作り方を選択",
+ fromImage:"画像から作る",
+ fromImageDesc:"キャラクター画像をアップロード",
+ fromIdea:"イメージから作る",
+ fromIdeaDesc:"文章だけでAIに作ってもらう",
+ character:"キャラクター画像",
+ upload:"画像をアップロード",
+ formats:"JPG / PNG / WEBP",
+ idea:"あなたのイメージ",
+ ideaLabel:"どんなアイコンにしたい？",
+ promptPlaceholder:"例：青い炎をまとったクールな戦士。黒い服。迫力のあるポーズ。",
+ playerName:"プレイヤー名",
+ namePlaceholder:"例：Roki",
+ style:"スタイル",
+ anime:"アニメ",
+ dark:"ダーク",
+ cyber:"サイバー",
+ battle:"バトル",
+ fantasy:"ファンタジー",
+ cute:"かわいい",
+ color:"メインカラー",
+ generate:"✨ AIでアイコンを生成する",
+ result:"完成したアイコン",
+ download:"画像を保存"
+},
+
+en:{
+ badge:"AI GAME ICON GENERATOR",
+ hero:"Create your ultimate game icon with AI",
+ choose:"Choose how to create",
+ fromImage:"Create from Image",
+ fromImageDesc:"Upload your character image",
+ fromIdea:"Create from Idea",
+ fromIdeaDesc:"Describe your idea and let AI create it",
+ character:"Character Image",
+ upload:"Upload an Image",
+ formats:"JPG / PNG / WEBP",
+ idea:"Your Idea",
+ ideaLabel:"What kind of icon do you want?",
+ promptPlaceholder:"Example: A cool warrior surrounded by blue flames, wearing black clothes, powerful pose.",
+ playerName:"Player Name",
+ namePlaceholder:"Example: Roki",
+ style:"Style",
+ anime:"Anime",
+ dark:"Dark",
+ cyber:"Cyber",
+ battle:"Battle",
+ fantasy:"Fantasy",
+ cute:"Cute",
+ color:"Main Color",
+ generate:"✨ Generate Game Icon",
+ result:"Your Game Icon",
+ download:"Save Image"
+},
+
+zh:{
+ badge:"AI 游戏图标生成器",
+ hero:"使用AI制作专属游戏图标",
+ choose:"选择制作方式",
+ fromImage:"从图片制作",
+ fromImageDesc:"上传角色图片",
+ fromIdea:"从想法制作",
+ fromIdeaDesc:"用文字描述，让AI为你制作",
+ character:"角色图片",
+ upload:"上传图片",
+ formats:"JPG / PNG / WEBP",
+ idea:"你的创意",
+ ideaLabel:"你想要什么样的图标？",
+ promptPlaceholder:"例如：被蓝色火焰包围的酷炫战士，黑色服装，充满力量的姿势。",
+ playerName:"玩家名称",
+ namePlaceholder:"例如：Roki",
+ style:"风格",
+ anime:"动漫",
+ dark:"黑暗",
+ cyber:"赛博",
+ battle:"战斗",
+ fantasy:"幻想",
+ cute:"可爱",
+ color:"主色",
+ generate:"✨ 生成游戏图标",
+ result:"完成的游戏图标",
+ download:"保存图片"
+},
+
+ko:{
+ badge:"AI 게임 아이콘 생성기",
+ hero:"AI로 나만의 게임 아이콘 만들기",
+ choose:"제작 방법 선택",
+ fromImage:"이미지로 만들기",
+ fromImageDesc:"캐릭터 이미지 업로드",
+ fromIdea:"아이디어로 만들기",
+ fromIdeaDesc:"설명만 입력하면 AI가 제작",
+ character:"캐릭터 이미지",
+ upload:"이미지 업로드",
+ formats:"JPG / PNG / WEBP",
+ idea:"아이디어",
+ ideaLabel:"어떤 아이콘을 원하시나요?",
+ promptPlaceholder:"예: 푸른 불꽃을 두른 강력한 전사, 검은 옷, 역동적인 포즈.",
+ playerName:"플레이어 이름",
+ namePlaceholder:"예: Roki",
+ style:"스타일",
+ anime:"애니",
+ dark:"다크",
+ cyber:"사이버",
+ battle:"배틀",
+ fantasy:"판타지",
+ cute:"귀여운",
+ color:"메인 컬러",
+ generate:"✨ 게임 아이콘 생성",
+ result:"완성된 게임 아이콘",
+ download:"이미지 저장"
+},
+
+vi:{
+ badge:"AI TẠO BIỂU TƯỢNG GAME",
+ hero:"Tạo biểu tượng game độc đáo bằng AI",
+ choose:"Chọn cách tạo",
+ fromImage:"Tạo từ hình ảnh",
+ fromImageDesc:"Tải ảnh nhân vật lên",
+ fromIdea:"Tạo từ ý tưởng",
+ fromIdeaDesc:"Mô tả ý tưởng để AI tạo",
+ character:"Hình ảnh nhân vật",
+ upload:"Tải hình ảnh",
+ formats:"JPG / PNG / WEBP",
+ idea:"Ý tưởng của bạn",
+ ideaLabel:"Bạn muốn biểu tượng như thế nào?",
+ promptPlaceholder:"Ví dụ: Chiến binh mạnh mẽ với ngọn lửa xanh, mặc đồ đen, tư thế đầy uy lực.",
+ playerName:"Tên người chơi",
+ namePlaceholder:"Ví dụ: Roki",
+ style:"Phong cách",
+ anime:"Anime",
+ dark:"Bóng tối",
+ cyber:"Cyber",
+ battle:"Chiến đấu",
+ fantasy:"Fantasy",
+ cute:"Dễ thương",
+ color:"Màu chính",
+ generate:"✨ Tạo biểu tượng game",
+ result:"Biểu tượng game hoàn thành",
+ download:"Lưu hình ảnh"
+},
+
+id:{
+ badge:"AI PEMBUAT IKON GAME",
+ hero:"Buat ikon game unik dengan AI",
+ choose:"Pilih cara membuat",
+ fromImage:"Buat dari Gambar",
+ fromImageDesc:"Upload gambar karakter",
+ fromIdea:"Buat dari Ide",
+ fromIdeaDesc:"Jelaskan ide dan biarkan AI membuatnya",
+ character:"Gambar Karakter",
+ upload:"Upload Gambar",
+ formats:"JPG / PNG / WEBP",
+ idea:"Ide Anda",
+ ideaLabel:"Ikon seperti apa yang Anda inginkan?",
+ promptPlaceholder:"Contoh: Prajurit keren dengan api biru, pakaian hitam, pose yang kuat.",
+ playerName:"Nama Pemain",
+ namePlaceholder:"Contoh: Roki",
+ style:"Gaya",
+ anime:"Anime",
+ dark:"Dark",
+ cyber:"Cyber",
+ battle:"Battle",
+ fantasy:"Fantasy",
+ cute:"Cute",
+ color:"Warna Utama",
+ generate:"✨ Buat Ikon Game",
+ result:"Ikon Game Anda",
+ download:"Simpan Gambar"
+}
+
+};
+
+
+/* =========================
+   LANGUAGE CHANGE
+========================= */
+
+const language = document.getElementById("language");
+
+function translate(lang){
+
+  const data = translations[lang];
+
+  document.documentElement.lang = lang;
+
+  document.querySelectorAll("[data-i18n]").forEach(el=>{
+
+    const key = el.dataset.i18n;
+
+    if(data[key]){
+      el.textContent = data[key];
+    }
+
+  });
+
+  document.querySelectorAll("[data-placeholder]").forEach(el=>{
+
+    const key = el.dataset.placeholder;
+
+    if(data[key]){
+      el.placeholder = data[key];
+    }
+
+  });
+
+}
+
+language.addEventListener("change",()=>{
+
+  translate(language.value);
+
+});
+
+
+/* =========================
+   CREATE MODE
+========================= */
+
+let createMode = "image";
+
+document.querySelectorAll(".option").forEach(option=>{
+
+  option.addEventListener("click",()=>{
+
+    document.querySelectorAll(".option")
+      .forEach(x=>x.classList.remove("active"));
+
+    option.classList.add("active");
+
+    createMode = option.dataset.mode;
+
+    const uploadCard =
+      document.getElementById("uploadCard");
+
+    if(createMode === "image"){
+
+      uploadCard.style.display = "block";
+
+    }else{
+
+      uploadCard.style.display = "none";
+
+    }
+
+  });
+
+});
+
+
+/* =========================
+   IMAGE UPLOAD
+========================= */
+
+const imageInput =
+  document.getElementById("imageInput");
+
+const preview =
+  document.getElementById("preview");
+
+const uploadContent =
+  document.getElementById("uploadContent");
+
+let uploadedImage = null;
+
+imageInput.addEventListener("change",()=>{
+
+  const file = imageInput.files[0];
+
+  if(!file) return;
+
+  const reader = new FileReader();
+
+  reader.onload = e=>{
+
+    uploadedImage = e.target.result;
+
+    preview.src = uploadedImage;
+
+    preview.style.display = "block";
+
+    uploadContent.style.display = "none";
+
+  };
+
+  reader.readAsDataURL(file);
+
+});
+
+
+/* =========================
+   STYLE
+========================= */
+
+let selectedStyle = "anime";
+
+document.querySelectorAll(".style").forEach(el=>{
+
+  el.addEventListener("click",()=>{
+
+    document.querySelectorAll(".style")
+      .forEach(x=>x.classList.remove("active"));
+
+    el.classList.add("active");
+
+    selectedStyle = el.dataset.style;
+
+  });
+
+});
+
+
+/* =========================
+   COLOR
+========================= */
+
+let selectedColor = "black";
+
+document.querySelectorAll(".color").forEach(el=>{
+
+  el.addEventListener("click",()=>{
+
+    document.querySelectorAll(".color")
+      .forEach(x=>x.classList.remove("active"));
+
+    el.classList.add("active");
+
+    selectedColor = el.dataset.color;
+
+  });
+
+});
+
+
+/* =========================
+   GENERATE
+========================= */
+
+const generateButton =
+  document.getElementById("generate");
+
+generateButton.addEventListener("click",async()=>{
+
+  const prompt =
+    document.getElementById("prompt").value.trim();
+
+  const playerName =
+    document.getElementById("playerName").value.trim();
+
+  if(!prompt){
+
+    alert(
+      translations[language.value].ideaLabel
+    );
+
+    return;
+
+  }
+
+  generateButton.disabled = true;
+
+  const originalText =
+    translations[language.value].generate;
+
+  generateButton.textContent =
+    "✨ Generating...";
+
+  try{
+
+    const response = await fetch("/api/generate",{
+
+      method:"POST",
+
+      headers:{
+        "Content-Type":"application/json"
+      },
+
+      body:JSON.stringify({
+
+        mode:createMode,
+
+        prompt:prompt,
+
+        playerName:playerName,
+
+        style:selectedStyle,
+
+        color:selectedColor,
+
+        image:uploadedImage
+
+      })
+
+    });
+
+    const data = await response.json();
+
+    if(!response.ok){
+
+      throw new Error(
+        data.error || "Generation failed"
+      );
+
+    }
+
+    const result =
+      document.getElementById("result");
+
+    const resultImage =
+      document.getElementById("resultImage");
+
+    const download =
+      document.getElementById("download");
+
+    resultImage.src = data.image;
+
+    download.href = data.image;
+
+    result.style.display = "block";
+
+    result.scrollIntoView({
+      behavior:"smooth"
+    });
+
+  }catch(error){
+
+    alert(error.message);
+
+  }finally{
+
+    generateButton.disabled = false;
+
+    generateButton.textContent =
+      originalText;
+
+  }
+
+});
+
+
+/* 初期言語 */
+
+translate("ja");
+
+</script>
+
+</body>
+</html>
