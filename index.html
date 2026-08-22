@@ -1,422 +1,784 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>GAME ICON AI</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <style>
-    * {
-      box-sizing: border-box;
-    }
+<title>GAME ICON AI</title>
 
-    body {
-      margin: 0;
-      min-height: 100vh;
-      background:
-        radial-gradient(circle at top, #29200d 0%, #090909 45%, #030303 100%);
-      color: #fff;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    }
+<style>
 
-    .container {
-      width: 100%;
-      max-width: 520px;
-      margin: 0 auto;
-      padding: 28px 18px 50px;
-    }
+*{
+  box-sizing:border-box;
+}
 
-    .logo {
-      text-align: center;
-      margin-bottom: 8px;
-      font-size: 32px;
-      font-weight: 900;
-      letter-spacing: 3px;
-      background: linear-gradient(90deg, #fff, #d4af37, #fff);
-      -webkit-background-clip: text;
-      color: transparent;
-    }
+body{
+  margin:0;
+  background:#050505;
+  color:#fff;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+}
 
-    .subtitle {
-      text-align: center;
-      color: #aaa;
-      font-size: 14px;
-      margin-bottom: 30px;
-    }
+body:before{
+  content:"";
+  position:fixed;
+  inset:0;
+  background:
+    radial-gradient(circle at 50% -10%,rgba(212,175,55,.18),transparent 35%);
+  pointer-events:none;
+}
 
-    .card {
-      background: rgba(20, 20, 20, 0.92);
-      border: 1px solid rgba(212, 175, 55, 0.3);
-      border-radius: 20px;
-      padding: 20px;
-      margin-bottom: 18px;
-      box-shadow: 0 15px 40px rgba(0,0,0,.35);
-    }
+.container{
+  width:100%;
+  max-width:560px;
+  margin:auto;
+  padding:28px 18px 60px;
+}
 
-    .label {
-      display: block;
-      margin-bottom: 10px;
-      font-size: 14px;
-      font-weight: 700;
-      color: #ddd;
-    }
+.logo{
+  text-align:center;
+  font-size:32px;
+  font-weight:900;
+  letter-spacing:4px;
+  margin:10px 0 5px;
 
-    input[type="text"] {
-      width: 100%;
-      padding: 14px;
-      border-radius: 12px;
-      border: 1px solid #444;
-      background: #111;
-      color: #fff;
-      font-size: 16px;
-      outline: none;
-    }
+  background:linear-gradient(
+    90deg,
+    #ffffff,
+    #d4af37,
+    #fff1a8,
+    #d4af37,
+    #ffffff
+  );
 
-    input[type="text"]:focus {
-      border-color: #d4af37;
-    }
+  -webkit-background-clip:text;
+  color:transparent;
+}
 
-    .upload {
-      border: 2px dashed #555;
-      border-radius: 16px;
-      padding: 28px 15px;
-      text-align: center;
-      cursor: pointer;
-      background: #101010;
-      color: #aaa;
-    }
+.tagline{
+  text-align:center;
+  color:#888;
+  font-size:13px;
+  margin-bottom:32px;
+}
 
-    .upload:hover {
-      border-color: #d4af37;
-      color: #fff;
-    }
+.card{
+  background:linear-gradient(
+    145deg,
+    rgba(25,25,25,.96),
+    rgba(10,10,10,.96)
+  );
 
-    #fileInput {
-      display: none;
-    }
+  border:1px solid #292929;
+  border-radius:20px;
+  padding:20px;
+  margin-bottom:16px;
+}
 
-    #previewImage {
-      display: none;
-      width: 100%;
-      max-width: 260px;
-      aspect-ratio: 1 / 1;
-      object-fit: cover;
-      border-radius: 18px;
-      margin: 15px auto 0;
-      border: 2px solid #d4af37;
-    }
+.section-title{
+  font-size:15px;
+  font-weight:800;
+  margin-bottom:14px;
+}
 
-    .options {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-    }
+.upload{
+  border:2px dashed #444;
+  border-radius:16px;
+  min-height:180px;
 
-    .option {
-      padding: 13px 8px;
-      border: 1px solid #444;
-      border-radius: 12px;
-      background: #111;
-      color: #ccc;
-      text-align: center;
-      cursor: pointer;
-      font-weight: 600;
-    }
+  display:flex;
+  align-items:center;
+  justify-content:center;
 
-    .option.selected {
-      border-color: #d4af37;
-      background: rgba(212, 175, 55, .12);
-      color: #fff;
-      box-shadow: 0 0 15px rgba(212,175,55,.12);
-    }
+  text-align:center;
+  color:#999;
+  cursor:pointer;
 
-    .colors {
-      display: flex;
-      gap: 12px;
-      flex-wrap: wrap;
-    }
+  transition:.2s;
+}
 
-    .color {
-      width: 42px;
-      height: 42px;
-      border-radius: 50%;
-      border: 3px solid transparent;
-      cursor: pointer;
-    }
+.upload:hover{
+  border-color:#d4af37;
+  color:#fff;
+}
 
-    .color.selected {
-      border-color: #fff;
-      box-shadow: 0 0 12px rgba(255,255,255,.5);
-    }
+.upload-icon{
+  font-size:42px;
+  margin-bottom:8px;
+}
 
-    .red { background: #e53935; }
-    .blue { background: #1976d2; }
-    .purple { background: #8e44ad; }
-    .black { background: #000; border: 1px solid #555; }
-    .white { background: #fff; }
+.upload-text{
+  font-size:14px;
+}
 
-    .generate {
-      width: 100%;
-      padding: 17px;
-      border: none;
-      border-radius: 14px;
-      background: linear-gradient(135deg, #d4af37, #8f6b13);
-      color: #000;
-      font-size: 17px;
-      font-weight: 900;
-      cursor: pointer;
-      box-shadow: 0 10px 25px rgba(212,175,55,.2);
-    }
+#fileInput{
+  display:none;
+}
 
-    .generate:active {
-      transform: scale(.98);
-    }
+#imagePreview{
+  display:none;
 
-    .result {
-      display: none;
-      text-align: center;
-    }
+  width:100%;
+  max-width:280px;
+  aspect-ratio:1/1;
 
-    .resultBox {
-      aspect-ratio: 1 / 1;
-      border-radius: 20px;
-      background:
-        linear-gradient(135deg, #151515, #050505);
-      border: 2px solid #d4af37;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-      overflow: hidden;
-    }
+  object-fit:cover;
 
-    .resultName {
-      font-size: 34px;
-      font-weight: 900;
-      letter-spacing: 2px;
-      text-shadow: 0 3px 15px #000;
-    }
+  margin:15px auto 0;
 
-    .notice {
-      color: #888;
-      font-size: 12px;
-      text-align: center;
-      margin-top: 20px;
-      line-height: 1.6;
-    }
-  </style>
+  border-radius:18px;
+  border:2px solid #d4af37;
+}
+
+input[type="text"]{
+  width:100%;
+  height:52px;
+
+  padding:0 15px;
+
+  border-radius:13px;
+  border:1px solid #383838;
+
+  background:#080808;
+  color:#fff;
+
+  font-size:16px;
+  outline:none;
+}
+
+input[type="text"]:focus{
+  border-color:#d4af37;
+}
+
+.styles{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+}
+
+.style{
+  border:1px solid #383838;
+  background:#0c0c0c;
+  color:#aaa;
+
+  padding:15px 8px;
+
+  border-radius:13px;
+
+  text-align:center;
+  font-weight:700;
+
+  cursor:pointer;
+}
+
+.style.active{
+  border-color:#d4af37;
+  color:#fff;
+  background:rgba(212,175,55,.1);
+}
+
+.colors{
+  display:flex;
+  gap:14px;
+}
+
+.color{
+  width:40px;
+  height:40px;
+
+  border-radius:50%;
+
+  border:3px solid transparent;
+
+  cursor:pointer;
+}
+
+.color.active{
+  border-color:#fff;
+  transform:scale(1.1);
+}
+
+.red{background:#e53935;}
+.blue{background:#1976d2;}
+.purple{background:#8e44ad;}
+.gold{background:#d4af37;}
+.black{background:#000;border:1px solid #555;}
+.white{background:#fff;}
+
+.generate{
+  width:100%;
+  height:58px;
+
+  border:0;
+  border-radius:15px;
+
+  background:
+    linear-gradient(
+      135deg,
+      #f2d675,
+      #c49a25
+    );
+
+  color:#080808;
+
+  font-size:17px;
+  font-weight:900;
+
+  cursor:pointer;
+
+  box-shadow:
+    0 10px 30px rgba(212,175,55,.18);
+}
+
+.generate:active{
+  transform:scale(.98);
+}
+
+.result{
+  display:none;
+}
+
+.result-title{
+  text-align:center;
+  font-size:18px;
+  font-weight:900;
+  margin-bottom:16px;
+}
+
+.icon-result{
+  width:100%;
+  aspect-ratio:1/1;
+
+  border-radius:22px;
+
+  display:flex;
+  align-items:flex-end;
+  justify-content:center;
+
+  position:relative;
+  overflow:hidden;
+
+  border:2px solid #d4af37;
+
+  background:
+    radial-gradient(
+      circle at center,
+      #292929,
+      #050505
+    );
+}
+
+.icon-result:before{
+  content:"";
+  position:absolute;
+  inset:0;
+
+  background:
+    radial-gradient(
+      circle at 50% 35%,
+      rgba(255,255,255,.1),
+      transparent 45%
+    );
+}
+
+.icon-name{
+  position:relative;
+
+  margin-bottom:25px;
+
+  font-size:34px;
+  font-weight:1000;
+
+  letter-spacing:2px;
+
+  text-shadow:
+    0 4px 15px #000,
+    0 0 15px rgba(255,255,255,.2);
+}
+
+.download{
+  width:100%;
+  height:52px;
+
+  margin-top:15px;
+
+  border-radius:13px;
+
+  border:1px solid #444;
+
+  background:#111;
+  color:#fff;
+
+  font-weight:800;
+
+  cursor:pointer;
+}
+
+.note{
+  text-align:center;
+  color:#666;
+  font-size:11px;
+  margin-top:20px;
+  line-height:1.7;
+}
+
+.footer{
+  text-align:center;
+  color:#444;
+  font-size:11px;
+  margin-top:30px;
+}
+
+</style>
 </head>
 
 <body>
 
-  <main class="container">
+<div class="container">
 
-    <h1 class="logo">GAME ICON AI</h1>
+  <div class="logo">
+    GAME ICON AI
+  </div>
 
-    <p class="subtitle">
-      AIで、あなただけのゲームアイコンを作ろう。
-    </p>
+  <div class="tagline">
+    CREATE YOUR ULTIMATE GAME ICON
+  </div>
 
-    <section class="card">
 
-      <label class="label">キャラクター画像</label>
+  <!-- IMAGE -->
 
-      <label class="upload" for="fileInput">
-        📷 タップして画像をアップロード
-        <input id="fileInput" type="file" accept="image/*">
-      </label>
+  <div class="card">
 
-      <img id="previewImage" alt="Preview">
+    <div class="section-title">
+      01 / CHARACTER
+    </div>
 
-    </section>
+    <label class="upload" for="fileInput">
 
-    <section class="card">
+      <div>
 
-      <label class="label">プレイヤー名</label>
+        <div class="upload-icon">
+          🎮
+        </div>
 
-      <input
-        id="playerName"
-        type="text"
-        placeholder="例：Roki"
-        maxlength="20"
-      >
+        <div class="upload-text">
+          タップして画像をアップロード
+          <br>
+          JPG / PNG
+        </div>
 
-    </section>
-
-    <section class="card">
-
-      <label class="label">スタイル</label>
-
-      <div class="options">
-        <button class="option selected" data-style="dark">🌑 ダーク</button>
-        <button class="option" data-style="battle">⚔️ バトル</button>
-        <button class="option" data-style="cyber">🤖 サイバー</button>
-        <button class="option" data-style="cute">🌸 キュート</button>
       </div>
 
-    </section>
-
-    <section class="card">
-
-      <label class="label">メインカラー</label>
-
-      <div class="colors">
-        <button class="color red selected" data-color="#e53935"></button>
-        <button class="color blue" data-color="#1976d2"></button>
-        <button class="color purple" data-color="#8e44ad"></button>
-        <button class="color black" data-color="#000000"></button>
-        <button class="color white" data-color="#ffffff"></button>
-      </div>
-
-    </section>
-
-    <section class="card">
-
-      <label class="label">アイコンに入れる文字</label>
-
       <input
-        id="iconText"
-        type="text"
-        placeholder="例：Roki"
-        maxlength="20"
+        id="fileInput"
+        type="file"
+        accept="image/*"
       >
 
-    </section>
+    </label>
 
-    <section class="card">
+    <img
+      id="imagePreview"
+      alt="Character preview"
+    >
 
-      <button class="generate" id="generateBtn">
-        ✨ AIで生成
+  </div>
+
+
+  <!-- NAME -->
+
+  <div class="card">
+
+    <div class="section-title">
+      02 / PLAYER NAME
+    </div>
+
+    <input
+      id="playerName"
+      type="text"
+      maxlength="20"
+      placeholder="例：Roki"
+    >
+
+  </div>
+
+
+  <!-- STYLE -->
+
+  <div class="card">
+
+    <div class="section-title">
+      03 / STYLE
+    </div>
+
+    <div class="styles">
+
+      <button class="style active" data-style="anime">
+        ⚔️ ANIME
       </button>
 
-    </section>
+      <button class="style" data-style="dark">
+        🌑 DARK
+      </button>
 
-    <section class="card result" id="result">
+      <button class="style" data-style="cyber">
+        🤖 CYBER
+      </button>
 
-      <label class="label">生成プレビュー</label>
+      <button class="style" data-style="battle">
+        🔥 BATTLE
+      </button>
 
-      <div class="resultBox" id="resultBox">
-        <div class="resultName" id="resultName">
-          GAME
-        </div>
+      <button class="style" data-style="fantasy">
+        🐉 FANTASY
+      </button>
+
+      <button class="style" data-style="cute">
+        ✨ CUTE
+      </button>
+
+    </div>
+
+  </div>
+
+
+  <!-- COLOR -->
+
+  <div class="card">
+
+    <div class="section-title">
+      04 / COLOR
+    </div>
+
+    <div class="colors">
+
+      <button
+        class="color red active"
+        data-color="#e53935">
+      </button>
+
+      <button
+        class="color blue"
+        data-color="#1976d2">
+      </button>
+
+      <button
+        class="color purple"
+        data-color="#8e44ad">
+      </button>
+
+      <button
+        class="color gold"
+        data-color="#d4af37">
+      </button>
+
+      <button
+        class="color black"
+        data-color="#000000">
+      </button>
+
+      <button
+        class="color white"
+        data-color="#ffffff">
+      </button>
+
+    </div>
+
+  </div>
+
+
+  <!-- TEXT -->
+
+  <div class="card">
+
+    <div class="section-title">
+      05 / ICON TEXT
+    </div>
+
+    <input
+      id="iconText"
+      type="text"
+      maxlength="20"
+      placeholder="例：AxLF"
+    >
+
+  </div>
+
+
+  <!-- GENERATE -->
+
+  <div class="card">
+
+    <button
+      class="generate"
+      id="generateBtn">
+
+      ✨ CREATE ICON
+
+    </button>
+
+  </div>
+
+
+  <!-- RESULT -->
+
+  <div
+    class="card result"
+    id="result">
+
+    <div class="result-title">
+      YOUR ICON
+    </div>
+
+    <div
+      class="icon-result"
+      id="iconResult">
+
+      <div
+        class="icon-name"
+        id="iconName">
+        GAME
       </div>
 
-      <p class="notice">
-        現在はプレビュー版です。<br>
-        次の段階でAI画像生成機能を接続します。
-      </p>
+    </div>
 
-    </section>
+    <button
+      class="download"
+      id="downloadBtn">
 
-  </main>
+      ⬇ DOWNLOAD
+
+    </button>
+
+    <div class="note">
+      AI generation will be connected in the next step.
+    </div>
+
+  </div>
+
+
+  <div class="footer">
+    GAME ICON AI © 2026
+  </div>
+
+</div>
+
 
 <script>
 
-  let selectedStyle = "dark";
-  let selectedColor = "#e53935";
+let selectedStyle = "anime";
+let selectedColor = "#e53935";
 
-  const fileInput = document.getElementById("fileInput");
-  const previewImage = document.getElementById("previewImage");
 
-  fileInput.addEventListener("change", function() {
+/* IMAGE */
+
+const fileInput =
+  document.getElementById("fileInput");
+
+const imagePreview =
+  document.getElementById("imagePreview");
+
+
+fileInput.addEventListener(
+  "change",
+  function(){
 
     const file = this.files[0];
 
-    if (!file) return;
+    if(!file) return;
 
-    const reader = new FileReader();
+    const reader =
+      new FileReader();
 
-    reader.onload = function(e) {
-      previewImage.src = e.target.result;
-      previewImage.style.display = "block";
-    };
+    reader.onload =
+      function(e){
+
+        imagePreview.src =
+          e.target.result;
+
+        imagePreview.style.display =
+          "block";
+
+      };
 
     reader.readAsDataURL(file);
-  });
+
+  }
+);
 
 
-  document.querySelectorAll(".option").forEach(button => {
+/* STYLE */
 
-    button.addEventListener("click", function() {
+document
+.querySelectorAll(".style")
+.forEach(button => {
 
-      document.querySelectorAll(".option")
-        .forEach(b => b.classList.remove("selected"));
+  button.addEventListener(
+    "click",
+    function(){
 
-      this.classList.add("selected");
+      document
+      .querySelectorAll(".style")
+      .forEach(b =>
+        b.classList.remove("active")
+      );
 
-      selectedStyle = this.dataset.style;
+      this.classList.add("active");
 
+      selectedStyle =
+        this.dataset.style;
+
+    }
+  );
+
+});
+
+
+/* COLOR */
+
+document
+.querySelectorAll(".color")
+.forEach(button => {
+
+  button.addEventListener(
+    "click",
+    function(){
+
+      document
+      .querySelectorAll(".color")
+      .forEach(b =>
+        b.classList.remove("active")
+      );
+
+      this.classList.add("active");
+
+      selectedColor =
+        this.dataset.color;
+
+    }
+  );
+
+});
+
+
+/* GENERATE */
+
+document
+.getElementById("generateBtn")
+.addEventListener(
+  "click",
+  function(){
+
+    const player =
+      document
+      .getElementById("playerName")
+      .value;
+
+    const text =
+      document
+      .getElementById("iconText")
+      .value;
+
+    const finalText =
+      text ||
+      player ||
+      "GAME";
+
+
+    const result =
+      document
+      .getElementById("result");
+
+    const iconResult =
+      document
+      .getElementById("iconResult");
+
+    const iconName =
+      document
+      .getElementById("iconName");
+
+
+    iconName.textContent =
+      finalText;
+
+    iconName.style.color =
+      selectedColor;
+
+    iconResult.style.borderColor =
+      selectedColor;
+
+
+    /* STYLE BACKGROUNDS */
+
+    if(selectedStyle === "anime"){
+
+      iconResult.style.background =
+        "radial-gradient(circle,#343434,#050505)";
+
+    }
+
+    if(selectedStyle === "dark"){
+
+      iconResult.style.background =
+        "linear-gradient(145deg,#191919,#000)";
+
+    }
+
+    if(selectedStyle === "cyber"){
+
+      iconResult.style.background =
+        "linear-gradient(145deg,#002c45,#02070a)";
+
+    }
+
+    if(selectedStyle === "battle"){
+
+      iconResult.style.background =
+        "linear-gradient(145deg,#4b0b0b,#080000)";
+
+    }
+
+    if(selectedStyle === "fantasy"){
+
+      iconResult.style.background =
+        "linear-gradient(145deg,#25124d,#05010d)";
+
+    }
+
+    if(selectedStyle === "cute"){
+
+      iconResult.style.background =
+        "linear-gradient(145deg,#4b1745,#0d020b)";
+
+    }
+
+
+    result.style.display =
+      "block";
+
+
+    result.scrollIntoView({
+      behavior:"smooth"
     });
 
-  });
+  }
+);
 
 
-  document.querySelectorAll(".color").forEach(button => {
+/* DOWNLOAD */
 
-    button.addEventListener("click", function() {
+document
+.getElementById("downloadBtn")
+.addEventListener(
+  "click",
+  function(){
 
-      document.querySelectorAll(".color")
-        .forEach(b => b.classList.remove("selected"));
+    alert(
+      "AI画像生成機能を接続した後、完成したアイコンをダウンロードできるようになります。"
+    );
 
-      this.classList.add("selected");
-
-      selectedColor = this.dataset.color;
-
-    });
-
-  });
-
-
-  document.getElementById("generateBtn")
-    .addEventListener("click", function() {
-
-      const name =
-        document.getElementById("iconText").value ||
-        document.getElementById("playerName").value ||
-        "GAME";
-
-      const result =
-        document.getElementById("result");
-
-      const resultBox =
-        document.getElementById("resultBox");
-
-      const resultName =
-        document.getElementById("resultName");
-
-      result.style.display = "block";
-
-      resultName.textContent = name;
-
-      resultBox.style.borderColor = selectedColor;
-
-      resultName.style.color = selectedColor;
-
-      if (selectedStyle === "cyber") {
-        resultBox.style.background =
-          "linear-gradient(135deg,#001f3f,#000)";
-      }
-
-      if (selectedStyle === "battle") {
-        resultBox.style.background =
-          "linear-gradient(135deg,#3a0000,#080000)";
-      }
-
-      if (selectedStyle === "cute") {
-        resultBox.style.background =
-          "linear-gradient(135deg,#30152f,#080008)";
-      }
-
-      if (selectedStyle === "dark") {
-        resultBox.style.background =
-          "linear-gradient(135deg,#181818,#030303)";
-      }
-
-      result.scrollIntoView({
-        behavior: "smooth"
-      });
-
-    });
+  }
+);
 
 </script>
 
