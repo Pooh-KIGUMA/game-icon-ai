@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GAME ICON AI</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at top, #29200d 0%, #090909 45%, #030303 100%);
+      color: #fff;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 520px;
+      margin: 0 auto;
+      padding: 28px 18px 50px;
+    }
+
+    .logo {
+      text-align: center;
+      margin-bottom: 8px;
+      font-size: 32px;
+      font-weight: 900;
+      letter-spacing: 3px;
+      background: linear-gradient(90deg, #fff, #d4af37, #fff);
+      -webkit-background-clip: text;
+      color: transparent;
+    }
+
+    .subtitle {
+      text-align: center;
+      color: #aaa;
+      font-size: 14px;
+      margin-bottom: 30px;
+    }
+
+    .card {
+      background: rgba(20, 20, 20, 0.92);
+      border: 1px solid rgba(212, 175, 55, 0.3);
+      border-radius: 20px;
+      padding: 20px;
+      margin-bottom: 18px;
+      box-shadow: 0 15px 40px rgba(0,0,0,.35);
+    }
+
+    .label {
+      display: block;
+      margin-bottom: 10px;
+      font-size: 14px;
+      font-weight: 700;
+      color: #ddd;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      padding: 14px;
+      border-radius: 12px;
+      border: 1px solid #444;
+      background: #111;
+      color: #fff;
+      font-size: 16px;
+      outline: none;
+    }
+
+    input[type="text"]:focus {
+      border-color: #d4af37;
+    }
+
+    .upload {
+      border: 2px dashed #555;
+      border-radius: 16px;
+      padding: 28px 15px;
+      text-align: center;
+      cursor: pointer;
+      background: #101010;
+      color: #aaa;
+    }
+
+    .upload:hover {
+      border-color: #d4af37;
+      color: #fff;
+    }
+
+    #fileInput {
+      display: none;
+    }
+
+    #previewImage {
+      display: none;
+      width: 100%;
+      max-width: 260px;
+      aspect-ratio: 1 / 1;
+      object-fit: cover;
+      border-radius: 18px;
+      margin: 15px auto 0;
+      border: 2px solid #d4af37;
+    }
+
+    .options {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .option {
+      padding: 13px 8px;
+      border: 1px solid #444;
+      border-radius: 12px;
+      background: #111;
+      color: #ccc;
+      text-align: center;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    .option.selected {
+      border-color: #d4af37;
+      background: rgba(212, 175, 55, .12);
+      color: #fff;
+      box-shadow: 0 0 15px rgba(212,175,55,.12);
+    }
+
+    .colors {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .color {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      border: 3px solid transparent;
+      cursor: pointer;
+    }
+
+    .color.selected {
+      border-color: #fff;
+      box-shadow: 0 0 12px rgba(255,255,255,.5);
+    }
+
+    .red { background: #e53935; }
+    .blue { background: #1976d2; }
+    .purple { background: #8e44ad; }
+    .black { background: #000; border: 1px solid #555; }
+    .white { background: #fff; }
+
+    .generate {
+      width: 100%;
+      padding: 17px;
+      border: none;
+      border-radius: 14px;
+      background: linear-gradient(135deg, #d4af37, #8f6b13);
+      color: #000;
+      font-size: 17px;
+      font-weight: 900;
+      cursor: pointer;
+      box-shadow: 0 10px 25px rgba(212,175,55,.2);
+    }
+
+    .generate:active {
+      transform: scale(.98);
+    }
+
+    .result {
+      display: none;
+      text-align: center;
+    }
+
+    .resultBox {
+      aspect-ratio: 1 / 1;
+      border-radius: 20px;
+      background:
+        linear-gradient(135deg, #151515, #050505);
+      border: 2px solid #d4af37;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      overflow: hidden;
+    }
+
+    .resultName {
+      font-size: 34px;
+      font-weight: 900;
+      letter-spacing: 2px;
+      text-shadow: 0 3px 15px #000;
+    }
+
+    .notice {
+      color: #888;
+      font-size: 12px;
+      text-align: center;
+      margin-top: 20px;
+      line-height: 1.6;
+    }
+  </style>
+</head>
+
+<body>
+
+  <main class="container">
+
+    <h1 class="logo">GAME ICON AI</h1>
+
+    <p class="subtitle">
+      AIで、あなただけのゲームアイコンを作ろう。
+    </p>
+
+    <section class="card">
+
+      <label class="label">キャラクター画像</label>
+
+      <label class="upload" for="fileInput">
+        📷 タップして画像をアップロード
+        <input id="fileInput" type="file" accept="image/*">
+      </label>
+
+      <img id="previewImage" alt="Preview">
+
+    </section>
+
+    <section class="card">
+
+      <label class="label">プレイヤー名</label>
+
+      <input
+        id="playerName"
+        type="text"
+        placeholder="例：Roki"
+        maxlength="20"
+      >
+
+    </section>
+
+    <section class="card">
+
+      <label class="label">スタイル</label>
+
+      <div class="options">
+        <button class="option selected" data-style="dark">🌑 ダーク</button>
+        <button class="option" data-style="battle">⚔️ バトル</button>
+        <button class="option" data-style="cyber">🤖 サイバー</button>
+        <button class="option" data-style="cute">🌸 キュート</button>
+      </div>
+
+    </section>
+
+    <section class="card">
+
+      <label class="label">メインカラー</label>
+
+      <div class="colors">
+        <button class="color red selected" data-color="#e53935"></button>
+        <button class="color blue" data-color="#1976d2"></button>
+        <button class="color purple" data-color="#8e44ad"></button>
+        <button class="color black" data-color="#000000"></button>
+        <button class="color white" data-color="#ffffff"></button>
+      </div>
+
+    </section>
+
+    <section class="card">
+
+      <label class="label">アイコンに入れる文字</label>
+
+      <input
+        id="iconText"
+        type="text"
+        placeholder="例：Roki"
+        maxlength="20"
+      >
+
+    </section>
+
+    <section class="card">
+
+      <button class="generate" id="generateBtn">
+        ✨ AIで生成
+      </button>
+
+    </section>
+
+    <section class="card result" id="result">
+
+      <label class="label">生成プレビュー</label>
+
+      <div class="resultBox" id="resultBox">
+        <div class="resultName" id="resultName">
+          GAME
+        </div>
+      </div>
+
+      <p class="notice">
+        現在はプレビュー版です。<br>
+        次の段階でAI画像生成機能を接続します。
+      </p>
+
+    </section>
+
+  </main>
+
+<script>
+
+  let selectedStyle = "dark";
+  let selectedColor = "#e53935";
+
+  const fileInput = document.getElementById("fileInput");
+  const previewImage = document.getElementById("previewImage");
+
+  fileInput.addEventListener("change", function() {
+
+    const file = this.files[0];
+
+    if (!file) return;
+
+    const reader = new FileReader();
+
+    reader.onload = function(e) {
+      previewImage.src = e.target.result;
+      previewImage.style.display = "block";
+    };
+
+    reader.readAsDataURL(file);
+  });
+
+
+  document.querySelectorAll(".option").forEach(button => {
+
+    button.addEventListener("click", function() {
+
+      document.querySelectorAll(".option")
+        .forEach(b => b.classList.remove("selected"));
+
+      this.classList.add("selected");
+
+      selectedStyle = this.dataset.style;
+
+    });
+
+  });
+
+
+  document.querySelectorAll(".color").forEach(button => {
+
+    button.addEventListener("click", function() {
+
+      document.querySelectorAll(".color")
+        .forEach(b => b.classList.remove("selected"));
+
+      this.classList.add("selected");
+
+      selectedColor = this.dataset.color;
+
+    });
+
+  });
+
+
+  document.getElementById("generateBtn")
+    .addEventListener("click", function() {
+
+      const name =
+        document.getElementById("iconText").value ||
+        document.getElementById("playerName").value ||
+        "GAME";
+
+      const result =
+        document.getElementById("result");
+
+      const resultBox =
+        document.getElementById("resultBox");
+
+      const resultName =
+        document.getElementById("resultName");
+
+      result.style.display = "block";
+
+      resultName.textContent = name;
+
+      resultBox.style.borderColor = selectedColor;
+
+      resultName.style.color = selectedColor;
+
+      if (selectedStyle === "cyber") {
+        resultBox.style.background =
+          "linear-gradient(135deg,#001f3f,#000)";
+      }
+
+      if (selectedStyle === "battle") {
+        resultBox.style.background =
+          "linear-gradient(135deg,#3a0000,#080000)";
+      }
+
+      if (selectedStyle === "cute") {
+        resultBox.style.background =
+          "linear-gradient(135deg,#30152f,#080008)";
+      }
+
+      if (selectedStyle === "dark") {
+        resultBox.style.background =
+          "linear-gradient(135deg,#181818,#030303)";
+      }
+
+      result.scrollIntoView({
+        behavior: "smooth"
+      });
+
+    });
+
+</script>
+
+</body>
+</html>
