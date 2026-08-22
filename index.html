@@ -318,4 +318,449 @@ textarea:focus{
   text-decoration:none;
   margin-top:14px;
   padding:14px;
-  border-radius:13
+  border-radius:13px;
+  background:#fff;
+  color:#111;
+  font-weight:800;
+}
+
+.note{
+  text-align:center;
+  color:#696e79;
+  font-size:11px;
+  line-height:1.7;
+  margin-top:24px;
+}
+
+@media(max-width:650px){
+
+  .container{
+    width:min(100% - 20px,900px);
+    padding-top:28px;
+  }
+
+  .card{
+    padding:18px;
+    border-radius:18px;
+  }
+
+  .options{
+    grid-template-columns:1fr;
+  }
+
+  .styles{
+    grid-template-columns:1fr 1fr;
+  }
+
+  h1{
+    letter-spacing:-2px;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<header class="header">
+  <nav class="nav">
+    <div class="logo">GAME ICON <span>AI</span></div>
+
+    <select id="language" class="lang">
+      <option value="ja">🇯🇵 日本語</option>
+      <option value="en">🇺🇸 English</option>
+      <option value="zh">🇨🇳 中文</option>
+      <option value="ko">🇰🇷 한국어</option>
+      <option value="vi">🇻🇳 Tiếng Việt</option>
+    </select>
+  </nav>
+</header>
+
+<main class="container">
+
+<section class="hero">
+  <div class="badge" id="badge">AI GAME ICON GENERATOR</div>
+
+  <h1>GAME ICON AI</h1>
+
+  <p id="subtitle">
+    あなたのゲームアイコンを、AIでカッコよく。
+  </p>
+</section>
+
+<section class="card">
+
+<div class="step">
+  <div class="number">01</div>
+  <h2 id="step1">作り方を選択</h2>
+</div>
+
+<div class="options">
+
+<button class="option active" id="uploadMode">
+  <strong>📷 画像から作る</strong>
+  <small>キャラクター画像をアップロード</small>
+</button>
+
+<button class="option" id="textMode">
+  <strong>✨ イメージから作る</strong>
+  <small>文章だけでAIに作ってもらう</small>
+</button>
+
+</div>
+
+</section>
+
+<section class="card" id="uploadSection">
+
+<div class="step">
+  <div class="number">02</div>
+  <h2 id="uploadTitle">キャラクター画像</h2>
+</div>
+
+<label class="upload" for="imageInput">
+
+<div>
+  <div class="upload-icon">＋</div>
+  <strong id="uploadText">画像をアップロード</strong>
+  <small>JPG / PNG / WEBP</small>
+</div>
+
+</label>
+
+<input
+  id="imageInput"
+  type="file"
+  accept="image/png,image/jpeg,image/webp"
+  hidden
+>
+
+<div class="preview" id="preview">
+  <img id="previewImage">
+  <button class="remove" id="removeImage">×</button>
+</div>
+
+</section>
+
+<section class="card">
+
+<div class="step">
+  <div class="number">03</div>
+  <h2 id="promptTitle">イメージを入力</h2>
+</div>
+
+<textarea
+  id="prompt"
+  placeholder="例：青い炎をまとったクールな男性キャラクター。ゲームアイコン用。高級感のある背景。"
+></textarea>
+
+</section>
+
+<section class="card">
+
+<div class="step">
+  <div class="number">04</div>
+  <h2 id="styleTitle">スタイル</h2>
+</div>
+
+<div class="styles">
+
+<button class="style active" data-style="anime">⚔️ アニメ</button>
+<button class="style" data-style="dark">🌑 ダーク</button>
+<button class="style" data-style="cyber">🤖 サイバー</button>
+<button class="style" data-style="battle">🔥 バトル</button>
+<button class="style" data-style="fantasy">🐉 ファンタジー</button>
+<button class="style" data-style="cute">✨ キュート</button>
+
+</div>
+
+</section>
+
+<section class="card">
+
+<button class="generate" id="generate">
+  ✨ AIでアイコンを生成
+</button>
+
+<div class="status" id="status">
+  AIがアイコンを制作中です…
+</div>
+
+</section>
+
+<section class="card result" id="result">
+
+<div class="step">
+  <div class="number">✓</div>
+  <h2 id="resultTitle">完成しました</h2>
+</div>
+
+<img id="resultImage">
+
+<a
+  id="download"
+  class="download"
+  download="game-icon-ai.png"
+>
+  ⬇️ 画像を保存
+</a>
+
+</section>
+
+<p class="note">
+GAME ICON AI<br>
+AI-generated images may vary depending on the prompt.
+</p>
+
+</main>
+
+<script>
+
+const $ = id => document.getElementById(id);
+
+let mode = "upload";
+let selectedStyle = "anime";
+let imageData = null;
+
+const translations = {
+
+ja:{
+  subtitle:"あなたのゲームアイコンを、AIでカッコよく。",
+  step1:"作り方を選択",
+  uploadTitle:"キャラクター画像",
+  uploadText:"画像をアップロード",
+  promptTitle:"イメージを入力",
+  styleTitle:"スタイル",
+  resultTitle:"完成しました",
+  generate:"✨ AIでアイコンを生成",
+  loading:"AIがアイコンを制作中です…",
+  placeholder:"例：青い炎をまとったクールな男性キャラクター。ゲームアイコン用。高級感のある背景。"
+},
+
+en:{
+  subtitle:"Create your ultimate game icon with AI.",
+  step1:"Choose how to create",
+  uploadTitle:"Character Image",
+  uploadText:"Upload an image",
+  promptTitle:"Describe your idea",
+  styleTitle:"Style",
+  resultTitle:"Your icon is ready",
+  generate:"✨ Generate with AI",
+  loading:"AI is creating your icon…",
+  placeholder:"Example: A cool male character surrounded by blue flames, premium game icon, dramatic background."
+},
+
+zh:{
+  subtitle:"使用AI打造你的专属游戏头像。",
+  step1:"选择制作方式",
+  uploadTitle:"角色图片",
+  uploadText:"上传图片",
+  promptTitle:"描述你的想法",
+  styleTitle:"风格",
+  resultTitle:"制作完成",
+  generate:"✨ 使用AI生成",
+  loading:"AI正在制作你的头像…",
+  placeholder:"例如：被蓝色火焰包围的酷炫男性角色，高级游戏头像，华丽背景。"
+},
+
+ko:{
+  subtitle:"AI로 나만의 멋진 게임 아이콘을 만들어보세요.",
+  step1:"제작 방법 선택",
+  uploadTitle:"캐릭터 이미지",
+  uploadText:"이미지 업로드",
+  promptTitle:"이미지 설명",
+  styleTitle:"스타일",
+  resultTitle:"완성되었습니다",
+  generate:"✨ AI로 생성",
+  loading:"AI가 아이콘을 제작하고 있습니다…",
+  placeholder:"예: 푸른 불꽃에 둘러싸인 멋진 남성 캐릭터, 고급스러운 게임 아이콘."
+},
+
+vi:{
+  subtitle:"Tạo biểu tượng game độc đáo bằng AI.",
+  step1:"Chọn cách tạo",
+  uploadTitle:"Hình ảnh nhân vật",
+  uploadText:"Tải hình ảnh lên",
+  promptTitle:"Mô tả ý tưởng",
+  styleTitle:"Phong cách",
+  resultTitle:"Đã hoàn thành",
+  generate:"✨ Tạo bằng AI",
+  loading:"AI đang tạo biểu tượng của bạn…",
+  placeholder:"Ví dụ: Nhân vật nam ngầu với ngọn lửa xanh, biểu tượng game cao cấp."
+}
+
+};
+
+$("uploadMode").onclick = () => {
+
+  mode = "upload";
+
+  $("uploadMode").classList.add("active");
+  $("textMode").classList.remove("active");
+
+  $("uploadSection").style.display = "block";
+};
+
+$("textMode").onclick = () => {
+
+  mode = "text";
+
+  $("textMode").classList.add("active");
+  $("uploadMode").classList.remove("active");
+
+  $("uploadSection").style.display = "none";
+};
+
+$("imageInput").onchange = e => {
+
+  const file = e.target.files[0];
+
+  if(!file) return;
+
+  const reader = new FileReader();
+
+  reader.onload = () => {
+
+    imageData = reader.result;
+
+    $("previewImage").src = imageData;
+    $("preview").style.display = "block";
+
+  };
+
+  reader.readAsDataURL(file);
+};
+
+$("removeImage").onclick = () => {
+
+  imageData = null;
+
+  $("imageInput").value = "";
+  $("preview").style.display = "none";
+};
+
+document.querySelectorAll(".style").forEach(button => {
+
+  button.onclick = () => {
+
+    document.querySelectorAll(".style")
+      .forEach(x => x.classList.remove("active"));
+
+    button.classList.add("active");
+
+    selectedStyle = button.dataset.style;
+  };
+
+});
+
+$("language").onchange = () => {
+
+  const lang = $("language").value;
+  const t = translations[lang];
+
+  $("subtitle").textContent = t.subtitle;
+  $("step1").textContent = t.step1;
+  $("uploadTitle").textContent = t.uploadTitle;
+  $("uploadText").textContent = t.uploadText;
+  $("promptTitle").textContent = t.promptTitle;
+  $("styleTitle").textContent = t.styleTitle;
+  $("resultTitle").textContent = t.resultTitle;
+  $("generate").textContent = t.generate;
+  $("status").textContent = t.loading;
+  $("prompt").placeholder = t.placeholder;
+
+};
+
+$("generate").onclick = async () => {
+
+  const prompt = $("prompt").value.trim();
+
+  if(!prompt){
+
+    alert(
+      $("language").value === "ja"
+      ? "イメージを入力してください。"
+      : "Please describe your idea."
+    );
+
+    return;
+  }
+
+  if(mode === "upload" && !imageData){
+
+    alert(
+      $("language").value === "ja"
+      ? "キャラクター画像をアップロードしてください。"
+      : "Please upload a character image."
+    );
+
+    return;
+  }
+
+  $("generate").disabled = true;
+  $("status").style.display = "block";
+  $("result").style.display = "none";
+
+  try{
+
+    const response = await fetch("/api/generate",{
+
+      method:"POST",
+
+      headers:{
+        "Content-Type":"application/json"
+      },
+
+      body:JSON.stringify({
+
+        prompt,
+        style:selectedStyle,
+        image:imageData,
+        mode
+
+      })
+
+    });
+
+    const data = await response.json();
+
+    if(!response.ok){
+
+      throw new Error(data.error || "Generation failed");
+
+    }
+
+    $("resultImage").src =
+      "data:image/png;base64," + data.image;
+
+    $("download").href =
+      "data:image/png;base64," + data.image;
+
+    $("result").style.display = "block";
+
+    window.scrollTo({
+      top:document.body.scrollHeight,
+      behavior:"smooth"
+    });
+
+  }catch(error){
+
+    console.error(error);
+
+    alert(
+      "画像生成に失敗しました。\n\n" +
+      error.message
+    );
+
+  }finally{
+
+    $("generate").disabled = false;
+    $("status").style.display = "none";
+
+  }
+
+};
+
+</script>
+
+</body>
+</html>
