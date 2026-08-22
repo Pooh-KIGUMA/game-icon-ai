@@ -1,786 +1,156 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title>GAME ICON AI</title>
-
-<style>
-
-*{
-  box-sizing:border-box;
-}
-
-body{
-  margin:0;
-  background:#050505;
-  color:#fff;
-  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
-}
-
-body:before{
-  content:"";
-  position:fixed;
-  inset:0;
-  background:
-    radial-gradient(circle at 50% -10%,rgba(212,175,55,.18),transparent 35%);
-  pointer-events:none;
-}
-
-.container{
-  width:100%;
-  max-width:560px;
-  margin:auto;
-  padding:28px 18px 60px;
-}
-
-.logo{
-  text-align:center;
-  font-size:32px;
-  font-weight:900;
-  letter-spacing:4px;
-  margin:10px 0 5px;
-
-  background:linear-gradient(
-    90deg,
-    #ffffff,
-    #d4af37,
-    #fff1a8,
-    #d4af37,
-    #ffffff
-  );
-
-  -webkit-background-clip:text;
-  color:transparent;
-}
-
-.tagline{
-  text-align:center;
-  color:#888;
-  font-size:13px;
-  margin-bottom:32px;
-}
-
-.card{
-  background:linear-gradient(
-    145deg,
-    rgba(25,25,25,.96),
-    rgba(10,10,10,.96)
-  );
-
-  border:1px solid #292929;
-  border-radius:20px;
-  padding:20px;
-  margin-bottom:16px;
-}
-
-.section-title{
-  font-size:15px;
-  font-weight:800;
-  margin-bottom:14px;
-}
-
-.upload{
-  border:2px dashed #444;
-  border-radius:16px;
-  min-height:180px;
-
-  display:flex;
-  align-items:center;
-  justify-content:center;
-
-  text-align:center;
-  color:#999;
-  cursor:pointer;
-
-  transition:.2s;
-}
-
-.upload:hover{
-  border-color:#d4af37;
-  color:#fff;
-}
+Redesign the entire UI of this existing GAME ICON AI website.
+
+IMPORTANT:
+- Keep ALL existing functionality.
+- Do not remove the character image upload.
+- Do not remove player name input.
+- Do not remove style selection.
+- Do not remove color selection.
+- Do not remove the AI generation functionality.
+- Do not change the existing Vercel/GitHub setup.
+- Only improve the UI/UX and visual design.
 
-.upload-icon{
-  font-size:42px;
-  margin-bottom:8px;
-}
+DESIGN GOAL:
+Create a premium, modern, professional AI game-icon generator website.
 
-.upload-text{
-  font-size:14px;
-}
+The current design feels too heavy and the typography looks outdated.
+Make it look like a high-end gaming AI product.
 
-#fileInput{
-  display:none;
-}
+TYPOGRAPHY:
+- Stop using oversized heavy all-caps text everywhere.
+- Use a modern premium font such as Inter, Manrope, or Space Grotesk.
+- Use different font weights for hierarchy.
+- Headings should be bold but elegant.
+- Body text should be lighter and easier to read.
+- Avoid excessive letter spacing.
+- Do not make every label uppercase.
 
-#imagePreview{
-  display:none;
+COLOR:
+- Main background: near-black (#080808)
+- Cards: subtle dark gray (#111111 / #151515)
+- Primary accent: premium gold (#D8B45A)
+- Secondary accent: soft warm gold
+- Text: white and light gray
+- Borders should be subtle and thin.
+- Avoid excessive gradients.
 
-  width:100%;
-  max-width:280px;
-  aspect-ratio:1/1;
+HEADER:
+Create a clean premium header.
 
-  object-fit:cover;
+Logo:
+GAME ICON AI
 
-  margin:15px auto 0;
+Subtitle:
+Create your ultimate game icon.
 
-  border-radius:18px;
-  border:2px solid #d4af37;
-}
+Add a small glowing gold AI indicator near the logo.
+
+STEP DESIGN:
+Instead of large blocks with ugly numbered headings, create a clean step-by-step interface:
+
+01
+Character
+
+02
+Player Name
 
-input[type="text"]{
-  width:100%;
-  height:52px;
+03
+Style
 
-  padding:0 15px;
+04
+Color
 
-  border-radius:13px;
-  border:1px solid #383838;
+05
+Create
 
-  background:#080808;
-  color:#fff;
+Each step should have a small elegant number and clear title.
 
-  font-size:16px;
-  outline:none;
-}
+CHARACTER UPLOAD:
+Make the upload area much more attractive.
 
-input[type="text"]:focus{
-  border-color:#d4af37;
-}
+Use a large centered upload zone with:
+- subtle dashed border
+- upload icon
+- "Upload Character"
+- "JPG or PNG"
+- "Tap to upload"
 
-.styles{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:10px;
-}
+When an image is selected, show a beautiful preview inside the card.
 
-.style{
-  border:1px solid #383838;
-  background:#0c0c0c;
-  color:#aaa;
+PLAYER NAME:
+Use a clean input field.
 
-  padding:15px 8px;
+Placeholder:
+"Enter player name"
 
-  border-radius:13px;
+STYLE:
+Create modern selectable cards.
 
-  text-align:center;
-  font-weight:700;
+Options:
+Anime
+Dark
+Cyber
+Battle
+Fantasy
+Cute
 
-  cursor:pointer;
-}
+Each card should have a small icon and short description.
 
-.style.active{
-  border-color:#d4af37;
-  color:#fff;
-  background:rgba(212,175,55,.1);
-}
+Selected option should have:
+- gold border
+- subtle gold glow
+- slightly brighter background
 
-.colors{
-  display:flex;
-  gap:14px;
-}
+COLOR:
+Create clean circular color selectors with labels.
+Make the selected color clearly visible.
 
-.color{
-  width:40px;
-  height:40px;
+CREATE BUTTON:
+Make the main CTA extremely clear.
 
-  border-radius:50%;
+Button text:
+"Generate Icon"
 
-  border:3px solid transparent;
+Add a small sparkle/AI icon.
 
-  cursor:pointer;
-}
+The button should be large, premium and easy to understand.
 
-.color.active{
-  border-color:#fff;
-  transform:scale(1.1);
-}
+Under the button add:
+"AI-generated game icon"
 
-.red{background:#e53935;}
-.blue{background:#1976d2;}
-.purple{background:#8e44ad;}
-.gold{background:#d4af37;}
-.black{background:#000;border:1px solid #555;}
-.white{background:#fff;}
+MOBILE UX:
+This website is primarily used on smartphones.
 
-.generate{
-  width:100%;
-  height:58px;
+Optimize everything for iPhone-sized screens.
+Keep the interface compact and easy to scroll.
+Do not make cards unnecessarily tall.
+Buttons must be easy to tap.
+Keep important actions visible.
 
-  border:0;
-  border-radius:15px;
+VISUAL STYLE:
+Think:
+premium gaming brand + AI startup + modern Japanese design.
 
-  background:
-    linear-gradient(
-      135deg,
-      #f2d675,
-      #c49a25
-    );
+Reference feeling:
+- sleek
+- futuristic
+- premium
+- minimal
+- powerful
+- professional
 
-  color:#080808;
+Avoid:
+- childish UI
+- excessive emojis
+- huge typography
+- excessive gradients
+- clutter
+- cheap-looking gaming UI
+- too many borders
 
-  font-size:17px;
-  font-weight:900;
+Most importantly:
+The website should immediately communicate:
 
-  cursor:pointer;
+"Upload your character → customize the style → generate a professional game icon."
 
-  box-shadow:
-    0 10px 30px rgba(212,175,55,.18);
-}
-
-.generate:active{
-  transform:scale(.98);
-}
-
-.result{
-  display:none;
-}
-
-.result-title{
-  text-align:center;
-  font-size:18px;
-  font-weight:900;
-  margin-bottom:16px;
-}
-
-.icon-result{
-  width:100%;
-  aspect-ratio:1/1;
-
-  border-radius:22px;
-
-  display:flex;
-  align-items:flex-end;
-  justify-content:center;
-
-  position:relative;
-  overflow:hidden;
-
-  border:2px solid #d4af37;
-
-  background:
-    radial-gradient(
-      circle at center,
-      #292929,
-      #050505
-    );
-}
-
-.icon-result:before{
-  content:"";
-  position:absolute;
-  inset:0;
-
-  background:
-    radial-gradient(
-      circle at 50% 35%,
-      rgba(255,255,255,.1),
-      transparent 45%
-    );
-}
-
-.icon-name{
-  position:relative;
-
-  margin-bottom:25px;
-
-  font-size:34px;
-  font-weight:1000;
-
-  letter-spacing:2px;
-
-  text-shadow:
-    0 4px 15px #000,
-    0 0 15px rgba(255,255,255,.2);
-}
-
-.download{
-  width:100%;
-  height:52px;
-
-  margin-top:15px;
-
-  border-radius:13px;
-
-  border:1px solid #444;
-
-  background:#111;
-  color:#fff;
-
-  font-weight:800;
-
-  cursor:pointer;
-}
-
-.note{
-  text-align:center;
-  color:#666;
-  font-size:11px;
-  margin-top:20px;
-  line-height:1.7;
-}
-
-.footer{
-  text-align:center;
-  color:#444;
-  font-size:11px;
-  margin-top:30px;
-}
-
-</style>
-</head>
-
-<body>
-
-<div class="container">
-
-  <div class="logo">
-    GAME ICON AI
-  </div>
-
-  <div class="tagline">
-    CREATE YOUR ULTIMATE GAME ICON
-  </div>
-
-
-  <!-- IMAGE -->
-
-  <div class="card">
-
-    <div class="section-title">
-      01 / CHARACTER
-    </div>
-
-    <label class="upload" for="fileInput">
-
-      <div>
-
-        <div class="upload-icon">
-          🎮
-        </div>
-
-        <div class="upload-text">
-          タップして画像をアップロード
-          <br>
-          JPG / PNG
-        </div>
-
-      </div>
-
-      <input
-        id="fileInput"
-        type="file"
-        accept="image/*"
-      >
-
-    </label>
-
-    <img
-      id="imagePreview"
-      alt="Character preview"
-    >
-
-  </div>
-
-
-  <!-- NAME -->
-
-  <div class="card">
-
-    <div class="section-title">
-      02 / PLAYER NAME
-    </div>
-
-    <input
-      id="playerName"
-      type="text"
-      maxlength="20"
-      placeholder="例：Roki"
-    >
-
-  </div>
-
-
-  <!-- STYLE -->
-
-  <div class="card">
-
-    <div class="section-title">
-      03 / STYLE
-    </div>
-
-    <div class="styles">
-
-      <button class="style active" data-style="anime">
-        ⚔️ ANIME
-      </button>
-
-      <button class="style" data-style="dark">
-        🌑 DARK
-      </button>
-
-      <button class="style" data-style="cyber">
-        🤖 CYBER
-      </button>
-
-      <button class="style" data-style="battle">
-        🔥 BATTLE
-      </button>
-
-      <button class="style" data-style="fantasy">
-        🐉 FANTASY
-      </button>
-
-      <button class="style" data-style="cute">
-        ✨ CUTE
-      </button>
-
-    </div>
-
-  </div>
-
-
-  <!-- COLOR -->
-
-  <div class="card">
-
-    <div class="section-title">
-      04 / COLOR
-    </div>
-
-    <div class="colors">
-
-      <button
-        class="color red active"
-        data-color="#e53935">
-      </button>
-
-      <button
-        class="color blue"
-        data-color="#1976d2">
-      </button>
-
-      <button
-        class="color purple"
-        data-color="#8e44ad">
-      </button>
-
-      <button
-        class="color gold"
-        data-color="#d4af37">
-      </button>
-
-      <button
-        class="color black"
-        data-color="#000000">
-      </button>
-
-      <button
-        class="color white"
-        data-color="#ffffff">
-      </button>
-
-    </div>
-
-  </div>
-
-
-  <!-- TEXT -->
-
-  <div class="card">
-
-    <div class="section-title">
-      05 / ICON TEXT
-    </div>
-
-    <input
-      id="iconText"
-      type="text"
-      maxlength="20"
-      placeholder="例：AxLF"
-    >
-
-  </div>
-
-
-  <!-- GENERATE -->
-
-  <div class="card">
-
-    <button
-      class="generate"
-      id="generateBtn">
-
-      ✨ CREATE ICON
-
-    </button>
-
-  </div>
-
-
-  <!-- RESULT -->
-
-  <div
-    class="card result"
-    id="result">
-
-    <div class="result-title">
-      YOUR ICON
-    </div>
-
-    <div
-      class="icon-result"
-      id="iconResult">
-
-      <div
-        class="icon-name"
-        id="iconName">
-        GAME
-      </div>
-
-    </div>
-
-    <button
-      class="download"
-      id="downloadBtn">
-
-      ⬇ DOWNLOAD
-
-    </button>
-
-    <div class="note">
-      AI generation will be connected in the next step.
-    </div>
-
-  </div>
-
-
-  <div class="footer">
-    GAME ICON AI © 2026
-  </div>
-
-</div>
-
-
-<script>
-
-let selectedStyle = "anime";
-let selectedColor = "#e53935";
-
-
-/* IMAGE */
-
-const fileInput =
-  document.getElementById("fileInput");
-
-const imagePreview =
-  document.getElementById("imagePreview");
-
-
-fileInput.addEventListener(
-  "change",
-  function(){
-
-    const file = this.files[0];
-
-    if(!file) return;
-
-    const reader =
-      new FileReader();
-
-    reader.onload =
-      function(e){
-
-        imagePreview.src =
-          e.target.result;
-
-        imagePreview.style.display =
-          "block";
-
-      };
-
-    reader.readAsDataURL(file);
-
-  }
-);
-
-
-/* STYLE */
-
-document
-.querySelectorAll(".style")
-.forEach(button => {
-
-  button.addEventListener(
-    "click",
-    function(){
-
-      document
-      .querySelectorAll(".style")
-      .forEach(b =>
-        b.classList.remove("active")
-      );
-
-      this.classList.add("active");
-
-      selectedStyle =
-        this.dataset.style;
-
-    }
-  );
-
-});
-
-
-/* COLOR */
-
-document
-.querySelectorAll(".color")
-.forEach(button => {
-
-  button.addEventListener(
-    "click",
-    function(){
-
-      document
-      .querySelectorAll(".color")
-      .forEach(b =>
-        b.classList.remove("active")
-      );
-
-      this.classList.add("active");
-
-      selectedColor =
-        this.dataset.color;
-
-    }
-  );
-
-});
-
-
-/* GENERATE */
-
-document
-.getElementById("generateBtn")
-.addEventListener(
-  "click",
-  function(){
-
-    const player =
-      document
-      .getElementById("playerName")
-      .value;
-
-    const text =
-      document
-      .getElementById("iconText")
-      .value;
-
-    const finalText =
-      text ||
-      player ||
-      "GAME";
-
-
-    const result =
-      document
-      .getElementById("result");
-
-    const iconResult =
-      document
-      .getElementById("iconResult");
-
-    const iconName =
-      document
-      .getElementById("iconName");
-
-
-    iconName.textContent =
-      finalText;
-
-    iconName.style.color =
-      selectedColor;
-
-    iconResult.style.borderColor =
-      selectedColor;
-
-
-    /* STYLE BACKGROUNDS */
-
-    if(selectedStyle === "anime"){
-
-      iconResult.style.background =
-        "radial-gradient(circle,#343434,#050505)";
-
-    }
-
-    if(selectedStyle === "dark"){
-
-      iconResult.style.background =
-        "linear-gradient(145deg,#191919,#000)";
-
-    }
-
-    if(selectedStyle === "cyber"){
-
-      iconResult.style.background =
-        "linear-gradient(145deg,#002c45,#02070a)";
-
-    }
-
-    if(selectedStyle === "battle"){
-
-      iconResult.style.background =
-        "linear-gradient(145deg,#4b0b0b,#080000)";
-
-    }
-
-    if(selectedStyle === "fantasy"){
-
-      iconResult.style.background =
-        "linear-gradient(145deg,#25124d,#05010d)";
-
-    }
-
-    if(selectedStyle === "cute"){
-
-      iconResult.style.background =
-        "linear-gradient(145deg,#4b1745,#0d020b)";
-
-    }
-
-
-    result.style.display =
-      "block";
-
-
-    result.scrollIntoView({
-      behavior:"smooth"
-    });
-
-  }
-);
-
-
-/* DOWNLOAD */
-
-document
-.getElementById("downloadBtn")
-.addEventListener(
-  "click",
-  function(){
-
-    alert(
-      "AI画像生成機能を接続した後、完成したアイコンをダウンロードできるようになります。"
-    );
-
-  }
-);
-
-</script>
-
-</body>
-</html>
+Make the result look like a real commercial product that could eventually be sold as a service.
