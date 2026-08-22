@@ -7,1001 +7,310 @@
 <title>GAME ICON AI</title>
 
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap');
 
-:root {
-  --bg: #070707;
-  --card: #11110f;
-  --card2: #151512;
-  --border: rgba(255,255,255,.10);
-  --text: #f5f5f2;
-  --muted: #969690;
-  --gold: #e2bd5b;
-  --gold-light: #f3d67b;
-  --gold-dark: #a9822e;
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700;800;900&display=swap');
+
+*{
+  box-sizing:border-box;
 }
 
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
+body{
+  margin:0;
+  background:#070809;
+  color:#f5f5f5;
+  font-family:"Noto Sans JP",-apple-system,BlinkMacSystemFont,sans-serif;
 }
 
-html {
-  scroll-behavior: smooth;
+.container{
+  width:min(100% - 24px,720px);
+  margin:auto;
+  padding:25px 0 60px;
 }
 
-body {
-  min-height: 100vh;
-  background:
-    radial-gradient(
-      circle at 50% -10%,
-      rgba(226,189,91,.12),
-      transparent 35%
-    ),
-    var(--bg);
-  color: var(--text);
-  font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+/* HEADER */
+
+.header{
+  text-align:center;
+  padding:25px 10px 35px;
 }
 
-button,
-input {
-  font: inherit;
+.logo{
+  font-size:30px;
+  font-weight:900;
+  letter-spacing:-1px;
 }
 
-/* =========================
-   HEADER
-========================= */
-
-.header {
-  text-align: center;
-  padding: 54px 20px 32px;
+.logo span{
+  color:#d8b55d;
 }
 
-.logo {
-  font-family: "Space Grotesk", sans-serif;
-  font-size: clamp(30px, 8vw, 48px);
-  font-weight: 700;
-  letter-spacing: -1.5px;
-  background: linear-gradient(
-    135deg,
-    #fff,
-    var(--gold-light),
-    var(--gold)
-  );
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+.subtitle{
+  margin-top:8px;
+  color:#858b91;
+  font-size:13px;
 }
 
-.logo-row {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
+
+/* CARD */
+
+.card{
+  background:#101214;
+  border:1px solid #282c30;
+  border-radius:20px;
+  padding:20px;
+  margin-bottom:15px;
 }
 
-.ai-dot {
-  width: 9px;
-  height: 9px;
-  border-radius: 50%;
-  background: var(--gold);
+.title{
+  font-size:16px;
+  font-weight:800;
+  margin-bottom:7px;
+}
+
+.description{
+  color:#858b91;
+  font-size:12px;
+  line-height:1.7;
+  margin-bottom:16px;
+}
+
+
+/* MODE */
+
+.mode-grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:9px;
+}
+
+.mode{
+  min-height:135px;
+  padding:16px 12px;
+
+  background:#0a0c0e;
+  border:1px solid #292d31;
+  border-radius:15px;
+
+  color:white;
+  text-align:left;
+
+  cursor:pointer;
+
+  transition:.2s;
+}
+
+.mode:hover{
+  border-color:#777;
+}
+
+.mode.active{
+  border-color:#d8b55d;
+  background:rgba(216,181,93,.08);
+
   box-shadow:
-    0 0 8px var(--gold),
-    0 0 20px rgba(226,189,91,.45);
+    0 0 0 1px rgba(216,181,93,.1);
 }
 
-.subtitle {
-  margin-top: 10px;
-  color: var(--muted);
-  font-size: 14px;
-  letter-spacing: .2px;
+.mode-icon{
+  font-size:25px;
+  margin-bottom:15px;
 }
 
-/* =========================
-   MAIN
-========================= */
-
-.container {
-  width: min(100% - 28px, 620px);
-  margin: 0 auto;
-  padding-bottom: 80px;
+.mode-name{
+  font-size:13px;
+  font-weight:800;
 }
 
-/* =========================
-   PROGRESS
-========================= */
-
-.progress {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  margin: 4px 0 22px;
+.mode-description{
+  margin-top:5px;
+  color:#737980;
+  font-size:10px;
+  line-height:1.5;
 }
 
-.progress-line {
-  height: 2px;
-  flex: 1;
-  background: rgba(255,255,255,.08);
-  border-radius: 10px;
-  transition: .3s;
+
+/* UPLOAD */
+
+.upload{
+  height:240px;
+
+  border:1px dashed #41464b;
+  border-radius:17px;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  position:relative;
+  overflow:hidden;
+
+  background:#0a0c0e;
+
+  cursor:pointer;
 }
 
-.progress-line.active {
-  background: var(--gold);
-  box-shadow: 0 0 8px rgba(226,189,91,.35);
+.upload:hover{
+  border-color:#d8b55d;
 }
 
-/* =========================
-   CARD
-========================= */
-
-.card {
-  background:
-    linear-gradient(
-      145deg,
-      rgba(255,255,255,.045),
-      rgba(255,255,255,.015)
-    ),
-    var(--card);
-  border: 1px solid var(--border);
-  border-radius: 24px;
-  padding: 22px;
-  margin-bottom: 16px;
-  box-shadow: 0 15px 50px rgba(0,0,0,.25);
+#imageInput{
+  display:none;
 }
 
-.step-title {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 18px;
+.upload-content{
+  text-align:center;
 }
 
-.step-number {
-  color: var(--gold);
-  font-family: "Space Grotesk", sans-serif;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 1px;
+.upload-icon{
+  font-size:34px;
+  margin-bottom:10px;
+  color:#c5c9cd;
 }
 
-.step-name {
-  font-size: 18px;
-  font-weight: 600;
-  letter-spacing: -.3px;
+.upload-title{
+  font-size:14px;
+  font-weight:800;
 }
 
-.step-description {
-  color: var(--muted);
-  font-size: 13px;
-  line-height: 1.6;
-  margin-top: -9px;
-  margin-bottom: 16px;
+.upload-description{
+  color:#686f76;
+  font-size:10px;
+  margin-top:6px;
 }
 
-/* =========================
-   UPLOAD
-========================= */
+.preview{
+  display:none;
 
-.upload-area {
-  position: relative;
-  min-height: 270px;
-  border: 1.5px dashed rgba(255,255,255,.18);
-  border-radius: 20px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  overflow: hidden;
-  cursor: pointer;
-  transition: .25s;
-  background: rgba(255,255,255,.015);
+  position:absolute;
+  inset:0;
+
+  width:100%;
+  height:100%;
+
+  object-fit:contain;
+
+  background:#070809;
 }
 
-.upload-area:hover,
-.upload-area.drag {
-  border-color: var(--gold);
-  background: rgba(226,189,91,.035);
+.change-button{
+  display:none;
+
+  position:absolute;
+  right:10px;
+  bottom:10px;
+
+  background:rgba(0,0,0,.85);
+
+  color:white;
+
+  border:1px solid #444;
+
+  border-radius:9px;
+
+  padding:8px 12px;
+
+  font-size:10px;
 }
 
-.upload-content {
-  text-align: center;
-  pointer-events: none;
+
+/* INPUT */
+
+input[type="text"],
+textarea{
+  width:100%;
+
+  background:#090b0d;
+
+  border:1px solid #292e33;
+
+  border-radius:13px;
+
+  color:white;
+
+  outline:none;
+
+  padding:13px;
+
+  font-size:13px;
 }
 
-.upload-icon {
-  width: 58px;
-  height: 58px;
-  margin: 0 auto 15px;
-  border-radius: 18px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(226,189,91,.10);
-  border: 1px solid rgba(226,189,91,.25);
-  font-size: 26px;
+input[type="text"]{
+  height:52px;
 }
 
-.upload-title {
-  font-size: 15px;
-  font-weight: 600;
+textarea{
+  min-height:130px;
+  resize:vertical;
+  line-height:1.7;
 }
 
-.upload-sub {
-  margin-top: 6px;
-  color: var(--muted);
-  font-size: 12px;
-}
+input:focus,
+textarea:focus{
+  border-color:#9b8147;
 
-#imageInput {
-  display: none;
-}
-
-.preview {
-  display: none;
-  width: 100%;
-  height: 100%;
-  position: absolute;
-  inset: 0;
-}
-
-.preview img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  background: #080808;
-}
-
-.change-image {
-  position: absolute;
-  right: 12px;
-  bottom: 12px;
-  border: 1px solid rgba(255,255,255,.15);
-  background: rgba(0,0,0,.75);
-  color: white;
-  border-radius: 12px;
-  padding: 9px 13px;
-  font-size: 12px;
-  cursor: pointer;
-}
-
-/* =========================
-   INPUT
-========================= */
-
-.input {
-  width: 100%;
-  height: 56px;
-  border-radius: 15px;
-  border: 1px solid var(--border);
-  background: #0c0c0b;
-  color: white;
-  padding: 0 17px;
-  outline: none;
-  transition: .2s;
-}
-
-.input::placeholder {
-  color: #666661;
-}
-
-.input:focus {
-  border-color: rgba(226,189,91,.65);
-  box-shadow: 0 0 0 3px rgba(226,189,91,.08);
-}
-
-/* =========================
-   STYLE GRID
-========================= */
-
-.style-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-}
-
-.style {
-  position: relative;
-  padding: 17px 14px;
-  min-height: 76px;
-  border-radius: 16px;
-  border: 1px solid var(--border);
-  background: #0c0c0b;
-  color: white;
-  text-align: left;
-  cursor: pointer;
-  transition: .22s;
-}
-
-.style:hover {
-  transform: translateY(-1px);
-  border-color: rgba(226,189,91,.4);
-}
-
-.style.selected {
-  border-color: var(--gold);
-  background: rgba(226,189,91,.07);
-  box-shadow: 0 0 20px rgba(226,189,91,.08);
-}
-
-.style-icon {
-  font-size: 20px;
-  margin-bottom: 7px;
-}
-
-.style-name {
-  font-size: 13px;
-  font-weight: 600;
-}
-
-.style-desc {
-  color: var(--muted);
-  font-size: 10px;
-  margin-top: 3px;
-}
-
-/* =========================
-   COLOR
-========================= */
-
-.colors {
-  display: flex;
-  gap: 13px;
-  flex-wrap: wrap;
-}
-
-.color-option {
-  width: 42px;
-  height: 42px;
-  border-radius: 50%;
-  border: 2px solid transparent;
-  cursor: pointer;
-  position: relative;
-  transition: .2s;
-}
-
-.color-option.selected {
-  border-color: white;
   box-shadow:
-    0 0 0 3px var(--gold),
-    0 0 18px rgba(226,189,91,.3);
-  transform: scale(1.06);
+    0 0 0 3px rgba(216,181,93,.08);
 }
 
-.red { background: #d94b45; }
-.blue { background: #3274d8; }
-.purple { background: #8052c7; }
-.gold { background: #d7aa3f; }
-.black { background: #090909; border: 1px solid #444; }
-.white { background: #eee; }
-
-/* =========================
-   GENERATE
-========================= */
-
-.generate {
-  width: 100%;
-  height: 62px;
-  border: 0;
-  border-radius: 17px;
-  cursor: pointer;
-  color: #0a0a08;
-  font-weight: 700;
-  font-size: 16px;
-  background: linear-gradient(
-    135deg,
-    var(--gold-light),
-    var(--gold)
-  );
-  box-shadow:
-    0 12px 35px rgba(226,189,91,.16),
-    inset 0 1px rgba(255,255,255,.45);
-  transition: .2s;
-}
-
-.generate:hover {
-  transform: translateY(-2px);
-  box-shadow:
-    0 15px 40px rgba(226,189,91,.25);
-}
-
-.generate:active {
-  transform: scale(.98);
-}
-
-.generate-icon {
-  margin-right: 8px;
-}
-
-.generate-note {
-  text-align: center;
-  color: #666661;
-  font-size: 11px;
-  margin-top: 11px;
-}
-
-/* =========================
-   RESULT
-========================= */
-
-.result {
-  display: none;
-  margin-top: 18px;
-}
-
-.result-title {
-  font-size: 17px;
-  font-weight: 600;
-  margin-bottom: 12px;
-}
-
-.result-box {
-  aspect-ratio: 1;
-  border-radius: 20px;
-  border: 1px solid var(--border);
-  background:
-    radial-gradient(
-      circle at center,
-      rgba(226,189,91,.08),
-      transparent 60%
-    ),
-    #0b0b0a;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  color: var(--muted);
-  padding: 30px;
-}
-
-.download {
-  width: 100%;
-  height: 52px;
-  margin-top: 12px;
-  border-radius: 15px;
-  border: 1px solid var(--border);
-  background: #111;
-  color: white;
-  cursor: pointer;
-}
-
-/* =========================
-   FOOTER
-========================= */
-
-.footer {
-  text-align: center;
-  color: #555550;
-  font-size: 11px;
-  margin-top: 35px;
-}
-
-/* =========================
-   MOBILE
-========================= */
-
-@media (max-width: 480px) {
-
-  .header {
-    padding-top: 40px;
-  }
-
-  .card {
-    padding: 18px;
-    border-radius: 21px;
-  }
-
-  .upload-area {
-    min-height: 240px;
-  }
-
-  .style-grid {
-    gap: 8px;
-  }
-
-  .style {
-    padding: 14px 12px;
-  }
-}
-</style>
-</head>
-
-<body>
-
-<header class="header">
-
-  <div class="logo-row">
-    <div class="logo">GAME ICON AI</div>
-    <div class="ai-dot"></div>
-  </div>
-
-  <div class="subtitle">
-    Create your ultimate game identity.
-  </div>
-
-</header>
-
-<main class="container">
-
-  <!-- PROGRESS -->
-  <div class="progress">
-    <div class="progress-line active"></div>
-    <div class="progress-line"></div>
-    <div class="progress-line"></div>
-    <div class="progress-line"></div>
-    <div class="progress-line"></div>
-  </div>
-
-
-  <!-- CHARACTER -->
-  <section class="card">
-
-    <div class="step-title">
-      <span class="step-number">01</span>
-      <span class="step-name">Character</span>
-    </div>
-
-    <div class="step-description">
-      Upload the character you want to turn into your game icon.
-    </div>
-
-    <label class="upload-area" id="uploadArea">
-
-      <input
-        type="file"
-        id="imageInput"
-        accept="image/png,image/jpeg"
-      >
-
-      <div class="upload-content" id="uploadContent">
-        <div class="upload-icon">✦</div>
-        <div class="upload-title">
-          Upload Character
-        </div>
-        <div class="upload-sub">
-          JPG or PNG · Tap to upload
-        </div>
-      </div>
-
-      <div class="preview" id="preview">
-        <img id="previewImage" alt="Character preview">
-        <button
-          type="button"
-          class="change-image"
-          id="changeImage"
-        >
-          Change
-        </button>
-      </div>
-
-    </label>
-
-  </section>
-
-
-  <!-- PLAYER NAME -->
-  <section class="card">
-
-    <div class="step-title">
-      <span class="step-number">02</span>
-      <span class="step-name">Player Name</span>
-    </div>
-
-    <div class="step-description">
-      Add the name that should appear on your icon.
-    </div>
-
-    <input
-      class="input"
-      id="playerName"
-      type="text"
-      maxlength="20"
-      placeholder="Enter player name"
-    >
-
-  </section>
-
-
-  <!-- STYLE -->
-  <section class="card">
-
-    <div class="step-title">
-      <span class="step-number">03</span>
-      <span class="step-name">Style</span>
-    </div>
-
-    <div class="style-grid">
-
-      <button class="style selected" data-style="Anime">
-        <div class="style-icon">⚔️</div>
-        <div class="style-name">Anime</div>
-        <div class="style-desc">Dynamic illustration</div>
-      </button>
-
-      <button class="style" data-style="Dark">
-        <div class="style-icon">◉</div>
-        <div class="style-name">Dark</div>
-        <div class="style-desc">Dark & mysterious</div>
-      </button>
-
-      <button class="style" data-style="Cyber">
-        <div class="style-icon">◈</div>
-        <div class="style-name">Cyber</div>
-        <div class="style-desc">Futuristic technology</div>
-      </button>
-
-      <button class="style" data-style="Battle">
-        <div class="style-icon">✦</div>
-        <div class="style-name">Battle</div>
-        <div class="style-desc">Powerful action</div>
-      </button>
-
-      <button class="style" data-style="Fantasy">
-        <div class="style-icon">◇</div>
-        <div class="style-name">Fantasy</div>
-        <div class="style-desc">Epic fantasy</div>
-      </button>
-
-      <button class="style" data-style="Cute">
-        <div class="style-icon">♡</div>
-        <div class="style-name">Cute</div>
-        <div class="style-desc">Cute & colorful</div>
-      </button>
-
-    </div>
-
-  </section>
-
-
-  <!-- COLOR -->
-  <section class="card">
-
-    <div class="step-title">
-      <span class="step-number">04</span>
-      <span class="step-name">Color</span>
-    </div>
-
-    <div class="step-description">
-      Choose the main color of your icon.
-    </div>
-
-    <div class="colors">
-
-      <button
-        class="color-option red"
-        data-color="Red"
-        aria-label="Red"
-      ></button>
-
-      <button
-        class="color-option blue selected"
-        data-color="Blue"
-        aria-label="Blue"
-      ></button>
-
-      <button
-        class="color-option purple"
-        data-color="Purple"
-        aria-label="Purple"
-      ></button>
-
-      <button
-        class="color-option gold"
-        data-color="Gold"
-        aria-label="Gold"
-      ></button>
-
-      <button
-        class="color-option black"
-        data-color="Black"
-        aria-label="Black"
-      ></button>
-
-      <button
-        class="color-option white"
-        data-color="White"
-        aria-label="White"
-      ></button>
-
-    </div>
-
-  </section>
-
-
-  <!-- CREATE -->
-  <section class="card">
-
-    <div class="step-title">
-      <span class="step-number">05</span>
-      <span class="step-name">Create</span>
-    </div>
-
-    <button class="generate" id="generateButton">
-      <span class="generate-icon">✦</span>
-      Generate Icon
-    </button>
-
-    <div class="generate-note">
-      AI-generated game icon
-    </div>
-
-  </section>
-
-
-  <!-- RESULT -->
-  <section class="result" id="result">
-
-    <div class="result-title">
-      Your Game Icon
-    </div>
-
-    <div class="result-box" id="resultBox">
-      Your generated icon will appear here.
-    </div>
-
-    <button class="download" id="downloadButton">
-      Download Icon
-    </button>
-
-  </section>
-
-
-  <div class="footer">
-    GAME ICON AI · Create your ultimate game identity.
-  </div>
-
-</main>
-
-
-<script>
-
-/* =========================
-   IMAGE UPLOAD
-========================= */
-
-const imageInput = document.getElementById("imageInput");
-const uploadArea = document.getElementById("uploadArea");
-const uploadContent = document.getElementById("uploadContent");
-const preview = document.getElementById("preview");
-const previewImage = document.getElementById("previewImage");
-const changeImage = document.getElementById("changeImage");
-
-imageInput.addEventListener("change", function () {
-
-  const file = this.files[0];
-
-  if (!file) return;
-
-  const reader = new FileReader();
-
-  reader.onload = function(e) {
-
-    previewImage.src = e.target.result;
-
-    uploadContent.style.display = "none";
-    preview.style.display = "block";
-
-    updateProgress(1);
-
-  };
-
-  reader.readAsDataURL(file);
-
-});
-
-
-changeImage.addEventListener("click", function(e) {
-
-  e.preventDefault();
-  e.stopPropagation();
-
-  imageInput.click();
-
-});
-
-
-/* =========================
-   DRAG & DROP
-========================= */
-
-uploadArea.addEventListener("dragover", function(e) {
-
-  e.preventDefault();
-  uploadArea.classList.add("drag");
-
-});
-
-uploadArea.addEventListener("dragleave", function() {
-
-  uploadArea.classList.remove("drag");
-
-});
-
-uploadArea.addEventListener("drop", function(e) {
-
-  e.preventDefault();
-
-  uploadArea.classList.remove("drag");
-
-  const file = e.dataTransfer.files[0];
-
-  if (!file) return;
-
-  if (!file.type.startsWith("image/")) return;
-
-  const reader = new FileReader();
-
-  reader.onload = function(event) {
-
-    previewImage.src = event.target.result;
-
-    uploadContent.style.display = "none";
-    preview.style.display = "block";
-
-    updateProgress(1);
-
-  };
-
-  reader.readAsDataURL(file);
-
-});
-
-
-/* =========================
-   STYLE SELECT
-========================= */
-
-let selectedStyle = "Anime";
-
-document.querySelectorAll(".style").forEach(button => {
-
-  button.addEventListener("click", function() {
-
-    document.querySelectorAll(".style")
-      .forEach(b => b.classList.remove("selected"));
-
-    this.classList.add("selected");
-
-    selectedStyle = this.dataset.style;
-
-    updateProgress(3);
-
-  });
-
-});
-
-
-/* =========================
-   COLOR SELECT
-========================= */
-
-let selectedColor = "Blue";
-
-document.querySelectorAll(".color-option").forEach(button => {
-
-  button.addEventListener("click", function() {
-
-    document.querySelectorAll(".color-option")
-      .forEach(b => b.classList.remove("selected"));
-
-    this.classList.add("selected");
-
-    selectedColor = this.dataset.color;
-
-    updateProgress(4);
-
-  });
-
-});
-
-
-/* =========================
-   PLAYER NAME
-========================= */
-
-const playerName = document.getElementById("playerName");
-
-playerName.addEventListener("input", function() {
-
-  if (this.value.trim().length > 0) {
-    updateProgress(2);
-  }
-
-});
-
-
-/* =========================
-   PROGRESS
-========================= */
-
-function updateProgress(step) {
-
-  const lines =
-    document.querySelectorAll(".progress-line");
-
-  lines.forEach((line, index) => {
-
-    if (index < step) {
-      line.classList.add("active");
-    }
-
-  });
-
+input::placeholder,
+textarea::placeholder{
+  color:#5d646b;
 }
 
 
-/* =========================
-   GENERATE
-========================= */
+/* OPTIONS */
 
-const generateButton =
-  document.getElementById("generateButton");
-
-const result =
-  document.getElementById("result");
-
-const resultBox =
-  document.getElementById("resultBox");
-
-generateButton.addEventListener("click", function() {
-
-  const name =
-    playerName.value.trim() || "Player";
-
-  result.style.display = "block";
-
-  resultBox.innerHTML = `
-    <div>
-      <div style="
-        font-family:Space Grotesk;
-        font-size:24px;
-        font-weight:700;
-        color:#e2bd5b;
-        margin-bottom:10px;
-      ">
-        ${escapeHTML(name)}
-      </div>
-
-      <div style="
-        font-size:13px;
-        color:#888;
-      ">
-        ${selectedStyle} · ${selectedColor}
-      </div>
-
-      <div style="
-        margin-top:18px;
-        font-size:12px;
-        color:#555;
-      ">
-        AI generation will appear here
-      </div>
-    </div>
-  `;
-
-  result.scrollIntoView({
-    behavior: "smooth",
-    block: "center"
-  });
-
-});
-
-
-/* =========================
-   SAFE HTML
-========================= */
-
-function escapeHTML(text) {
-
-  return text
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
-
+.option-grid{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:9px;
 }
 
-</script>
+.option{
+  padding:14px;
 
-</body>
-</html>
+  background:#090b0d;
+
+  border:1px solid #292e33;
+
+  border-radius:13px;
+
+  color:white;
+
+  text-align:left;
+
+  cursor:pointer;
+}
+
+.option.active{
+  border-color:#d8b55d;
+
+  background:rgba(216,181,93,.08);
+}
+
+.option-name{
+  font-size:12px;
+  font-weight:800;
+}
+
+.option-description{
+  color:#696f76;
+  font-size:9px;
+  margin-top:4px;
+}
+
+
+/* COLORS */
+
+.colors{
+  display:flex;
+  gap:13px;
+}
+
+.color{
+  width:36px;
+  height:36px;
+
+  border-radius:50%;
+
+  border:2px
