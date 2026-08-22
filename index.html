@@ -7,1395 +7,315 @@
 <title>GAME ICON AI</title>
 
 <style>
-
-@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+JP:wght@400;500;700;800;900&display=swap');
 
 *{
   box-sizing:border-box;
 }
 
+:root{
+  --bg:#08090c;
+  --card:#111318;
+  --card2:#151820;
+  --line:#292d36;
+  --text:#f7f7f8;
+  --muted:#9297a3;
+  --gold:#d8b45a;
+  --gold2:#f1d487;
+}
+
 body{
   margin:0;
-  background:#070809;
-  color:#f5f5f5;
-  font-family:"Noto Sans JP",-apple-system,BlinkMacSystemFont,sans-serif;
+  background:
+    radial-gradient(circle at 50% -10%,rgba(216,180,90,.16),transparent 35%),
+    #08090c;
+  color:var(--text);
+  font-family:Inter,"Noto Sans JP",sans-serif;
+  min-height:100vh;
 }
 
-.container{
-  width:min(100% - 24px,720px);
-  margin:auto;
-  padding:25px 0 60px;
+button,input,textarea{
+  font:inherit;
 }
-
-/* HEADER */
 
 .header{
-  text-align:center;
-  padding:25px 10px 35px;
+  position:sticky;
+  top:0;
+  z-index:20;
+  backdrop-filter:blur(18px);
+  background:rgba(8,9,12,.82);
+  border-bottom:1px solid rgba(255,255,255,.06);
+}
+
+.nav{
+  max-width:1000px;
+  margin:auto;
+  height:72px;
+  padding:0 20px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
 }
 
 .logo{
-  font-size:30px;
+  font-size:20px;
   font-weight:900;
-  letter-spacing:-1px;
+  letter-spacing:2px;
 }
 
 .logo span{
-  color:#d8b55d;
+  color:var(--gold);
 }
 
-.subtitle{
-  margin-top:8px;
-  color:#858b91;
-  font-size:13px;
+.lang{
+  background:#111318;
+  color:#fff;
+  border:1px solid var(--line);
+  border-radius:12px;
+  padding:10px 12px;
+  outline:none;
 }
 
+.container{
+  width:min(900px,calc(100% - 28px));
+  margin:auto;
+  padding:45px 0 80px;
+}
 
-/* CARD */
+.hero{
+  text-align:center;
+  margin-bottom:40px;
+}
+
+.badge{
+  display:inline-flex;
+  padding:7px 12px;
+  border:1px solid rgba(216,180,90,.35);
+  background:rgba(216,180,90,.08);
+  color:var(--gold2);
+  border-radius:999px;
+  font-size:12px;
+  font-weight:700;
+  letter-spacing:1px;
+}
+
+h1{
+  font-size:clamp(38px,8vw,72px);
+  margin:18px 0 10px;
+  line-height:1;
+  letter-spacing:-3px;
+}
+
+.hero p{
+  color:var(--muted);
+  margin:0;
+  font-size:15px;
+}
 
 .card{
-  background:#101214;
-  border:1px solid #282c30;
-  border-radius:20px;
-  padding:20px;
-  margin-bottom:15px;
+  background:
+    linear-gradient(145deg,rgba(255,255,255,.035),rgba(255,255,255,.012));
+  border:1px solid var(--line);
+  border-radius:22px;
+  padding:24px;
+  margin-bottom:18px;
+  box-shadow:0 20px 60px rgba(0,0,0,.25);
 }
 
-.title{
-  font-size:16px;
-  font-weight:800;
-  margin-bottom:7px;
-}
-
-.description{
-  color:#858b91;
-  font-size:12px;
-  line-height:1.7;
-  margin-bottom:16px;
-}
-
-
-/* MODE */
-
-.mode-grid{
-  display:grid;
-  grid-template-columns:repeat(3,1fr);
-  gap:9px;
-}
-
-.mode{
-  min-height:135px;
-  padding:16px 12px;
-
-  background:#0a0c0e;
-  border:1px solid #292d31;
-  border-radius:15px;
-
-  color:white;
-  text-align:left;
-
-  cursor:pointer;
-
-  transition:.2s;
-}
-
-.mode:hover{
-  border-color:#777;
-}
-
-.mode.active{
-  border-color:#d8b55d;
-  background:rgba(216,181,93,.08);
-
-  box-shadow:
-    0 0 0 1px rgba(216,181,93,.1);
-}
-
-.mode-icon{
-  font-size:25px;
-  margin-bottom:15px;
-}
-
-.mode-name{
-  font-size:13px;
-  font-weight:800;
-}
-
-.mode-description{
-  margin-top:5px;
-  color:#737980;
-  font-size:10px;
-  line-height:1.5;
-}
-
-
-/* UPLOAD */
-
-.upload{
-  height:240px;
-
-  border:1px dashed #41464b;
-  border-radius:17px;
-
+.step{
   display:flex;
   align-items:center;
-  justify-content:center;
-
-  position:relative;
-  overflow:hidden;
-
-  background:#0a0c0e;
-
-  cursor:pointer;
+  gap:10px;
+  margin-bottom:18px;
 }
 
-.upload:hover{
-  border-color:#d8b55d;
-}
-
-#imageInput{
-  display:none;
-}
-
-.upload-content{
-  text-align:center;
-}
-
-.upload-icon{
-  font-size:34px;
-  margin-bottom:10px;
-  color:#c5c9cd;
-}
-
-.upload-title{
-  font-size:14px;
-  font-weight:800;
-}
-
-.upload-description{
-  color:#686f76;
-  font-size:10px;
-  margin-top:6px;
-}
-
-.preview{
-  display:none;
-
-  position:absolute;
-  inset:0;
-
-  width:100%;
-  height:100%;
-
-  object-fit:contain;
-
-  background:#070809;
-}
-
-.change-button{
-  display:none;
-
-  position:absolute;
-  right:10px;
-  bottom:10px;
-
-  background:rgba(0,0,0,.85);
-
-  color:white;
-
-  border:1px solid #444;
-
-  border-radius:9px;
-
-  padding:8px 12px;
-
-  font-size:10px;
-}
-
-
-/* INPUT */
-
-input[type="text"],
-textarea{
-  width:100%;
-
-  background:#090b0d;
-
-  border:1px solid #292e33;
-
-  border-radius:13px;
-
-  color:white;
-
-  outline:none;
-
-  padding:13px;
-
-  font-size:13px;
-}
-
-input[type="text"]{
-  height:52px;
-}
-
-textarea{
-  min-height:130px;
-  resize:vertical;
-  line-height:1.7;
-}
-
-input:focus,
-textarea:focus{
-  border-color:#9b8147;
-
-  box-shadow:
-    0 0 0 3px rgba(216,181,93,.08);
-}
-
-input::placeholder,
-textarea::placeholder{
-  color:#5d646b;
-}
-
-
-/* OPTIONS */
-
-.option-grid{
+.number{
+  width:30px;
+  height:30px;
   display:grid;
-  grid-template-columns:repeat(2,1fr);
-  gap:9px;
+  place-items:center;
+  border-radius:9px;
+  background:var(--gold);
+  color:#111;
+  font-size:13px;
+  font-weight:900;
+}
+
+.step h2{
+  margin:0;
+  font-size:17px;
+}
+
+.options{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
 }
 
 .option{
-  padding:14px;
-
-  background:#090b0d;
-
-  border:1px solid #292e33;
-
-  border-radius:13px;
-
-  color:white;
-
+  cursor:pointer;
+  border:1px solid var(--line);
+  background:#0d0f13;
+  color:#fff;
+  border-radius:15px;
+  padding:18px;
   text-align:left;
-
-  cursor:pointer;
+  transition:.2s;
 }
 
-.option.active{
-  border-color:#d8b55d;
-
-  background:rgba(216,181,93,.08);
-}
-
-.option-name{
-  font-size:12px;
-  font-weight:800;
-}
-
-.option-description{
-  color:#696f76;
-  font-size:9px;
-  margin-top:4px;
-}
-
-
-/* COLORS */
-
-.colors{
-  display:flex;
-  gap:13px;
-}
-
-.color{
-  width:36px;
-  height:36px;
-
-  border-radius:50%;
-
-  border:2px solid transparent;
-
-  cursor:pointer;
-}
-
-.color.active{
-  box-shadow:
-    0 0 0 2px #070809,
-    0 0 0 3px #d8b55d;
-}
-
-.red{background:#d84b47;}
-.blue{background:#3978dc;}
-.purple{background:#8155c5;}
-.gold{background:#d8ad4f;}
-.black{background:#050505;border:1px solid #555;}
-.white{background:#eeeeee;}
-
-
-/* BUTTON */
-
-.generate{
-  width:100%;
-
-  height:58px;
-
-  border:none;
-
-  border-radius:14px;
-
-  background:
-    linear-gradient(
-      135deg,
-      #f1d986,
-      #d8b55d
-    );
-
-  color:#17130a;
-
-  font-size:15px;
-
-  font-weight:900;
-
-  cursor:pointer;
-
-  box-shadow:
-    0 12px 30px rgba(216,181,93,.15);
-}
-
-.generate:hover{
+.option:hover{
+  border-color:#555b68;
   transform:translateY(-1px);
 }
 
-.note{
-  text-align:center;
-
-  color:#555b61;
-
-  font-size:10px;
-
-  margin-top:10px;
+.option.active{
+  border-color:var(--gold);
+  background:rgba(216,180,90,.08);
+  box-shadow:0 0 0 1px rgba(216,180,90,.2);
 }
 
-
-/* PROMPT RESULT */
-
-.prompt-result{
-  display:none;
+.option strong{
+  display:block;
+  font-size:15px;
+  margin-bottom:5px;
 }
 
-.prompt-box{
-  background:#080a0c;
-
-  border:1px solid #292e33;
-
-  border-radius:14px;
-
-  padding:15px;
-
-  color:#bfc4c9;
-
+.option small{
+  color:var(--muted);
   font-size:12px;
-
-  line-height:1.8;
-
-  white-space:pre-wrap;
-
-  max-height:400px;
-
-  overflow:auto;
 }
 
-.copy-button{
-  width:100%;
-
-  height:48px;
-
-  margin-top:10px;
-
-  border-radius:12px;
-
-  border:1px solid #3a3f44;
-
-  background:#151719;
-
-  color:white;
-
-  font-weight:700;
-
+.upload{
+  border:1px dashed #414650;
+  border-radius:18px;
+  min-height:190px;
+  display:grid;
+  place-items:center;
+  text-align:center;
   cursor:pointer;
+  background:#0d0f13;
+  transition:.2s;
 }
 
+.upload:hover{
+  border-color:var(--gold);
+}
 
-/* PREVIEW */
+.upload-icon{
+  font-size:42px;
+  margin-bottom:8px;
+}
+
+.upload strong{
+  display:block;
+}
+
+.upload small{
+  color:var(--muted);
+}
 
 .preview{
-  margin-top:15px;
-
-  aspect-ratio:1;
-
-  border-radius:18px;
-
-  border:1px solid #292e33;
-
-  background:
-    radial-gradient(
-      circle at center,
-      rgba(216,181,93,.1),
-      transparent 45%
-    ),
-    #090b0d;
-
-  display:flex;
-
-  align-items:center;
-
-  justify-content:center;
-
-  text-align:center;
-
-  overflow:hidden;
-
+  display:none;
+  margin-top:14px;
   position:relative;
 }
 
 .preview img{
   width:100%;
-  height:100%;
-
+  max-height:360px;
   object-fit:contain;
+  border-radius:15px;
+  background:#050608;
 }
 
-.preview-placeholder{
-  color:#626970;
-
-  font-size:11px;
-
-  line-height:1.7;
+.remove{
+  position:absolute;
+  top:10px;
+  right:10px;
+  border:0;
+  background:#000b;
+  color:#fff;
+  width:36px;
+  height:36px;
+  border-radius:50%;
+  cursor:pointer;
 }
 
+textarea{
+  width:100%;
+  min-height:130px;
+  resize:vertical;
+  background:#0b0d11;
+  border:1px solid var(--line);
+  border-radius:15px;
+  color:#fff;
+  padding:16px;
+  outline:none;
+}
 
-/* FOOTER */
+textarea:focus{
+  border-color:var(--gold);
+}
 
-.footer{
+.styles{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:10px;
+}
+
+.style{
+  border:1px solid var(--line);
+  background:#0c0e12;
+  color:#fff;
+  border-radius:13px;
+  padding:13px 8px;
+  cursor:pointer;
+}
+
+.style.active{
+  border-color:var(--gold);
+  background:rgba(216,180,90,.08);
+}
+
+.generate{
+  width:100%;
+  border:0;
+  border-radius:16px;
+  padding:18px;
+  background:linear-gradient(135deg,var(--gold2),var(--gold));
+  color:#111;
+  font-weight:900;
+  font-size:16px;
+  cursor:pointer;
+  box-shadow:0 12px 30px rgba(216,180,90,.18);
+}
+
+.generate:disabled{
+  opacity:.5;
+  cursor:not-allowed;
+}
+
+.status{
+  display:none;
   text-align:center;
-
-  color:#4e545a;
-
-  font-size:10px;
-
-  margin-top:30px;
+  color:var(--muted);
+  padding:20px;
 }
 
-
-/* MOBILE */
-
-@media(max-width:600px){
-
-  .mode-grid{
-    grid-template-columns:1fr;
-  }
-
-  .mode{
-    min-height:auto;
-
-    display:grid;
-
-    grid-template-columns:45px 1fr;
-
-    align-items:center;
-  }
-
-  .mode-icon{
-    grid-row:1 / 3;
-
-    margin:0;
-
-    font-size:24px;
-  }
-
+.result{
+  display:none;
 }
 
-</style>
-</head>
-
-
-<body>
-
-<div class="container">
-
-
-<!-- HEADER -->
-
-<header class="header">
-
-  <div class="logo">
-    GAME ICON <span>AI</span>
-  </div>
-
-  <div class="subtitle">
-    あなただけのゲームアイコンを作ろう
-  </div>
-
-</header>
-
-
-
-<!-- STEP 1 -->
-
-<div class="card">
-
-  <div class="title">
-    ① 作り方を選択
-  </div>
-
-  <div class="description">
-    キャラクター画像を使うか、イメージだけで作るか選択してください。
-  </div>
-
-
-  <div class="mode-grid">
-
-
-    <button
-      class="mode active"
-      data-mode="image">
-
-      <div class="mode-icon">
-        🖼️
-      </div>
-
-      <div>
-        <div class="mode-name">
-          画像から作る
-        </div>
-
-        <div class="mode-description">
-          キャラクター画像をアップロードして作成
-        </div>
-      </div>
-
-    </button>
-
-
-
-    <button
-      class="mode"
-      data-mode="prompt">
-
-      <div class="mode-icon">
-        ✨
-      </div>
-
-      <div>
-        <div class="mode-name">
-          イメージから作る
-        </div>
-
-        <div class="mode-description">
-          作りたいキャラクターを文章で指定
-        </div>
-      </div>
-
-    </button>
-
-
-
-    <button
-      class="mode"
-      data-mode="both">
-
-      <div class="mode-icon">
-        🎨
-      </div>
-
-      <div>
-        <div class="mode-name">
-          画像＋イメージ
-        </div>
-
-        <div class="mode-description">
-          画像を元に細かいイメージを追加
-        </div>
-      </div>
-
-    </button>
-
-
-  </div>
-
-</div>
-
-
-
-<!-- IMAGE -->
-
-<div
-  class="card"
-  id="imageSection">
-
-  <div class="title">
-    ② キャラクター画像
-  </div>
-
-  <div class="description">
-    アイコンにしたいキャラクター画像をアップロードしてください。
-  </div>
-
-
-  <label
-    class="upload"
-    id="upload">
-
-    <input
-      type="file"
-      id="imageInput"
-      accept="image/png,image/jpeg,image/webp">
-
-
-    <div
-      class="upload-content"
-      id="uploadContent">
-
-      <div class="upload-icon">
-        ＋
-      </div>
-
-      <div class="upload-title">
-        画像をアップロード
-      </div>
-
-      <div class="upload-description">
-        PNG / JPG / WEBP
-      </div>
-
-    </div>
-
-
-    <img
-      class="preview"
-      id="imagePreview">
-
-
-    <button
-      type="button"
-      class="change-button"
-      id="changeButton">
-
-      画像を変更
-
-    </button>
-
-  </label>
-
-</div>
-
-
-
-<!-- PROMPT -->
-
-<div
-  class="card"
-  id="promptSection"
-  style="display:none;">
-
-  <div class="title">
-    ② 作りたいイメージ
-  </div>
-
-  <div class="description">
-    作りたいキャラクターや背景、雰囲気を自由に入力してください。
-  </div>
-
-
-  <textarea
-    id="promptInput"
-    placeholder="例：黒髪の冷酷な侍。黒い服を着ていて、青い炎をまとっている。夜の街を背景にした、クールで高級感のあるゲームアイコン。"></textarea>
-
-</div>
-
-
-
-<!-- BOTH -->
-
-<div
-  class="card"
-  id="bothSection"
-  style="display:none;">
-
-  <div class="title">
-    ③ 追加イメージ
-  </div>
-
-  <div class="description">
-    アップロードした画像に追加したい内容を入力してください。
-  </div>
-
-
-  <textarea
-    id="bothInput"
-    placeholder="例：青い炎を追加してください。背景は夜空にして、キャラクターを大きく描いてください。"></textarea>
-
-</div>
-
-
-
-<!-- NAME -->
-
-<div class="card">
-
-  <div class="title">
-    プレイヤー名
-  </div>
-
-  <div class="description">
-    アイコンに入れたい名前があれば入力してください。
-  </div>
-
-
-  <input
-    type="text"
-    id="playerName"
-    maxlength="24"
-    placeholder="例：Roki">
-
-</div>
-
-
-
-<!-- STYLE -->
-
-<div class="card">
-
-  <div class="title">
-    デザインスタイル
-  </div>
-
-  <div class="description">
-    アイコン全体の雰囲気を選択してください。
-  </div>
-
-
-  <div class="option-grid">
-
-
-    <button
-      class="option active"
-      data-style="アニメ風">
-
-      <div class="option-name">
-        アニメ風
-      </div>
-
-      <div class="option-description">
-        鮮やかでカッコいい
-      </div>
-
-    </button>
-
-
-    <button
-      class="option"
-      data-style="ダーク">
-
-      <div class="option-name">
-        ダーク
-      </div>
-
-      <div class="option-description">
-        暗くクールな雰囲気
-      </div>
-
-    </button>
-
-
-    <button
-      class="option"
-      data-style="サイバー">
-
-      <div class="option-name">
-        サイバー
-      </div>
-
-      <div class="option-description">
-        未来的・ネオン
-      </div>
-
-    </button>
-
-
-    <button
-      class="option"
-      data-style="バトル">
-
-      <div class="option-name">
-        バトル
-      </div>
-
-      <div class="option-description">
-        迫力・戦闘系
-      </div>
-
-    </button>
-
-
-    <button
-      class="option"
-      data-style="ファンタジー">
-
-      <div class="option-name">
-        ファンタジー
-      </div>
-
-      <div class="option-description">
-        幻想的・壮大
-      </div>
-
-    </button>
-
-
-    <button
-      class="option"
-      data-style="高級感">
-
-      <div class="option-name">
-        高級感
-      </div>
-
-      <div class="option-description">
-        シンプル・洗練
-      </div>
-
-    </button>
-
-
-  </div>
-
-</div>
-
-
-
-<!-- COLOR -->
-
-<div class="card">
-
-  <div class="title">
-    カラー
-  </div>
-
-  <div class="description">
-    アイコンのメインカラーを選択してください。
-  </div>
-
-
-  <div class="colors">
-
-    <button
-      class="color red"
-      data-color="赤">
-    </button>
-
-    <button
-      class="color blue active"
-      data-color="青">
-    </button>
-
-    <button
-      class="color purple"
-      data-color="紫">
-    </button>
-
-    <button
-      class="color gold"
-      data-color="ゴールド">
-    </button>
-
-    <button
-      class="color black"
-      data-color="黒">
-    </button>
-
-    <button
-      class="color white"
-      data-color="白">
-    </button>
-
-  </div>
-
-</div>
-
-
-
-<!-- GENERATE -->
-
-<div class="card">
-
-  <button
-    class="generate"
-    id="generateButton">
-
-    ✨ AI画像を作るための指示を作成
-
-  </button>
-
-  <div class="note">
-    ChatGPTで画像生成するときに、そのまま使える指示を作成します。
-  </div>
-
-</div>
-
-
-
-<!-- RESULT -->
-
-<div
-  class="card prompt-result"
-  id="result">
-
-  <div class="title">
-    AI画像生成用の指示
-  </div>
-
-  <div class="description">
-    下の文章をコピーしてChatGPTに貼り付けると、画像生成に使えます。
-  </div>
-
-
-  <div
-    class="prompt-box"
-    id="promptResult">
-  </div>
-
-
-  <button
-    class="copy-button"
-    id="copyButton">
-
-    📋 指示をコピー
-
-  </button>
-
-
-  <div class="preview">
-
-    <div class="preview-placeholder">
-
-      ここに完成したAI画像を<br>
-      表示する予定です
-
-    </div>
-
-  </div>
-
-</div>
-
-
-
-<div class="footer">
-  GAME ICON AI
-</div>
-
-
-</div>
-
-
-
-<script>
-
-
-/* =========================
-   VARIABLES
-========================= */
-
-let currentMode = "image";
-
-let selectedStyle = "アニメ風";
-
-let selectedColor = "青";
-
-
-const imageInput =
-  document.getElementById("imageInput");
-
-const imagePreview =
-  document.getElementById("imagePreview");
-
-const uploadContent =
-  document.getElementById("uploadContent");
-
-const changeButton =
-  document.getElementById("changeButton");
-
-
-/* =========================
-   MODE
-========================= */
-
-document
-.querySelectorAll(".mode")
-.forEach(button => {
-
-  button.addEventListener(
-    "click",
-    function(){
-
-      document
-      .querySelectorAll(".mode")
-      .forEach(b =>
-        b.classList.remove("active")
-      );
-
-      this.classList.add("active");
-
-      currentMode =
-        this.dataset.mode;
-
-
-      const imageSection =
-        document.getElementById(
-          "imageSection"
-        );
-
-      const promptSection =
-        document.getElementById(
-          "promptSection"
-        );
-
-      const bothSection =
-        document.getElementById(
-          "bothSection"
-        );
-
-
-      imageSection.style.display =
-        currentMode === "prompt"
-        ? "none"
-        : "block";
-
-
-      promptSection.style.display =
-        currentMode === "image"
-        ? "none"
-        : "block";
-
-
-      bothSection.style.display =
-        currentMode === "both"
-        ? "block"
-        : "none";
-
-    }
-  );
-
-});
-
-
-/* =========================
-   IMAGE
-========================= */
-
-imageInput.addEventListener(
-  "change",
-  function(){
-
-    const file =
-      this.files[0];
-
-    if(!file) return;
-
-
-    const reader =
-      new FileReader();
-
-
-    reader.onload =
-      function(e){
-
-        imagePreview.src =
-          e.target.result;
-
-        imagePreview.style.display =
-          "block";
-
-        uploadContent.style.display =
-          "none";
-
-        changeButton.style.display =
-          "block";
-
-      };
-
-
-    reader.readAsDataURL(file);
-
-  }
-);
-
-
-changeButton.addEventListener(
-  "click",
-  function(e){
-
-    e.preventDefault();
-
-    e.stopPropagation();
-
-    imageInput.click();
-
-  }
-);
-
-
-/* =========================
-   STYLE
-========================= */
-
-document
-.querySelectorAll(".option")
-.forEach(button => {
-
-  button.addEventListener(
-    "click",
-    function(){
-
-      document
-      .querySelectorAll(".option")
-      .forEach(b =>
-        b.classList.remove("active")
-      );
-
-      this.classList.add("active");
-
-      selectedStyle =
-        this.dataset.style;
-
-    }
-  );
-
-});
-
-
-/* =========================
-   COLOR
-========================= */
-
-document
-.querySelectorAll(".color")
-.forEach(button => {
-
-  button.addEventListener(
-    "click",
-    function(){
-
-      document
-      .querySelectorAll(".color")
-      .forEach(b =>
-        b.classList.remove("active")
-      );
-
-      this.classList.add("active");
-
-      selectedColor =
-        this.dataset.color;
-
-    }
-  );
-
-});
-
-
-/* =========================
-   CREATE PROMPT
-========================= */
-
-document
-.getElementById("generateButton")
-.addEventListener(
-  "click",
-  function(){
-
-    const playerName =
-      document
-      .getElementById("playerName")
-      .value
-      .trim();
-
-
-    const prompt =
-      document
-      .getElementById("promptInput")
-      .value
-      .trim();
-
-
-    const bothPrompt =
-      document
-      .getElementById("bothInput")
-      .value
-      .trim();
-
-
-    let instruction = "";
-
-
-    instruction +=
-`ゲーム用のプロフィールアイコン画像を作成してください。
-
-【画像サイズ】
-1:1の正方形
-
-【用途】
-ゲームのプロフィールアイコンとして使用します。
-
-【デザイン】
-${selectedStyle}
-
-【メインカラー】
-${selectedColor}
-
-`;
-
-
-    if(playerName){
-
-      instruction +=
-`【アイコンに入れる名前】
-${playerName}
-
-名前はキャラクターや背景を邪魔しない位置に配置し、読みやすくスタイリッシュにしてください。
-
-`;
-
-    }
-
-
-    if(currentMode === "image"){
-
-      instruction +=
-`【作成方法】
-添付したキャラクター画像を元にしてください。
-
-キャラクターの顔、髪型、衣装、特徴をできるだけ維持してください。
-
-キャラクターをアイコンの中心に大きく配置してください。
-
-ゲームアイコンとして映える、完成度の高いイラストにしてください。
-`;
-
-    }
-
-
-    if(currentMode === "prompt"){
-
-      instruction +=
-`【キャラクター・イメージ】
-${prompt}
-
-入力したイメージを元に、オリジナルのキャラクターを作成してください。
-
-キャラクターをアイコンの中心に大きく配置してください。
-`;
-
-    }
-
-
-    if(currentMode === "both"){
-
-      instruction +=
-`【元画像】
-添付したキャラクター画像をベースにしてください。
-
-【追加イメージ】
-${bothPrompt}
-
-元画像のキャラクターの特徴を維持しながら、追加イメージを反映してください。
-
-キャラクターをアイコンの中心に大きく配置してください。
-`;
-
-    }
-
-
-    instruction +=
-`
-【仕上げ】
-高品質で洗練されたゲームアイコンにしてください。
-
-キャラクターを見やすく、大きく配置してください。
-
-背景はキャラクターを引き立てるデザインにしてください。
-
-細部まで丁寧に描き込み、プロのゲーム用アイコンのような完成度にしてください。
-
-余計な文字、ロゴ、透かしは入れないでください。
-`;
-
-
-    document
-    .getElementById("promptResult")
-    .textContent =
-      instruction;
-
-
-    document
-    .getElementById("result")
-    .style.display =
-      "block";
-
-
-    document
-    .getElementById("result")
-    .scrollIntoView({
-      behavior:"smooth"
-    });
-
-  }
-);
-
-
-/* =========================
-   COPY
-========================= */
-
-document
-.getElementById("copyButton")
-.addEventListener(
-  "click",
-  async function(){
-
-    const text =
-      document
-      .getElementById("promptResult")
-      .textContent;
-
-
-    try{
-
-      await navigator.clipboard.writeText(
-        text
-      );
-
-      this.textContent =
-        "✓ コピーしました";
-
-      setTimeout(() => {
-
-        this.textContent =
-          "📋 指示をコピー";
-
-      },1500);
-
-    }catch{
-
-      alert(
-        "コピーできませんでした。文章を長押ししてコピーしてください。"
-      );
-
-    }
-
-  }
-);
-
-</script>
-
-</body>
-</html>
+.result img{
+  width:100%;
+  border-radius:18px;
+  display:block;
+}
+
+.download{
+  display:block;
+  text-align:center;
+  text-decoration:none;
+  margin-top:14px;
+  padding:14px;
+  border-radius:13
