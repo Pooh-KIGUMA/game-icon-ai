@@ -6,8 +6,5 @@
     "api/*.js": {
       "maxDuration": 300
     }
-  },
-  "rewrites": [
-    { "source": "/api/generate.js", "destination": "/api/generate-v2.js" }
-  ]
+  }
 }
