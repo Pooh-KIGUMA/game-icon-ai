@@ -1,12 +1,23 @@
 <!DOCTYPE html>
 <html lang="ja">
+
 <head>
+
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<meta
+  name="viewport"
+  content="width=device-width, initial-scale=1.0"
+>
 
 <title>GAME ICON AI</title>
 
 <style>
+
+/* =========================
+   BASE
+========================= */
+
 *{
   box-sizing:border-box;
   margin:0;
@@ -14,321 +25,640 @@
 }
 
 :root{
-  --bg:#080808;
-  --card:#111214;
-  --card2:#151619;
-  --border:#292c32;
+
+  --bg:#07080a;
+  --card:#111318;
+  --card2:#151820;
+  --border:#292d35;
+
   --gold:#d8b45a;
-  --gold2:#f0d37a;
-  --text:#f5f5f5;
-  --sub:#8f949e;
+  --gold2:#f1d487;
+
+  --text:#f5f5f7;
+  --sub:#9297a3;
+
+}
+
+html{
+  scroll-behavior:smooth;
 }
 
 body{
-  background:
-    radial-gradient(circle at 50% -10%,rgba(216,180,90,.12),transparent 35%),
-    var(--bg);
+
+  min-height:100vh;
+
   color:var(--text);
+
+  background:
+    radial-gradient(
+      circle at 50% -10%,
+      rgba(216,180,90,.14),
+      transparent 35%
+    ),
+    var(--bg);
+
   font-family:
     Inter,
     -apple-system,
     BlinkMacSystemFont,
     "Noto Sans JP",
     sans-serif;
-  min-height:100vh;
+
 }
+
+/* =========================
+   CONTAINER
+========================= */
 
 .container{
+
   width:min(920px,94%);
+
   margin:auto;
-  padding-bottom:80px;
+
+  padding-bottom:90px;
+
 }
 
-/* HEADER */
+/* =========================
+   HEADER
+========================= */
 
 header{
-  height:82px;
+
+  height:80px;
+
   display:flex;
+
   align-items:center;
+
   justify-content:space-between;
-  border-bottom:1px solid #202126;
+
+  border-bottom:
+    1px solid rgba(255,255,255,.06);
+
 }
 
 .logo{
-  font-size:26px;
-  font-weight:900;
+
+  font-size:24px;
+
+  font-weight:950;
+
   letter-spacing:2px;
+
 }
 
 .logo span{
+
   color:var(--gold);
+
 }
 
 .language{
+
   position:relative;
+
 }
 
 .language select{
+
   appearance:none;
-  background:#111216;
+
+  background:#111318;
+
   color:white;
+
   border:1px solid #30343b;
-  border-radius:14px;
-  padding:14px 42px 14px 18px;
-  font-size:15px;
+
+  border-radius:13px;
+
+  padding:12px 40px 12px 15px;
+
+  font-size:14px;
+
   font-weight:700;
+
   cursor:pointer;
+
 }
 
 .language::after{
+
   content:"⌄";
+
   position:absolute;
-  right:16px;
-  top:11px;
-  font-size:20px;
+
+  right:14px;
+
+  top:9px;
+
+  font-size:19px;
+
   pointer-events:none;
+
 }
 
-/* HERO */
+/* =========================
+   HERO
+========================= */
 
 .hero{
+
   text-align:center;
-  padding:70px 20px 45px;
+
+  padding:65px 15px 45px;
+
 }
 
 .badge{
+
   display:inline-block;
-  border:1px solid #705b26;
-  color:var(--gold2);
-  background:rgba(216,180,90,.08);
-  padding:11px 20px;
+
+  padding:9px 18px;
+
   border-radius:999px;
-  font-size:13px;
-  font-weight:800;
-  letter-spacing:1.4px;
-  margin-bottom:25px;
+
+  border:1px solid #6e5926;
+
+  background:rgba(216,180,90,.07);
+
+  color:var(--gold2);
+
+  font-size:12px;
+
+  font-weight:850;
+
+  letter-spacing:1.5px;
+
+  margin-bottom:24px;
+
 }
 
 .hero h1{
-  font-size:clamp(42px,8vw,78px);
+
+  font-size:
+    clamp(44px,8vw,78px);
+
   font-weight:950;
+
   letter-spacing:-3px;
+
   line-height:1;
+
 }
 
 .hero h1 span{
+
   color:var(--gold);
+
 }
 
 .hero p{
-  margin-top:22px;
+
+  margin-top:20px;
+
   color:var(--sub);
-  font-size:18px;
+
+  font-size:17px;
+
 }
 
-/* CARD */
+/* =========================
+   CARD
+========================= */
 
 .card{
+
   background:
-    linear-gradient(145deg,rgba(255,255,255,.025),transparent),
+    linear-gradient(
+      145deg,
+      rgba(255,255,255,.025),
+      transparent
+    ),
     var(--card);
+
   border:1px solid var(--border);
-  border-radius:25px;
-  padding:28px;
-  margin-bottom:22px;
-  box-shadow:0 15px 50px rgba(0,0,0,.25);
+
+  border-radius:24px;
+
+  padding:27px;
+
+  margin-bottom:20px;
+
+  box-shadow:
+    0 18px 60px rgba(0,0,0,.22);
+
 }
 
 .section-title{
+
   display:flex;
+
   align-items:center;
-  gap:14px;
-  font-size:22px;
+
+  gap:13px;
+
+  margin-bottom:20px;
+
+  font-size:20px;
+
   font-weight:850;
-  margin-bottom:22px;
+
 }
 
 .number{
-  width:44px;
-  height:44px;
+
+  width:42px;
+
+  height:42px;
+
   border-radius:12px;
+
   background:var(--gold);
+
   color:#111;
+
   display:flex;
+
   align-items:center;
+
   justify-content:center;
+
+  font-size:13px;
+
   font-weight:950;
+
 }
 
-/* CREATE TYPE */
+/* =========================
+   CREATE TYPE
+========================= */
 
 .create-options{
+
   display:grid;
+
   grid-template-columns:1fr 1fr;
-  gap:14px;
+
+  gap:13px;
+
 }
 
 .option{
+
+  padding:22px;
+
+  border-radius:18px;
+
+  background:#0c0e12;
+
   border:1px solid #30343a;
-  border-radius:20px;
-  padding:24px;
-  background:#0d0f12;
+
   cursor:pointer;
+
   transition:.2s;
+
 }
 
 .option:hover{
-  border-color:#75602d;
+
   transform:translateY(-2px);
+
+  border-color:#665629;
+
 }
 
 .option.active{
+
   border:2px solid var(--gold);
-  background:rgba(216,180,90,.07);
+
+  background:
+    rgba(216,180,90,.07);
+
 }
 
 .option-icon{
+
   font-size:30px;
-  margin-bottom:12px;
+
+  margin-bottom:11px;
+
 }
 
 .option-title{
-  font-size:19px;
+
+  font-size:18px;
+
   font-weight:850;
+
 }
 
 .option-description{
+
+  margin-top:6px;
+
   color:var(--sub);
-  margin-top:7px;
-  font-size:14px;
+
+  font-size:13px;
+
 }
 
-/* UPLOAD */
+/* =========================
+   UPLOAD
+========================= */
 
 .upload-area{
-  border:1px dashed #454a53;
+
   min-height:230px;
-  border-radius:20px;
+
+  border:1px dashed #454a53;
+
+  border-radius:19px;
+
   display:flex;
+
   align-items:center;
+
   justify-content:center;
+
   text-align:center;
+
   cursor:pointer;
-  transition:.2s;
+
   overflow:hidden;
-  position:relative;
+
+  background:#0c0e12;
+
+  transition:.2s;
+
 }
 
 .upload-area:hover{
+
   border-color:var(--gold);
-  background:rgba(216,180,90,.03);
+
 }
 
 .upload-content{
+
   padding:35px;
+
 }
 
 .upload-plus{
-  font-size:58px;
+
+  font-size:55px;
+
   font-weight:200;
-  line-height:1;
+
 }
 
 .upload-title{
-  margin-top:15px;
+
+  margin-top:13px;
+
   font-size:18px;
+
   font-weight:800;
+
 }
 
 .upload-sub{
+
   color:var(--sub);
+
   margin-top:7px;
+
+  font-size:13px;
+
 }
 
 .preview{
+
   width:100%;
-  max-height:420px;
+
+  max-height:430px;
+
   object-fit:contain;
+
   display:none;
+
 }
 
 input[type=file]{
+
   display:none;
+
 }
 
-/* INPUT */
+/* =========================
+   FIDELITY
+========================= */
+
+.fidelity{
+
+  display:grid;
+
+  grid-template-columns:
+    repeat(3,1fr);
+
+  gap:10px;
+
+  margin-top:18px;
+
+}
+
+.fidelity-option{
+
+  padding:15px 10px;
+
+  border-radius:14px;
+
+  background:#0c0e12;
+
+  border:1px solid #30343a;
+
+  text-align:center;
+
+  cursor:pointer;
+
+  transition:.2s;
+
+}
+
+.fidelity-option.active{
+
+  border-color:var(--gold);
+
+  background:
+    rgba(216,180,90,.08);
+
+  color:var(--gold2);
+
+}
+
+.fidelity-icon{
+
+  font-size:20px;
+
+  margin-bottom:5px;
+
+}
+
+.fidelity-title{
+
+  font-size:14px;
+
+  font-weight:800;
+
+}
+
+.fidelity-desc{
+
+  color:var(--sub);
+
+  font-size:11px;
+
+  margin-top:4px;
+
+}
+
+/* =========================
+   INPUT
+========================= */
+
+.field-label{
+
+  font-size:14px;
+
+  font-weight:800;
+
+  margin-bottom:9px;
+
+}
 
 textarea,
 .text-input{
+
   width:100%;
-  background:#0b0c0f;
+
+  background:#0b0d10;
+
   color:white;
+
   border:1px solid #30343a;
-  border-radius:16px;
-  padding:17px;
-  font-size:16px;
+
+  border-radius:15px;
+
+  padding:16px;
+
   outline:none;
-  resize:vertical;
+
+  font-size:15px;
+
 }
 
 textarea{
-  min-height:130px;
+
+  min-height:135px;
+
+  resize:vertical;
+
 }
 
 textarea:focus,
 .text-input:focus{
+
   border-color:var(--gold);
+
 }
 
-.field-label{
-  font-size:15px;
-  font-weight:750;
-  margin-bottom:10px;
+.player{
+
+  margin-top:20px;
+
 }
 
-/* STYLES */
+/* =========================
+   STYLES
+========================= */
 
 .styles{
+
   display:grid;
-  grid-template-columns:repeat(3,1fr);
-  gap:12px;
+
+  grid-template-columns:
+    repeat(3,1fr);
+
+  gap:10px;
+
 }
 
 .style{
-  padding:18px 12px;
+
+  padding:16px 10px;
+
   text-align:center;
+
+  background:#0c0e12;
+
   border:1px solid #30343a;
-  border-radius:15px;
+
+  border-radius:14px;
+
   cursor:pointer;
-  background:#0d0f12;
+
   font-weight:750;
+
 }
 
 .style.active{
+
   border-color:var(--gold);
-  background:rgba(216,180,90,.08);
+
   color:var(--gold2);
+
+  background:
+    rgba(216,180,90,.08);
+
 }
 
-/* COLOR */
+/* =========================
+   COLORS
+========================= */
 
 .colors{
+
   display:flex;
+
   gap:13px;
+
   flex-wrap:wrap;
+
 }
 
 .color{
-  width:45px;
-  height:45px;
+
+  width:43px;
+
+  height:43px;
+
   border-radius:50%;
+
   border:3px solid transparent;
+
   cursor:pointer;
+
 }
 
 .color.active{
+
   border-color:white;
-  box-shadow:0 0 0 2px var(--gold);
+
+  box-shadow:
+    0 0 0 2px var(--gold);
+
 }
 
 .black{background:#080808}
@@ -336,66 +666,249 @@ textarea:focus,
 .red{background:#e52b35}
 .purple{background:#873dff}
 .gold{background:#d8b45a}
-.white{background:#eee}
+.white{background:#eeeeee}
 
-/* NAME */
-
-.player{
-  margin-top:22px;
-}
-
-/* BUTTON */
+/* =========================
+   GENERATE
+========================= */
 
 .generate{
+
   width:100%;
+
+  padding:20px;
+
   border:0;
-  border-radius:18px;
-  padding:21px;
-  background:linear-gradient(135deg,#e5c566,#c89f3f);
+
+  border-radius:17px;
+
+  background:
+    linear-gradient(
+      135deg,
+      #f0d37a,
+      #c89f3f
+    );
+
   color:#111;
-  font-size:19px;
+
+  font-size:18px;
+
   font-weight:950;
+
   cursor:pointer;
-  box-shadow:0 12px 35px rgba(216,180,90,.15);
+
+  box-shadow:
+    0 12px 35px
+    rgba(216,180,90,.15);
+
   transition:.2s;
+
 }
 
 .generate:hover{
+
   transform:translateY(-2px);
-  filter:brightness(1.08);
+
+  filter:brightness(1.07);
+
 }
 
 .generate:disabled{
-  opacity:.5;
+
+  opacity:.55;
+
   cursor:not-allowed;
+
 }
 
-/* RESULT */
+/* =========================
+   RESULT
+========================= */
 
 .result{
+
   display:none;
-  text-align:center;
+
 }
 
 .result img{
+
+  display:block;
+
   width:100%;
+
   max-width:600px;
-  border-radius:22px;
+
+  margin:auto;
+
+  border-radius:20px;
+
   border:1px solid #30343a;
+
 }
 
 .download{
-  display:inline-block;
-  margin-top:18px;
-  padding:15px 24px;
-  background:white;
-  color:#111;
+
+  display:block;
+
+  width:fit-content;
+
+  margin:18px auto 0;
+
+  padding:14px 23px;
+
   border-radius:13px;
-  font-weight:850;
+
+  background:white;
+
+  color:#111;
+
   text-decoration:none;
+
+  font-weight:850;
+
 }
 
-/* MOBILE */
+/* =========================
+   LOADING
+========================= */
+
+.loading-overlay{
+
+  display:none;
+
+  position:fixed;
+
+  inset:0;
+
+  z-index:99999;
+
+  background:
+    rgba(4,5,7,.94);
+
+  backdrop-filter:
+    blur(18px);
+
+  align-items:center;
+
+  justify-content:center;
+
+}
+
+.loading-box{
+
+  width:min(420px,88%);
+
+  padding:36px 25px;
+
+  text-align:center;
+
+  background:#111318;
+
+  border:1px solid #30343a;
+
+  border-radius:25px;
+
+  box-shadow:
+    0 30px 100px
+    rgba(0,0,0,.65);
+
+}
+
+.loading-spinner{
+
+  width:62px;
+
+  height:62px;
+
+  margin:0 auto 25px;
+
+  border-radius:50%;
+
+  border:4px solid #30343a;
+
+  border-top-color:var(--gold);
+
+  animation:
+    spin 1s linear infinite;
+
+}
+
+.loading-box h2{
+
+  font-size:20px;
+
+  margin-bottom:9px;
+
+}
+
+.loading-box p{
+
+  color:var(--sub);
+
+  font-size:14px;
+
+  margin-bottom:22px;
+
+}
+
+.loading-bar{
+
+  width:100%;
+
+  height:7px;
+
+  background:#292d35;
+
+  border-radius:999px;
+
+  overflow:hidden;
+
+}
+
+.loading-progress{
+
+  width:0%;
+
+  height:100%;
+
+  background:
+    linear-gradient(
+      90deg,
+      #c89f3f,
+      #f1d487
+    );
+
+  transition:
+    width .6s ease;
+
+}
+
+.loading-percent{
+
+  display:block;
+
+  margin-top:11px;
+
+  color:var(--gold2);
+
+  font-size:13px;
+
+  font-weight:850;
+
+}
+
+@keyframes spin{
+
+  to{
+    transform:rotate(360deg);
+  }
+
+}
+
+/* =========================
+   MOBILE
+========================= */
 
 @media(max-width:650px){
 
@@ -408,24 +921,24 @@ textarea:focus,
   }
 
   .logo{
-    font-size:21px;
+    font-size:20px;
   }
 
   .language select{
-    padding:11px 35px 11px 12px;
-    font-size:13px;
+    font-size:12px;
+    padding:10px 34px 10px 11px;
   }
 
   .hero{
-    padding:50px 10px 35px;
+    padding:50px 8px 35px;
   }
 
   .hero h1{
-    font-size:46px;
+    font-size:45px;
   }
 
   .hero p{
-    font-size:15px;
+    font-size:14px;
   }
 
   .card{
@@ -441,37 +954,119 @@ textarea:focus,
     grid-template-columns:1fr 1fr;
   }
 
-  .section-title{
-    font-size:19px;
+  .fidelity{
+    grid-template-columns:1fr;
   }
+
 }
+
 </style>
+
 </head>
 
 <body>
 
+
+<!-- =========================
+     LOADING
+========================= -->
+
+<div
+  id="loading"
+  class="loading-overlay"
+>
+
+  <div class="loading-box">
+
+    <div class="loading-spinner"></div>
+
+    <h2 id="loadingTitle">
+      AIがアイコンを制作中...
+    </h2>
+
+    <p id="loadingMessage">
+      キャラクターを解析しています
+    </p>
+
+    <div class="loading-bar">
+
+      <div
+        id="loadingProgress"
+        class="loading-progress"
+      ></div>
+
+    </div>
+
+    <span
+      id="loadingPercent"
+      class="loading-percent"
+    >
+      0%
+    </span>
+
+  </div>
+
+</div>
+
+
 <div class="container">
 
+
+<!-- =========================
+     HEADER
+========================= -->
+
 <header>
+
   <div class="logo">
     GAME ICON <span>AI</span>
   </div>
 
   <div class="language">
+
     <select id="language">
-      <option value="ja">🇯🇵 日本語</option>
-      <option value="en">🇺🇸 English</option>
-      <option value="zh">🇨🇳 中文</option>
-      <option value="ko">🇰🇷 한국어</option>
-      <option value="vi">🇻🇳 Tiếng Việt</option>
-      <option value="id">🇮🇩 Bahasa Indonesia</option>
+
+      <option value="ja">
+        🇯🇵 日本語
+      </option>
+
+      <option value="en">
+        🇺🇸 English
+      </option>
+
+      <option value="zh">
+        🇨🇳 中文
+      </option>
+
+      <option value="ko">
+        🇰🇷 한국어
+      </option>
+
+      <option value="vi">
+        🇻🇳 Tiếng Việt
+      </option>
+
+      <option value="id">
+        🇮🇩 Bahasa Indonesia
+      </option>
+
     </select>
+
   </div>
+
 </header>
+
+
+<!-- =========================
+     HERO
+========================= -->
 
 <section class="hero">
 
-  <div class="badge" data-i18n="badge">
+  <div
+    class="badge"
+    data-i18n="badge"
+  >
     AI GAME ICON GENERATOR
   </div>
 
@@ -479,65 +1074,108 @@ textarea:focus,
     GAME ICON <span>AI</span>
   </h1>
 
-  <p data-i18n="hero">
+  <p
+    data-i18n="hero"
+  >
     AIであなただけのゲームアイコンを作成
   </p>
 
 </section>
 
 
-<!-- 01 -->
+<!-- =========================
+     01 CREATE
+========================= -->
 
 <div class="card">
 
   <div class="section-title">
-    <div class="number">01</div>
-    <span data-i18n="choose">作り方を選択</span>
+
+    <div class="number">
+      01
+    </div>
+
+    <span data-i18n="choose">
+      作り方を選択
+    </span>
+
   </div>
+
 
   <div class="create-options">
 
-    <div class="option active" data-mode="image">
 
-      <div class="option-icon">📷</div>
+    <div
+      class="option active"
+      data-mode="image"
+    >
 
-      <div class="option-title" data-i18n="fromImage">
+      <div class="option-icon">
+        📷
+      </div>
+
+      <div
+        class="option-title"
+        data-i18n="fromImage"
+      >
         画像から作る
       </div>
 
-      <div class="option-description" data-i18n="fromImageDesc">
+      <div
+        class="option-description"
+        data-i18n="fromImageDesc"
+      >
         キャラクター画像をアップロード
       </div>
 
     </div>
 
 
-    <div class="option" data-mode="idea">
+    <div
+      class="option"
+      data-mode="idea"
+    >
 
-      <div class="option-icon">✨</div>
+      <div class="option-icon">
+        ✨
+      </div>
 
-      <div class="option-title" data-i18n="fromIdea">
+      <div
+        class="option-title"
+        data-i18n="fromIdea"
+      >
         イメージから作る
       </div>
 
-      <div class="option-description" data-i18n="fromIdeaDesc">
+      <div
+        class="option-description"
+        data-i18n="fromIdeaDesc"
+      >
         文章だけでAIに作ってもらう
       </div>
 
     </div>
+
 
   </div>
 
 </div>
 
 
-<!-- 02 -->
+<!-- =========================
+     02 IMAGE
+========================= -->
 
-<div class="card" id="uploadCard">
+<div
+  class="card"
+  id="uploadCard"
+>
 
   <div class="section-title">
 
-    <div class="number">02</div>
+    <div class="number">
+      02
+    </div>
 
     <span data-i18n="character">
       キャラクター画像
@@ -545,7 +1183,11 @@ textarea:focus,
 
   </div>
 
-  <label class="upload-area" for="imageInput">
+
+  <label
+    class="upload-area"
+    for="imageInput"
+  >
 
     <input
       type="file"
@@ -553,9 +1195,14 @@ textarea:focus,
       accept="image/png,image/jpeg,image/webp"
     >
 
-    <div class="upload-content" id="uploadContent">
+    <div
+      id="uploadContent"
+      class="upload-content"
+    >
 
-      <div class="upload-plus">＋</div>
+      <div class="upload-plus">
+        ＋
+      </div>
 
       <div
         class="upload-title"
@@ -573,20 +1220,126 @@ textarea:focus,
 
     </div>
 
-    <img id="preview" class="preview">
+    <img
+      id="preview"
+      class="preview"
+    >
 
   </label>
+
+
+  <!-- FIDELITY -->
+
+  <div id="fidelityArea">
+
+    <div
+      class="field-label"
+      style="margin-top:20px"
+      data-i18n="fidelity"
+    >
+      元画像への忠実度
+    </div>
+
+
+    <div class="fidelity">
+
+
+      <div
+        class="fidelity-option"
+        data-fidelity="standard"
+      >
+
+        <div class="fidelity-icon">
+          🎨
+        </div>
+
+        <div
+          class="fidelity-title"
+          data-i18n="fidelityStandard"
+        >
+          標準
+        </div>
+
+        <div
+          class="fidelity-desc"
+          data-i18n="fidelityStandardDesc"
+        >
+          AIのアレンジを重視
+        </div>
+
+      </div>
+
+
+      <div
+        class="fidelity-option active"
+        data-fidelity="high"
+      >
+
+        <div class="fidelity-icon">
+          🔒
+        </div>
+
+        <div
+          class="fidelity-title"
+          data-i18n="fidelityHigh"
+        >
+          高
+        </div>
+
+        <div
+          class="fidelity-desc"
+          data-i18n="fidelityHighDesc"
+        >
+          キャラクターを維持
+        </div>
+
+      </div>
+
+
+      <div
+        class="fidelity-option"
+        data-fidelity="maximum"
+      >
+
+        <div class="fidelity-icon">
+          🔐
+        </div>
+
+        <div
+          class="fidelity-title"
+          data-i18n="fidelityMaximum"
+        >
+          最高
+        </div>
+
+        <div
+          class="fidelity-desc"
+          data-i18n="fidelityMaximumDesc"
+        >
+          元画像を最優先
+        </div>
+
+      </div>
+
+
+    </div>
+
+  </div>
 
 </div>
 
 
-<!-- 03 -->
+<!-- =========================
+     03 IDEA
+========================= -->
 
 <div class="card">
 
   <div class="section-title">
 
-    <div class="number">03</div>
+    <div class="number">
+      03
+    </div>
 
     <span data-i18n="idea">
       あなたのイメージ
@@ -594,9 +1347,14 @@ textarea:focus,
 
   </div>
 
-  <div class="field-label" data-i18n="ideaLabel">
+
+  <div
+    class="field-label"
+    data-i18n="ideaLabel"
+  >
     どんなアイコンにしたい？
   </div>
+
 
   <textarea
     id="prompt"
@@ -615,8 +1373,8 @@ textarea:focus,
     </div>
 
     <input
-      class="text-input"
       id="playerName"
+      class="text-input"
       data-placeholder="namePlaceholder"
       placeholder="例：Roki"
     >
@@ -626,13 +1384,17 @@ textarea:focus,
 </div>
 
 
-<!-- 04 -->
+<!-- =========================
+     04 STYLE
+========================= -->
 
 <div class="card">
 
   <div class="section-title">
 
-    <div class="number">04</div>
+    <div class="number">
+      04
+    </div>
 
     <span data-i18n="style">
       スタイル
@@ -640,44 +1402,92 @@ textarea:focus,
 
   </div>
 
+
   <div class="styles">
 
-    <div class="style active" data-style="anime">
-      ⚔️ <span data-i18n="anime">アニメ</span>
+
+    <div
+      class="style active"
+      data-style="anime"
+    >
+      ⚔️
+      <span data-i18n="anime">
+        アニメ
+      </span>
     </div>
 
-    <div class="style" data-style="dark">
-      🌑 <span data-i18n="dark">ダーク</span>
+
+    <div
+      class="style"
+      data-style="dark"
+    >
+      🌑
+      <span data-i18n="dark">
+        ダーク
+      </span>
     </div>
 
-    <div class="style" data-style="cyber">
-      🤖 <span data-i18n="cyber">サイバー</span>
+
+    <div
+      class="style"
+      data-style="cyber"
+    >
+      🤖
+      <span data-i18n="cyber">
+        サイバー
+      </span>
     </div>
 
-    <div class="style" data-style="battle">
-      🔥 <span data-i18n="battle">バトル</span>
+
+    <div
+      class="style"
+      data-style="battle"
+    >
+      🔥
+      <span data-i18n="battle">
+        バトル
+      </span>
     </div>
 
-    <div class="style" data-style="fantasy">
-      🐉 <span data-i18n="fantasy">ファンタジー</span>
+
+    <div
+      class="style"
+      data-style="fantasy"
+    >
+      🐉
+      <span data-i18n="fantasy">
+        ファンタジー
+      </span>
     </div>
 
-    <div class="style" data-style="cute">
-      ✨ <span data-i18n="cute">かわいい</span>
+
+    <div
+      class="style"
+      data-style="cute"
+    >
+      ✨
+      <span data-i18n="cute">
+        かわいい
+      </span>
     </div>
+
 
   </div>
 
 </div>
 
 
-<!-- 05 -->
+<!-- =========================
+     05 COLOR
+========================= -->
 
 <div class="card">
 
   <div class="section-title">
 
-    <div class="number">05</div>
+    <div class="number">
+      05
+    </div>
 
     <span data-i18n="color">
       メインカラー
@@ -685,27 +1495,53 @@ textarea:focus,
 
   </div>
 
+
   <div class="colors">
 
-    <div class="color black active" data-color="black"></div>
-    <div class="color blue" data-color="blue"></div>
-    <div class="color red" data-color="red"></div>
-    <div class="color purple" data-color="purple"></div>
-    <div class="color gold" data-color="gold"></div>
-    <div class="color white" data-color="white"></div>
+    <div
+      class="color black active"
+      data-color="black"
+    ></div>
+
+    <div
+      class="color blue"
+      data-color="blue"
+    ></div>
+
+    <div
+      class="color red"
+      data-color="red"
+    ></div>
+
+    <div
+      class="color purple"
+      data-color="purple"
+    ></div>
+
+    <div
+      class="color gold"
+      data-color="gold"
+    ></div>
+
+    <div
+      class="color white"
+      data-color="white"
+    ></div>
 
   </div>
 
 </div>
 
 
-<!-- GENERATE -->
+<!-- =========================
+     GENERATE
+========================= -->
 
 <div class="card">
 
   <button
-    class="generate"
     id="generate"
+    class="generate"
     data-i18n="generate"
   >
     ✨ AIでアイコンを生成する
@@ -714,20 +1550,33 @@ textarea:focus,
 </div>
 
 
-<!-- RESULT -->
+<!-- =========================
+     RESULT
+========================= -->
 
-<div class="card result" id="result">
+<div
+  id="result"
+  class="card result"
+>
 
   <div class="section-title">
-    <div class="number">✓</div>
+
+    <div class="number">
+      ✓
+    </div>
+
     <span data-i18n="result">
       完成したアイコン
     </span>
+
   </div>
 
-  <img id="resultImage">
 
-  <br>
+  <img
+    id="resultImage"
+    alt="Generated game icon"
+  >
+
 
   <a
     id="download"
@@ -740,273 +1589,531 @@ textarea:focus,
 
 </div>
 
+
 </div>
 
 
 <script>
 
-/* =========================
-   LANGUAGE
-========================= */
+/* =====================================================
+   TRANSLATIONS
+===================================================== */
 
 const translations = {
 
 ja:{
- badge:"AI GAME ICON GENERATOR",
- hero:"AIであなただけのゲームアイコンを作成",
- choose:"作り方を選択",
- fromImage:"画像から作る",
- fromImageDesc:"キャラクター画像をアップロード",
- fromIdea:"イメージから作る",
- fromIdeaDesc:"文章だけでAIに作ってもらう",
- character:"キャラクター画像",
- upload:"画像をアップロード",
- formats:"JPG / PNG / WEBP",
- idea:"あなたのイメージ",
- ideaLabel:"どんなアイコンにしたい？",
- promptPlaceholder:"例：青い炎をまとったクールな戦士。黒い服。迫力のあるポーズ。",
- playerName:"プレイヤー名",
- namePlaceholder:"例：Roki",
- style:"スタイル",
- anime:"アニメ",
- dark:"ダーク",
- cyber:"サイバー",
- battle:"バトル",
- fantasy:"ファンタジー",
- cute:"かわいい",
- color:"メインカラー",
- generate:"✨ AIでアイコンを生成する",
- result:"完成したアイコン",
- download:"画像を保存"
+
+badge:"AI GAME ICON GENERATOR",
+
+hero:"AIであなただけのゲームアイコンを作成",
+
+choose:"作り方を選択",
+
+fromImage:"画像から作る",
+
+fromImageDesc:"キャラクター画像をアップロード",
+
+fromIdea:"イメージから作る",
+
+fromIdeaDesc:"文章だけでAIに作ってもらう",
+
+character:"キャラクター画像",
+
+upload:"画像をアップロード",
+
+formats:"JPG / PNG / WEBP",
+
+fidelity:"元画像への忠実度",
+
+fidelityStandard:"標準",
+
+fidelityStandardDesc:"AIのアレンジを重視",
+
+fidelityHigh:"高",
+
+fidelityHighDesc:"キャラクターを維持",
+
+fidelityMaximum:"最高",
+
+fidelityMaximumDesc:"元画像を最優先",
+
+idea:"あなたのイメージ",
+
+ideaLabel:"どんなアイコンにしたい？",
+
+promptPlaceholder:
+"例：青い炎をまとったクールな戦士。黒い服。迫力のあるポーズ。",
+
+playerName:"プレイヤー名",
+
+namePlaceholder:"例：Roki",
+
+style:"スタイル",
+
+anime:"アニメ",
+
+dark:"ダーク",
+
+cyber:"サイバー",
+
+battle:"バトル",
+
+fantasy:"ファンタジー",
+
+cute:"かわいい",
+
+color:"メインカラー",
+
+generate:"✨ AIでアイコンを生成する",
+
+result:"完成したアイコン",
+
+download:"画像を保存",
+
+loadingTitle:"AIがアイコンを制作中...",
+
+loading1:"キャラクターを解析しています",
+
+loading2:"デザインを作成しています",
+
+loading3:"背景を仕上げています",
+
+loading4:"最終調整をしています"
+
 },
 
 en:{
- badge:"AI GAME ICON GENERATOR",
- hero:"Create your ultimate game icon with AI",
- choose:"Choose how to create",
- fromImage:"Create from Image",
- fromImageDesc:"Upload your character image",
- fromIdea:"Create from Idea",
- fromIdeaDesc:"Describe your idea and let AI create it",
- character:"Character Image",
- upload:"Upload an Image",
- formats:"JPG / PNG / WEBP",
- idea:"Your Idea",
- ideaLabel:"What kind of icon do you want?",
- promptPlaceholder:"Example: A cool warrior surrounded by blue flames, wearing black clothes, powerful pose.",
- playerName:"Player Name",
- namePlaceholder:"Example: Roki",
- style:"Style",
- anime:"Anime",
- dark:"Dark",
- cyber:"Cyber",
- battle:"Battle",
- fantasy:"Fantasy",
- cute:"Cute",
- color:"Main Color",
- generate:"✨ Generate Game Icon",
- result:"Your Game Icon",
- download:"Save Image"
+
+badge:"AI GAME ICON GENERATOR",
+
+hero:"Create your ultimate game icon with AI",
+
+choose:"Choose how to create",
+
+fromImage:"Create from Image",
+
+fromImageDesc:"Upload your character image",
+
+fromIdea:"Create from Idea",
+
+fromIdeaDesc:"Describe your idea and let AI create it",
+
+character:"Character Image",
+
+upload:"Upload an Image",
+
+formats:"JPG / PNG / WEBP",
+
+fidelity:"Character Fidelity",
+
+fidelityStandard:"Standard",
+
+fidelityStandardDesc:"More AI creativity",
+
+fidelityHigh:"High",
+
+fidelityHighDesc:"Keep character identity",
+
+fidelityMaximum:"Maximum",
+
+fidelityMaximumDesc:"Prioritize original image",
+
+idea:"Your Idea",
+
+ideaLabel:"What kind of icon do you want?",
+
+promptPlaceholder:
+"Example: A cool warrior surrounded by blue flames, black clothes, powerful pose.",
+
+playerName:"Player Name",
+
+namePlaceholder:"Example: Roki",
+
+style:"Style",
+
+anime:"Anime",
+
+dark:"Dark",
+
+cyber:"Cyber",
+
+battle:"Battle",
+
+fantasy:"Fantasy",
+
+cute:"Cute",
+
+color:"Main Color",
+
+generate:"✨ Generate Game Icon",
+
+result:"Your Game Icon",
+
+download:"Save Image",
+
+loadingTitle:"AI is creating your icon...",
+
+loading1:"Analyzing the character",
+
+loading2:"Creating the design",
+
+loading3:"Finishing the background",
+
+loading4:"Final adjustments"
+
 },
 
 zh:{
- badge:"AI 游戏图标生成器",
- hero:"使用AI制作专属游戏图标",
- choose:"选择制作方式",
- fromImage:"从图片制作",
- fromImageDesc:"上传角色图片",
- fromIdea:"从想法制作",
- fromIdeaDesc:"用文字描述，让AI为你制作",
- character:"角色图片",
- upload:"上传图片",
- formats:"JPG / PNG / WEBP",
- idea:"你的创意",
- ideaLabel:"你想要什么样的图标？",
- promptPlaceholder:"例如：被蓝色火焰包围的酷炫战士，黑色服装，充满力量的姿势。",
- playerName:"玩家名称",
- namePlaceholder:"例如：Roki",
- style:"风格",
- anime:"动漫",
- dark:"黑暗",
- cyber:"赛博",
- battle:"战斗",
- fantasy:"幻想",
- cute:"可爱",
- color:"主色",
- generate:"✨ 生成游戏图标",
- result:"完成的游戏图标",
- download:"保存图片"
+
+badge:"AI 游戏图标生成器",
+
+hero:"使用AI制作专属游戏图标",
+
+choose:"选择制作方式",
+
+fromImage:"从图片制作",
+
+fromImageDesc:"上传角色图片",
+
+fromIdea:"从想法制作",
+
+fromIdeaDesc:"用文字描述，让AI为你制作",
+
+character:"角色图片",
+
+upload:"上传图片",
+
+formats:"JPG / PNG / WEBP",
+
+fidelity:"角色还原度",
+
+fidelityStandard:"标准",
+
+fidelityStandardDesc:"更多AI创意",
+
+fidelityHigh:"高",
+
+fidelityHighDesc:"保持角色特征",
+
+fidelityMaximum:"最高",
+
+fidelityMaximumDesc:"优先保持原图",
+
+idea:"你的创意",
+
+ideaLabel:"你想要什么样的图标？",
+
+promptPlaceholder:
+"例如：被蓝色火焰包围的酷炫战士，黑色服装，充满力量的姿势。",
+
+playerName:"玩家名称",
+
+namePlaceholder:"例如：Roki",
+
+style:"风格",
+
+anime:"动漫",
+
+dark:"黑暗",
+
+cyber:"赛博",
+
+battle:"战斗",
+
+fantasy:"幻想",
+
+cute:"可爱",
+
+color:"主色",
+
+generate:"✨ 生成游戏图标",
+
+result:"完成的游戏图标",
+
+download:"保存图片",
+
+loadingTitle:"AI正在制作你的图标...",
+
+loading1:"正在分析角色",
+
+loading2:"正在制作设计",
+
+loading3:"正在完善背景",
+
+loading4:"正在进行最终调整"
+
 },
 
 ko:{
- badge:"AI 게임 아이콘 생성기",
- hero:"AI로 나만의 게임 아이콘 만들기",
- choose:"제작 방법 선택",
- fromImage:"이미지로 만들기",
- fromImageDesc:"캐릭터 이미지 업로드",
- fromIdea:"아이디어로 만들기",
- fromIdeaDesc:"설명만 입력하면 AI가 제작",
- character:"캐릭터 이미지",
- upload:"이미지 업로드",
- formats:"JPG / PNG / WEBP",
- idea:"아이디어",
- ideaLabel:"어떤 아이콘을 원하시나요?",
- promptPlaceholder:"예: 푸른 불꽃을 두른 강력한 전사, 검은 옷, 역동적인 포즈.",
- playerName:"플레이어 이름",
- namePlaceholder:"예: Roki",
- style:"스타일",
- anime:"애니",
- dark:"다크",
- cyber:"사이버",
- battle:"배틀",
- fantasy:"판타지",
- cute:"귀여운",
- color:"메인 컬러",
- generate:"✨ 게임 아이콘 생성",
- result:"완성된 게임 아이콘",
- download:"이미지 저장"
+
+badge:"AI 게임 아이콘 생성기",
+
+hero:"AI로 나만의 게임 아이콘 만들기",
+
+choose:"제작 방법 선택",
+
+fromImage:"이미지로 만들기",
+
+fromImageDesc:"캐릭터 이미지 업로드",
+
+fromIdea:"아이디어로 만들기",
+
+fromIdeaDesc:"설명만 입력하면 AI가 제작",
+
+character:"캐릭터 이미지",
+
+upload:"이미지 업로드",
+
+formats:"JPG / PNG / WEBP",
+
+fidelity:"캐릭터 충실도",
+
+fidelityStandard:"표준",
+
+fidelityStandardDesc:"AI의 창의성 중심",
+
+fidelityHigh:"높음",
+
+fidelityHighDesc:"캐릭터 특징 유지",
+
+fidelityMaximum:"최고",
+
+fidelityMaximumDesc:"원본 이미지 최우선",
+
+idea:"아이디어",
+
+ideaLabel:"어떤 아이콘을 원하시나요?",
+
+promptPlaceholder:
+"예: 푸른 불꽃을 두른 강력한 전사, 검은 옷, 역동적인 포즈.",
+
+playerName:"플레이어 이름",
+
+namePlaceholder:"예: Roki",
+
+style:"스타일",
+
+anime:"애니",
+
+dark:"다크",
+
+cyber:"사이버",
+
+battle:"배틀",
+
+fantasy:"판타지",
+
+cute:"귀여운",
+
+color:"메인 컬러",
+
+generate:"✨ 게임 아이콘 생성",
+
+result:"완성된 게임 아이콘",
+
+download:"이미지 저장",
+
+loadingTitle:"AI가 아이콘을 제작하고 있습니다...",
+
+loading1:"캐릭터 분석 중",
+
+loading2:"디자인 제작 중",
+
+loading3:"배경 완성 중",
+
+loading4:"최종 조정 중"
+
 },
 
 vi:{
- badge:"AI TẠO BIỂU TƯỢNG GAME",
- hero:"Tạo biểu tượng game độc đáo bằng AI",
- choose:"Chọn cách tạo",
- fromImage:"Tạo từ hình ảnh",
- fromImageDesc:"Tải ảnh nhân vật lên",
- fromIdea:"Tạo từ ý tưởng",
- fromIdeaDesc:"Mô tả ý tưởng để AI tạo",
- character:"Hình ảnh nhân vật",
- upload:"Tải hình ảnh",
- formats:"JPG / PNG / WEBP",
- idea:"Ý tưởng của bạn",
- ideaLabel:"Bạn muốn biểu tượng như thế nào?",
- promptPlaceholder:"Ví dụ: Chiến binh mạnh mẽ với ngọn lửa xanh, mặc đồ đen, tư thế đầy uy lực.",
- playerName:"Tên người chơi",
- namePlaceholder:"Ví dụ: Roki",
- style:"Phong cách",
- anime:"Anime",
- dark:"Bóng tối",
- cyber:"Cyber",
- battle:"Chiến đấu",
- fantasy:"Fantasy",
- cute:"Dễ thương",
- color:"Màu chính",
- generate:"✨ Tạo biểu tượng game",
- result:"Biểu tượng game hoàn thành",
- download:"Lưu hình ảnh"
+
+badge:"AI TẠO BIỂU TƯỢNG GAME",
+
+hero:"Tạo biểu tượng game độc đáo bằng AI",
+
+choose:"Chọn cách tạo",
+
+fromImage:"Tạo từ hình ảnh",
+
+fromImageDesc:"Tải ảnh nhân vật lên",
+
+fromIdea:"Tạo từ ý tưởng",
+
+fromIdeaDesc:"Mô tả ý tưởng để AI tạo",
+
+character:"Hình ảnh nhân vật",
+
+upload:"Tải hình ảnh",
+
+formats:"JPG / PNG / WEBP",
+
+fidelity:"Độ trung thực nhân vật",
+
+fidelityStandard:"Tiêu chuẩn",
+
+fidelityStandardDesc:"Ưu tiên sáng tạo AI",
+
+fidelityHigh:"Cao",
+
+fidelityHighDesc:"Giữ đặc điểm nhân vật",
+
+fidelityMaximum:"Tối đa",
+
+fidelityMaximumDesc:"Ưu tiên hình ảnh gốc",
+
+idea:"Ý tưởng của bạn",
+
+ideaLabel:"Bạn muốn biểu tượng như thế nào?",
+
+promptPlaceholder:
+"Ví dụ: Chiến binh mạnh mẽ với ngọn lửa xanh, mặc đồ đen, tư thế đầy uy lực.",
+
+playerName:"Tên người chơi",
+
+namePlaceholder:"Ví dụ: Roki",
+
+style:"Phong cách",
+
+anime:"Anime",
+
+dark:"Bóng tối",
+
+cyber:"Cyber",
+
+battle:"Chiến đấu",
+
+fantasy:"Fantasy",
+
+cute:"Dễ thương",
+
+color:"Màu chính",
+
+generate:"✨ Tạo biểu tượng game",
+
+result:"Biểu tượng game hoàn thành",
+
+download:"Lưu hình ảnh",
+
+loadingTitle:"AI đang tạo biểu tượng của bạn...",
+
+loading1:"Đang phân tích nhân vật",
+
+loading2:"Đang tạo thiết kế",
+
+loading3:"Đang hoàn thiện nền",
+
+loading4:"Đang điều chỉnh cuối cùng"
+
 },
 
 id:{
- badge:"AI PEMBUAT IKON GAME",
- hero:"Buat ikon game unik dengan AI",
- choose:"Pilih cara membuat",
- fromImage:"Buat dari Gambar",
- fromImageDesc:"Upload gambar karakter",
- fromIdea:"Buat dari Ide",
- fromIdeaDesc:"Jelaskan ide dan biarkan AI membuatnya",
- character:"Gambar Karakter",
- upload:"Upload Gambar",
- formats:"JPG / PNG / WEBP",
- idea:"Ide Anda",
- ideaLabel:"Ikon seperti apa yang Anda inginkan?",
- promptPlaceholder:"Contoh: Prajurit keren dengan api biru, pakaian hitam, pose yang kuat.",
- playerName:"Nama Pemain",
- namePlaceholder:"Contoh: Roki",
- style:"Gaya",
- anime:"Anime",
- dark:"Dark",
- cyber:"Cyber",
- battle:"Battle",
- fantasy:"Fantasy",
- cute:"Cute",
- color:"Warna Utama",
- generate:"✨ Buat Ikon Game",
- result:"Ikon Game Anda",
- download:"Simpan Gambar"
+
+badge:"AI PEMBUAT IKON GAME",
+
+hero:"Buat ikon game unik dengan AI",
+
+choose:"Pilih cara membuat",
+
+fromImage:"Buat dari Gambar",
+
+fromImageDesc:"Upload gambar karakter",
+
+fromIdea:"Buat dari Ide",
+
+fromIdeaDesc:"Jelaskan ide dan biarkan AI membuatnya",
+
+character:"Gambar Karakter",
+
+upload:"Upload Gambar",
+
+formats:"JPG / PNG / WEBP",
+
+fidelity:"Kemiripan Karakter",
+
+fidelityStandard:"Standar",
+
+fidelityStandardDesc:"Lebih banyak kreativitas AI",
+
+fidelityHigh:"Tinggi",
+
+fidelityHighDesc:"Pertahankan karakter",
+
+fidelityMaximum:"Maksimal",
+
+fidelityMaximumDesc:"Prioritaskan gambar asli",
+
+idea:"Ide Anda",
+
+ideaLabel:"Ikon seperti apa yang Anda inginkan?",
+
+promptPlaceholder:
+"Contoh: Prajurit keren dengan api biru, pakaian hitam, pose yang kuat.",
+
+playerName:"Nama Pemain",
+
+namePlaceholder:"Contoh: Roki",
+
+style:"Gaya",
+
+anime:"Anime",
+
+dark:"Dark",
+
+cyber:"Cyber",
+
+battle:"Battle",
+
+fantasy:"Fantasy",
+
+cute:"Cute",
+
+color:"Warna Utama",
+
+generate:"✨ Buat Ikon Game",
+
+result:"Ikon Game Anda",
+
+download:"Simpan Gambar",
+
+loadingTitle:"AI sedang membuat ikon Anda...",
+
+loading1:"Menganalisis karakter",
+
+loading2:"Membuat desain",
+
+loading3:"Menyelesaikan latar",
+
+loading4:"Penyesuaian akhir"
+
 }
 
 };
 
 
-/* =========================
-   LANGUAGE CHANGE
-========================= */
+/* =====================================================
+   STATE
+===================================================== */
 
-const language = document.getElementById("language");
+let currentMode = "image";
 
-function translate(lang){
+let selectedStyle = "anime";
 
-  const data = translations[lang];
+let selectedColor = "black";
 
-  document.documentElement.lang = lang;
+let selectedFidelity = "high";
 
-  document.querySelectorAll("[data-i18n]").forEach(el=>{
-
-    const key = el.dataset.i18n;
-
-    if(data[key]){
-      el.textContent = data[key];
-    }
-
-  });
-
-  document.querySelectorAll("[data-placeholder]").forEach(el=>{
-
-    const key = el.dataset.placeholder;
-
-    if(data[key]){
-      el.placeholder = data[key];
-    }
-
-  });
-
-}
-
-language.addEventListener("change",()=>{
-
-  translate(language.value);
-
-});
+let uploadedImage = null;
 
 
-/* =========================
-   CREATE MODE
-========================= */
+/* =====================================================
+   ELEMENTS
+===================================================== */
 
-let createMode = "image";
+const language =
+  document.getElementById("language");
 
-document.querySelectorAll(".option").forEach(option=>{
-
-  option.addEventListener("click",()=>{
-
-    document.querySelectorAll(".option")
-      .forEach(x=>x.classList.remove("active"));
-
-    option.classList.add("active");
-
-    createMode = option.dataset.mode;
-
-    const uploadCard =
-      document.getElementById("uploadCard");
-
-    if(createMode === "image"){
-
-      uploadCard.style.display = "block";
-
-    }else{
-
-      uploadCard.style.display = "none";
-
-    }
-
-  });
-
-});
-
-
-/* =========================
-   IMAGE UPLOAD
-========================= */
+const uploadCard =
+  document.getElementById("uploadCard");
 
 const imageInput =
   document.getElementById("imageInput");
@@ -1017,188 +2124,577 @@ const preview =
 const uploadContent =
   document.getElementById("uploadContent");
 
-let uploadedImage = null;
+const promptInput =
+  document.getElementById("prompt");
 
-imageInput.addEventListener("change",()=>{
-
-  const file = imageInput.files[0];
-
-  if(!file) return;
-
-  const reader = new FileReader();
-
-  reader.onload = e=>{
-
-    uploadedImage = e.target.result;
-
-    preview.src = uploadedImage;
-
-    preview.style.display = "block";
-
-    uploadContent.style.display = "none";
-
-  };
-
-  reader.readAsDataURL(file);
-
-});
-
-
-/* =========================
-   STYLE
-========================= */
-
-let selectedStyle = "anime";
-
-document.querySelectorAll(".style").forEach(el=>{
-
-  el.addEventListener("click",()=>{
-
-    document.querySelectorAll(".style")
-      .forEach(x=>x.classList.remove("active"));
-
-    el.classList.add("active");
-
-    selectedStyle = el.dataset.style;
-
-  });
-
-});
-
-
-/* =========================
-   COLOR
-========================= */
-
-let selectedColor = "black";
-
-document.querySelectorAll(".color").forEach(el=>{
-
-  el.addEventListener("click",()=>{
-
-    document.querySelectorAll(".color")
-      .forEach(x=>x.classList.remove("active"));
-
-    el.classList.add("active");
-
-    selectedColor = el.dataset.color;
-
-  });
-
-});
-
-
-/* =========================
-   GENERATE
-========================= */
+const playerNameInput =
+  document.getElementById("playerName");
 
 const generateButton =
   document.getElementById("generate");
 
-generateButton.addEventListener("click",async()=>{
+const result =
+  document.getElementById("result");
 
-  const prompt =
-    document.getElementById("prompt").value.trim();
+const resultImage =
+  document.getElementById("resultImage");
 
-  const playerName =
-    document.getElementById("playerName").value.trim();
+const download =
+  document.getElementById("download");
 
-  if(!prompt){
+const loading =
+  document.getElementById("loading");
 
-    alert(
-      translations[language.value].ideaLabel
-    );
+const loadingTitle =
+  document.getElementById("loadingTitle");
 
-    return;
+const loadingMessage =
+  document.getElementById("loadingMessage");
 
-  }
+const loadingProgress =
+  document.getElementById("loadingProgress");
 
-  generateButton.disabled = true;
+const loadingPercent =
+  document.getElementById("loadingPercent");
 
-  const originalText =
-    translations[language.value].generate;
 
-  generateButton.textContent =
-    "✨ Generating...";
+/* =====================================================
+   TRANSLATION
+===================================================== */
 
-  try{
+function translate(lang){
 
-    const response = await fetch("/api/generate",{
+  const data =
+    translations[lang] ||
+    translations.ja;
 
-      method:"POST",
+  document.documentElement.lang =
+    lang;
 
-      headers:{
-        "Content-Type":"application/json"
-      },
+  document
+    .querySelectorAll("[data-i18n]")
+    .forEach(element=>{
 
-      body:JSON.stringify({
+      const key =
+        element.dataset.i18n;
 
-        mode:createMode,
-
-        prompt:prompt,
-
-        playerName:playerName,
-
-        style:selectedStyle,
-
-        color:selectedColor,
-
-        image:uploadedImage
-
-      })
+      if(data[key]){
+        element.textContent =
+          data[key];
+      }
 
     });
 
-    const data = await response.json();
 
-    if(!response.ok){
+  document
+    .querySelectorAll("[data-placeholder]")
+    .forEach(element=>{
 
-      throw new Error(
-        data.error || "Generation failed"
+      const key =
+        element.dataset.placeholder;
+
+      if(data[key]){
+        element.placeholder =
+          data[key];
+      }
+
+    });
+
+}
+
+language.addEventListener(
+  "change",
+  ()=>{
+    translate(language.value);
+  }
+);
+
+
+/* =====================================================
+   CREATE MODE
+===================================================== */
+
+document
+  .querySelectorAll(".option")
+  .forEach(option=>{
+
+    option.addEventListener(
+      "click",
+      ()=>{
+
+        document
+          .querySelectorAll(".option")
+          .forEach(item=>{
+            item.classList.remove("active");
+          });
+
+        option.classList.add("active");
+
+        currentMode =
+          option.dataset.mode;
+
+        if(currentMode === "image"){
+
+          uploadCard.style.display =
+            "block";
+
+        }else{
+
+          uploadCard.style.display =
+            "none";
+
+        }
+
+      }
+    );
+
+  });
+
+
+/* =====================================================
+   IMAGE UPLOAD
+===================================================== */
+
+imageInput.addEventListener(
+  "change",
+  ()=>{
+
+    const file =
+      imageInput.files[0];
+
+    if(!file){
+      return;
+    }
+
+    const reader =
+      new FileReader();
+
+    reader.onload =
+      event=>{
+
+        uploadedImage =
+          event.target.result;
+
+        preview.src =
+          uploadedImage;
+
+        preview.style.display =
+          "block";
+
+        uploadContent.style.display =
+          "none";
+
+      };
+
+    reader.readAsDataURL(file);
+
+  }
+);
+
+
+/* =====================================================
+   FIDELITY
+===================================================== */
+
+document
+  .querySelectorAll(".fidelity-option")
+  .forEach(option=>{
+
+    option.addEventListener(
+      "click",
+      ()=>{
+
+        document
+          .querySelectorAll(".fidelity-option")
+          .forEach(item=>{
+            item.classList.remove("active");
+          });
+
+        option.classList.add("active");
+
+        selectedFidelity =
+          option.dataset.fidelity;
+
+      }
+    );
+
+  });
+
+
+/* =====================================================
+   STYLE
+===================================================== */
+
+document
+  .querySelectorAll(".style")
+  .forEach(style=>{
+
+    style.addEventListener(
+      "click",
+      ()=>{
+
+        document
+          .querySelectorAll(".style")
+          .forEach(item=>{
+            item.classList.remove("active");
+          });
+
+        style.classList.add("active");
+
+        selectedStyle =
+          style.dataset.style;
+
+      }
+    );
+
+  });
+
+
+/* =====================================================
+   COLOR
+===================================================== */
+
+document
+  .querySelectorAll(".color")
+  .forEach(color=>{
+
+    color.addEventListener(
+      "click",
+      ()=>{
+
+        document
+          .querySelectorAll(".color")
+          .forEach(item=>{
+            item.classList.remove("active");
+          });
+
+        color.classList.add("active");
+
+        selectedColor =
+          color.dataset.color;
+
+      }
+    );
+
+  });
+
+
+/* =====================================================
+   LOADING
+===================================================== */
+
+let loadingTimer = null;
+
+function startLoading(){
+
+  const data =
+    translations[
+      language.value
+    ] || translations.ja;
+
+  loading.style.display =
+    "flex";
+
+  loadingProgress.style.width =
+    "0%";
+
+  loadingPercent.textContent =
+    "0%";
+
+  loadingTitle.textContent =
+    data.loadingTitle;
+
+  loadingMessage.textContent =
+    data.loading1;
+
+
+  const messages = [
+
+    data.loading1,
+    data.loading2,
+    data.loading3,
+    data.loading4
+
+  ];
+
+  let progress = 0;
+
+  let step = 0;
+
+  clearInterval(
+    loadingTimer
+  );
+
+  loadingTimer =
+    setInterval(
+      ()=>{
+
+        progress +=
+          Math.floor(
+            Math.random()*7
+          ) + 3;
+
+        if(progress >= 95){
+
+          progress = 95;
+
+        }
+
+        loadingProgress.style.width =
+          progress + "%";
+
+        loadingPercent.textContent =
+          progress + "%";
+
+        const newStep =
+          Math.min(
+            Math.floor(
+              progress / 25
+            ),
+            messages.length - 1
+          );
+
+        if(newStep !== step){
+
+          step =
+            newStep;
+
+          loadingMessage.textContent =
+            messages[step];
+
+        }
+
+      },
+      700
+    );
+
+}
+
+
+function stopLoading(){
+
+  clearInterval(
+    loadingTimer
+  );
+
+  loadingProgress.style.width =
+    "100%";
+
+  loadingPercent.textContent =
+    "100%";
+
+  setTimeout(
+    ()=>{
+      loading.style.display =
+        "none";
+    },
+    400
+  );
+
+}
+
+
+/* =====================================================
+   GENERATE
+===================================================== */
+
+generateButton.addEventListener(
+  "click",
+  async()=>{
+
+    const prompt =
+      promptInput.value.trim();
+
+    const playerName =
+      playerNameInput.value.trim();
+
+
+    if(!prompt){
+
+      const data =
+        translations[
+          language.value
+        ] || translations.ja;
+
+      alert(
+        data.ideaLabel
       );
+
+      promptInput.focus();
+
+      return;
 
     }
 
-    const result =
-      document.getElementById("result");
 
-    const resultImage =
-      document.getElementById("resultImage");
+    if(
+      currentMode === "image" &&
+      !uploadedImage
+    ){
 
-    const download =
-      document.getElementById("download");
+      const messages = {
 
-    resultImage.src = data.image;
+        ja:"キャラクター画像をアップロードしてください。",
 
-    download.href = data.image;
+        en:"Please upload a character image.",
 
-    result.style.display = "block";
+        zh:"请上传角色图片。",
 
-    result.scrollIntoView({
-      behavior:"smooth"
-    });
+        ko:"캐릭터 이미지를 업로드해주세요.",
 
-  }catch(error){
+        vi:"Vui lòng tải ảnh nhân vật lên.",
 
-    alert(error.message);
+        id:"Silakan upload gambar karakter."
 
-  }finally{
+      };
 
-    generateButton.disabled = false;
+      alert(
+        messages[
+          language.value
+        ] || messages.ja
+      );
 
-    generateButton.textContent =
-      originalText;
+      return;
+
+    }
+
+
+    generateButton.disabled =
+      true;
+
+    result.style.display =
+      "none";
+
+    startLoading();
+
+
+    try{
+
+      const response =
+        await fetch(
+          "/api/generate",
+          {
+
+            method:"POST",
+
+            headers:{
+              "Content-Type":
+                "application/json"
+            },
+
+            body:JSON.stringify({
+
+              mode:
+                currentMode,
+
+              prompt:
+                prompt,
+
+              playerName:
+                playerName,
+
+              style:
+                selectedStyle,
+
+              color:
+                selectedColor,
+
+              fidelity:
+                selectedFidelity,
+
+              image:
+                uploadedImage
+
+            })
+
+          }
+        );
+
+
+      const data =
+        await response.json();
+
+
+      if(!response.ok){
+
+        throw new Error(
+          data?.error ||
+          "Image generation failed."
+        );
+
+      }
+
+
+      if(!data.image){
+
+        throw new Error(
+          "No image was returned."
+        );
+
+      }
+
+
+      resultImage.src =
+        data.image;
+
+      download.href =
+        data.image;
+
+
+      result.style.display =
+        "block";
+
+
+      stopLoading();
+
+
+      setTimeout(
+        ()=>{
+
+          result.scrollIntoView({
+            behavior:"smooth",
+            block:"start"
+          });
+
+        },
+        450
+      );
+
+
+    }catch(error){
+
+      stopLoading();
+
+      console.error(
+        "Generation error:",
+        error
+      );
+
+      alert(
+        error?.message ||
+        "Image generation failed."
+      );
+
+
+    }finally{
+
+      generateButton.disabled =
+        false;
+
+    }
 
   }
+);
 
-});
 
-
-/* 初期言語 */
+/* =====================================================
+   INITIAL
+===================================================== */
 
 translate("ja");
 
 </script>
 
 </body>
+
 </html>
