@@ -83,6 +83,14 @@ function textScale(text) {
   return 0.105;
 }
 
+function isTextMoveRequest(message, hasImage) {
+  if (!hasImage) return false;
+  const t = String(message || "").trim();
+  const hasMove = /(移動|動か|ずら|寄せ|位置を変|場所を変|右へ|左へ|上へ|下へ|右側へ|左側へ|上側へ|下側へ|move|reposition)/iu.test(t);
+  const hasText = /(文字|テキスト|ロゴ|名前|チーム名|クラン名|同盟名|ギルド名)/u.test(t);
+  return Boolean(hasMove && hasText && exactText(t));
+}
+
 function isLikelyChat(message, hasImage) {
   const t = String(message || "").trim();
   if (!t) return false;
@@ -113,13 +121,14 @@ async function makePlan(message, image, history, format, modeHint) {
   const system = `You are Iconia AI, a premium game-icon editing assistant. You are not merely an image prompt generator: understand the conversation like a strong chat assistant, then decide whether the user wants conversation or an image operation.
 
 Return JSON only with this schema:
-{"action":"generate|edit|chat","mode":"ORIGINAL|FAITHFUL|STYLE_ONLY|TARGETED_EDIT|AI_DESIGN|BACKGROUND_ONLY|POSE_ONLY|HAIR_ONLY|CLOTHING_ONLY|TEXT_ONLY","requested_text":string|null,"text_position":string|null,"text_style":string|null,"text_scale":"tiny|small|medium|large|xlarge|huge","keep":string[],"change":string[],"style":string,"composition":string,"image_prompt":string,"reply":string}
+{"action":"generate|edit|chat","mode":"ORIGINAL|FAITHFUL|STYLE_ONLY|TARGETED_EDIT|AI_DESIGN|BACKGROUND_ONLY|POSE_ONLY|HAIR_ONLY|CLOTHING_ONLY|TEXT_ONLY|TEXT_MOVE","requested_text":string|null,"text_position":string|null,"text_style":string|null,"text_scale":"tiny|small|medium|large|xlarge|huge","keep":string[],"change":string[],"style":string,"composition":string,"image_prompt":string,"reply":string}
 
 CORE RULES:
 1. The reference image is the source of truth. Preserve the same recognizable person/character, face, hair, clothing, pose, important objects, existing text, camera and composition unless the user explicitly asks to change them.
 2. If the user asks to change ONLY the art style, change rendering style only. Do not redesign the person.
 3. If the user asks to change ONLY the background, change only the environment/background.
 4. If the user asks for text/logo, exact spelling and requested size/position are hard requirements.
+4A. If the user asks to MOVE/REPOSITION an existing named text or logo, this is a TEXT_MOVE operation. Locate the EXISTING instance in the reference, remove/erase that original instance completely, and place that SAME text/logo only once at the requested position. NEVER add a second copy. Preserve its typography/design as closely as possible.
 5. When the user says "big", "larger", "もっと大きく", etc., choose large/xlarge/huge, not medium.
 6. When the user asks for text but gives no typography style, AUTOMATICALLY DESIGN typography that matches the reference image: color palette, mood, lighting, genre, character, and composition. Do not use a generic plain text treatment. Describe a tasteful logo/typography treatment in text_style.
 7. When the user gives a specific typography direction, follow it exactly while still matching the image.
@@ -146,8 +155,9 @@ function normalize(plan, message, hasImage, format) {
   let action = String(plan?.action || "").toLowerCase();
   if (!["generate", "edit", "chat"].includes(action)) action = hasImage ? "edit" : (isLikelyChat(message, hasImage) ? "chat" : "generate");
   let mode = String(plan?.mode || (hasImage ? "FAITHFUL" : "ORIGINAL")).toUpperCase();
-  const allowed = new Set(["ORIGINAL", "FAITHFUL", "STYLE_ONLY", "TARGETED_EDIT", "AI_DESIGN", "BACKGROUND_ONLY", "POSE_ONLY", "HAIR_ONLY", "CLOTHING_ONLY", "TEXT_ONLY"]);
+  const allowed = new Set(["ORIGINAL", "FAITHFUL", "STYLE_ONLY", "TARGETED_EDIT", "AI_DESIGN", "BACKGROUND_ONLY", "POSE_ONLY", "HAIR_ONLY", "CLOTHING_ONLY", "TEXT_ONLY", "TEXT_MOVE"]);
   if (!allowed.has(mode)) mode = hasImage ? "FAITHFUL" : "ORIGINAL";
+  if (isTextMoveRequest(message, hasImage)) mode = "TEXT_MOVE";
   if (action === "chat") mode = "FAITHFUL";
   const requestedText = clean(plan?.requested_text || exactText(message), 140) || null;
   const keep = uniq(plan?.keep);
@@ -159,6 +169,7 @@ function normalize(plan, message, hasImage, format) {
   if (mode === "HAIR_ONLY") change.push("ONLY hairstyle/hair color");
   if (mode === "CLOTHING_ONLY") change.push("ONLY clothing/outfit");
   if (mode === "TEXT_ONLY") change.push("ONLY typography/logo layer");
+  if (mode === "TEXT_MOVE") change.push("MOVE ONLY THE EXISTING NAMED TEXT/LOGO: erase its original location completely, then place the same text/logo once at the requested position; do not add a duplicate");
   let textScaleValue = String(plan?.text_scale || "").toLowerCase();
   if (!["tiny", "small", "medium", "large", "xlarge", "huge"].includes(textScaleValue)) {
     const raw = textScale(message);
@@ -183,8 +194,11 @@ function normalize(plan, message, hasImage, format) {
 }
 
 function buildPrompt(plan, message) {
-  const strict = ["FAITHFUL", "STYLE_ONLY", "BACKGROUND_ONLY", "TEXT_ONLY", "TARGETED_EDIT"].includes(plan.mode);
-  return `Iconia AI high-fidelity visual editing operation.\nLATEST USER REQUEST:\n${clean(message)}\nMODE: ${plan.mode}\nOUTPUT FORMAT: ${plan.format.label}\n\nINTENT:\n${plan.imagePrompt}\n\nSTYLE:\n${plan.style}\n\nCOMPOSITION:\n${plan.composition}\n\nKEEP EXACTLY:\n- ${plan.keep.join("\n- ")}\n\nONLY CHANGE:\n- ${plan.change.join("\n- ")}\n${plan.requestedText ? `\nEXACT TEXT: ${plan.requestedText}\nTYPOGRAPHY DIRECTION: ${plan.textStyle}\nTEXT SCALE: ${plan.textScale}` : ""}\n${plan.textPosition ? `TEXT POSITION: ${plan.textPosition}` : ""}\n${strict ? "\nIDENTITY LOCK: Do not replace, redesign, beautify into a different person, or regenerate unrequested parts. Preserve the recognizable subject from the reference." : ""}\nQUALITY: premium commercial game artwork, polished anatomy, coherent lighting, crisp details, sophisticated composition.\nNON-NEGOTIABLE: Never change an unrequested element merely because it seems aesthetically preferable.`;
+  const strict = ["FAITHFUL", "STYLE_ONLY", "BACKGROUND_ONLY", "TEXT_ONLY", "TARGETED_EDIT", "TEXT_MOVE"].includes(plan.mode);
+  const moveInstruction = plan.mode === "TEXT_MOVE" && plan.requestedText
+    ? `\nTEXT MOVE OPERATION: Find the existing visible text/logo that reads exactly "${plan.requestedText}" in the reference. REMOVE/ERASE that original instance completely from its old position, reconstruct the SAME text/logo with the same spelling and visual identity, and place it ONLY ONCE at ${plan.textPosition || "the requested position"}. DO NOT add a second copy. DO NOT leave the old copy behind. This is a move/reposition operation, not an add-text operation.`
+    : "";
+  return `Iconia AI high-fidelity visual editing operation.\nLATEST USER REQUEST:\n${clean(message)}\nMODE: ${plan.mode}\nOUTPUT FORMAT: ${plan.format.label}\n\nINTENT:\n${plan.imagePrompt}\n\nSTYLE:\n${plan.style}\n\nCOMPOSITION:\n${plan.composition}\n\nKEEP EXACTLY:\n- ${plan.keep.join("\n- ")}\n\nONLY CHANGE:\n- ${plan.change.join("\n- ")}\n${plan.requestedText ? `\nEXACT TEXT: ${plan.requestedText}\nTYPOGRAPHY DIRECTION: ${plan.textStyle}\nTEXT SCALE: ${plan.textScale}` : ""}\n${plan.textPosition ? `TEXT POSITION: ${plan.textPosition}` : ""}${moveInstruction}\n${strict ? "\nIDENTITY LOCK: Do not replace, redesign, beautify into a different person, or regenerate unrequested parts. Preserve the recognizable subject from the reference." : ""}\nQUALITY: premium commercial game artwork, polished anatomy, coherent lighting, crisp details, sophisticated composition.\nNON-NEGOTIABLE: Never change an unrequested element merely because it seems aesthetically preferable.`;
 }
 
 async function editImage(file, prompt, size, quality) {
@@ -269,13 +283,24 @@ export default async function handler(req, res) {
       return res.status(200).json({ success: true, chat: true, reply: plan.reply || "いい感じだね。", plan: { mode: "CHAT", format: formatKey } });
     }
 
+    if (isTextMoveRequest(message, Boolean(image)) && image) {
+      const { buffer, mime } = dataImageToBuffer(image);
+      const ext = mime.split("/")[1] === "png" ? "png" : mime.split("/")[1] === "webp" ? "webp" : "jpg";
+      const movePrompt = buildPrompt(plan, message);
+      const moved = await editImage(await toFile(buffer, `reference.${ext}`, { type: mime }), movePrompt, format.modelSize, "high");
+      const b64 = moved?.data?.[0]?.b64_json;
+      if (!b64) throw new Error("文字移動後の画像データがAIから返されませんでした。");
+      const output = await fitExactCanvas(`data:image/jpeg;base64,${b64}`, formatKey);
+      return res.status(200).json({ success: true, image: output, reply: plan.reply || `「${plan.requestedText}」を既存の位置から移動しました。`, plan: { mode: "TEXT_MOVE", requestedText: plan.requestedText, textPosition: plan.textPosition, textStyle: plan.textStyle, textScale: plan.textScale, keep: plan.keep, change: plan.change, format: formatKey, formatLabel: format.label } });
+    }
+
     if (isTextOnlyRequest(message, Boolean(image)) && image) {
       const requested = plan.requestedText || exactText(message);
       const edited = await renderText(image, requested, plan.textPosition, plan.textStyle, message, plan.textScale, formatKey);
       return res.status(200).json({ success: true, image: edited, reply: plan.reply || `できました。「${requested}」を画像の雰囲気に合わせてデザインしました。`, plan: { mode: "TEXT_ONLY", requestedText: requested, textPosition: plan.textPosition, textStyle: plan.textStyle, textScale: plan.textScale, keep: ["元画像の人物・背景・構図"], change: ["文字・ロゴだけ"], format: formatKey, formatLabel: format.label } });
     }
 
-    const quality = /高品質|高画質|最高|超高精細|精密|最高品質|premium/i.test(message) || ["STYLE_ONLY", "FAITHFUL", "AI_DESIGN", "TARGETED_EDIT"].includes(plan.mode) ? "high" : "medium";
+    const quality = /高品質|高画質|最高|超高精細|精密|最高品質|premium/i.test(message) || ["STYLE_ONLY", "FAITHFUL", "AI_DESIGN", "TARGETED_EDIT", "TEXT_MOVE"].includes(plan.mode) ? "high" : "medium";
     const prompt = buildPrompt(plan, message);
     let result;
     if (image) {
