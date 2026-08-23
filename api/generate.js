@@ -4,37 +4,53 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
 });
 
-const clean = (value, maxLength) =>
-  String(value ?? "")
+
+function clean(value, max = 3000){
+
+  return String(value ?? "")
     .trim()
-    .slice(0, maxLength);
+    .slice(0,max);
+
+}
 
 
-function dataUrlToBuffer(dataUrl) {
+function dataUrlToBuffer(dataUrl){
 
-  const match = String(dataUrl).match(
-    /^data:([^;]+);base64,(.+)$/
-  );
+  const match =
+    String(dataUrl).match(
+      /^data:(image\/[^;]+);base64,(.+)$/
+    );
 
-  if (!match) {
-    throw new Error("画像データの形式が正しくありません。");
+  if(!match){
+
+    throw new Error(
+      "画像データを読み込めませんでした。"
+    );
+
   }
 
   return {
-    mimeType: match[1],
-    buffer: Buffer.from(match[2], "base64")
+
+    mimeType:match[1],
+
+    buffer:
+      Buffer.from(
+        match[2],
+        "base64"
+      )
+
   };
 
 }
 
 
-function extensionFromMime(mimeType) {
+function getExtension(mime){
 
-  if (mimeType === "image/png") {
+  if(mime === "image/png"){
     return "png";
   }
 
-  if (mimeType === "image/webp") {
+  if(mime === "image/webp"){
     return "webp";
   }
 
@@ -43,44 +59,410 @@ function extensionFromMime(mimeType) {
 }
 
 
-function buildPrompt(body) {
+function fidelityToAPI(value){
+
+  const n =
+    Number(value || 80);
+
+  /*
+   * OpenAI側の入力画像忠実度は
+   * high / low で指定。
+   *
+   * UIでは5段階にして、
+   * 80%以上をhigh、
+   * それ以下をlowとして扱う。
+   */
+
+  return n >= 80
+    ? "high"
+    : "low";
+
+}
+
+
+function buildCreatePrompt(body){
 
   const character =
-    clean(body.character, 80);
+    clean(body.character,100);
 
   const mood =
-    clean(body.mood, 80);
+    clean(body.mood,100);
 
   const color =
-    clean(body.color, 40);
+    clean(body.color,50);
 
   const colorHex =
-    clean(body.colorHex, 12);
+    clean(body.colorHex,20);
 
   const backgroundPreset =
-    clean(body.backgroundPreset, 100);
+    clean(
+      body.backgroundPreset,
+      200
+    );
 
   const background =
-    clean(body.background, 1000);
+    clean(
+      body.background,
+      1500
+    );
 
-  const extraPrompt =
-    clean(body.extraPrompt, 3000);
+  const extra =
+    clean(
+      body.extraPrompt,
+      4000
+    );
 
 
-  const backgroundText =
-    background ||
-    backgroundPreset ||
-    "キャラクターを引き立てる美しいゲーム背景";
+  let prompt = `
 
+Create a premium original mobile game profile icon.
 
-  return `
-
-Create an original premium mobile game profile icon.
+Canvas:
+Square 1:1 composition.
 
 IMPORTANT:
-The website will add all text AFTER image generation.
+The website will add all text after image generation.
 
-DO NOT create:
+NEVER generate any text inside the artwork.
+
+NO:
+- player names
+- usernames
+- alliance names
+- clan names
+- team names
+- letters
+- numbers
+- logos
+- watermarks
+- captions
+- UI
+- typography
+
+The artwork itself must contain ZERO readable text.
+
+`;
+
+  if(character){
+
+    prompt += `
+
+CHARACTER TYPE:
+${character}
+
+`;
+
+  }
+
+
+  if(mood){
+
+    prompt += `
+
+MOOD:
+${mood}
+
+`;
+
+  }
+
+
+  if(color){
+
+    prompt += `
+
+PRIMARY COLOR:
+${color}
+
+COLOR HEX:
+${colorHex}
+
+`;
+
+  }
+
+
+  if(backgroundPreset){
+
+    prompt += `
+
+BACKGROUND STYLE:
+${backgroundPreset}
+
+`;
+
+  }
+
+
+  if(background){
+
+    prompt += `
+
+CUSTOM BACKGROUND INSTRUCTIONS:
+${background}
+
+`;
+
+  }
+
+
+  if(extra){
+
+    prompt += `
+
+USER'S DETAILED INSTRUCTIONS:
+${extra}
+
+`;
+
+  }
+
+
+  prompt += `
+
+Create an original character.
+
+Make the character large and visually dominant.
+
+Make the face clearly visible.
+
+Use professional premium mobile-game artwork.
+
+Strong composition.
+
+Beautiful lighting.
+
+High detail.
+
+Cinematic depth.
+
+Detailed clothing and materials.
+
+Strong silhouette.
+
+High visual impact.
+
+Do not copy a specific copyrighted character.
+
+ABSOLUTELY NO TEXT.
+
+`;
+
+  return prompt;
+
+}
+
+
+function buildEditPrompt(body){
+
+  const fidelity =
+    Number(
+      body.fidelity || 80
+    );
+
+  const character =
+    clean(body.character,100);
+
+  const mood =
+    clean(body.mood,100);
+
+  const color =
+    clean(body.color,50);
+
+  const colorHex =
+    clean(body.colorHex,20);
+
+  const backgroundPreset =
+    clean(
+      body.backgroundPreset,
+      200
+    );
+
+  const background =
+    clean(
+      body.background,
+      1500
+    );
+
+  const extra =
+    clean(
+      body.extraPrompt,
+      4000
+    );
+
+
+  let prompt = `
+
+EDIT THE PROVIDED ORIGINAL IMAGE.
+
+The uploaded image is the primary source.
+
+PRESERVE THE ORIGINAL IMAGE ACCORDING TO THE
+USER'S SELECTED FIDELITY:
+
+${fidelity}% original preservation.
+
+`;
+
+  if(fidelity >= 100){
+
+    prompt += `
+
+Preserve the original image almost exactly.
+
+Do not redesign the character.
+
+Only make explicitly requested changes.
+
+`;
+
+  }else if(fidelity >= 80){
+
+    prompt += `
+
+Strongly preserve the original character identity,
+face, hair, clothing and overall composition.
+
+Only make requested changes.
+
+`;
+
+  }else if(fidelity >= 60){
+
+    prompt += `
+
+Maintain the original character and important features,
+while allowing moderate artistic changes.
+
+`;
+
+  }else if(fidelity >= 40){
+
+    prompt += `
+
+Use the original image as a strong visual reference,
+but allow significant artistic improvements.
+
+`;
+
+  }else{
+
+    prompt += `
+
+Use the original image mainly as inspiration.
+Major artistic changes are allowed.
+
+`;
+
+  }
+
+
+  prompt += `
+
+VERY IMPORTANT:
+
+If the user asks to change only the background,
+do NOT unnecessarily change the character.
+
+If the user asks to change only the pose,
+preserve the face, hair and clothing as much as possible.
+
+If the user asks to change clothing,
+preserve the character identity.
+
+If the user asks to improve lighting,
+do not redesign the character.
+
+Follow the user's instructions precisely.
+
+`;
+
+
+  if(character){
+
+    prompt += `
+
+CHARACTER TYPE:
+${character}
+
+`;
+
+  }
+
+
+  if(mood){
+
+    prompt += `
+
+MOOD:
+${mood}
+
+`;
+
+  }
+
+
+  if(color){
+
+    prompt += `
+
+PRIMARY COLOR:
+${color}
+
+COLOR HEX:
+${colorHex}
+
+`;
+
+  }
+
+
+  if(backgroundPreset){
+
+    prompt += `
+
+BACKGROUND:
+${backgroundPreset}
+
+`;
+
+  }
+
+
+  if(background){
+
+    prompt += `
+
+CUSTOM BACKGROUND:
+${background}
+
+`;
+
+  }
+
+
+  if(extra){
+
+    prompt += `
+
+USER'S DETAILED INSTRUCTIONS:
+${extra}
+
+`;
+
+  }
+
+
+  prompt += `
+
+Make the result suitable for a premium 1:1 mobile game icon.
+
+Improve composition, lighting and visual quality
+only where appropriate.
+
+DO NOT ADD TEXT.
+
+DO NOT ADD:
 
 - player names
 - usernames
@@ -89,197 +471,91 @@ DO NOT create:
 - team names
 - letters
 - numbers
-- words
 - logos
 - watermarks
-- UI elements
 - captions
+- UI
 - typography
-- fake signatures
 
-The artwork itself must contain ZERO readable text.
+The website will add text separately.
 
-Canvas:
-1024 x 1024 pixels.
-
-Aspect ratio:
-1:1.
-
-
-CHARACTER:
-
-${character || "original powerful game character"}
-
-
-MOOD:
-
-${mood || "cool and cinematic"}
-
-
-PRIMARY COLOR:
-
-${color || "purple"}
-
-COLOR HEX:
-${colorHex || "#8b5cf6"}
-
-
-BACKGROUND:
-
-${backgroundText}
-
-
-DETAILED USER INSTRUCTIONS:
-
-${extraPrompt || "Create a powerful, attractive and highly detailed game character."}
-
-
-FOLLOW THE USER'S DETAILED INSTRUCTIONS.
-
-Pay particular attention to:
-
-- hairstyle
-- hair color
-- eyes
-- facial expression
-- clothing
-- armor
-- accessories
-- weapons
-- pose
-- body position
-- camera angle
-- character size
-- lighting
-- background
-- atmosphere
-- special effects
-- composition
-- color balance
-
-
-CHARACTER SIZE:
-
-The main character should be large and visually dominant.
-
-The face should be clearly visible.
-
-Do not make the character too small.
-
-Keep important parts of the character inside the frame.
-
-
-QUALITY:
-
-Premium high-end mobile game artwork.
-
-Highly detailed digital illustration.
-
-Cinematic lighting.
-
-Strong silhouette.
-
-Professional game-avatar composition.
-
-Detailed face.
-
-Detailed clothing.
-
-Beautiful materials.
-
-Strong depth.
-
-High visual impact.
-
-Original character design.
-
-Do not copy an existing copyrighted character.
-
-
-ABSOLUTELY NO TEXT:
-
-No names.
-No letters.
-No numbers.
-No logos.
-No watermark.
-No UI.
-No typography.
-
-The website will add the player's text later.
+The final image must contain ZERO readable text.
 
 `;
+
+  return prompt;
+
 }
 
 
-export default async function handler(req, res) {
+export default async function handler(req,res){
 
-  if (req.method !== "POST") {
+  if(req.method !== "POST"){
 
     return res.status(405).json({
-      error: "POST only"
+      error:"POST only"
     });
 
   }
 
 
-  if (!process.env.OPENAI_API_KEY) {
+  if(!process.env.OPENAI_API_KEY){
 
     return res.status(500).json({
+
       error:
-        "OPENAI_API_KEY がVercelに設定されていません。"
+        "OPENAI_API_KEY が設定されていません。"
+
     });
 
   }
 
 
-  try {
+  try{
 
-    const body = req.body || {};
+    const body =
+      req.body || {};
 
     const mode =
-      clean(body.mode, 20) || "create";
+      clean(body.mode,20);
 
 
     /*
-     * =====================================================
+     * =========================================
      * 新規生成
-     * =====================================================
+     * =========================================
      */
 
-    if (
-      mode !== "edit" ||
-      !body.imageBase64
-    ) {
+    if(mode === "create"){
 
       const prompt =
-        buildPrompt(body);
+        buildCreatePrompt(body);
 
 
       const result =
         await openai.images.generate({
 
-          model: "gpt-image-1",
+          model:"gpt-image-1",
 
           prompt,
 
-          size: "1024x1024",
+          size:"1024x1024",
 
-          quality: "medium",
+          quality:"medium",
 
-          n: 1
+          n:1
 
         });
 
 
-      const image =
+      const b64 =
         result?.data?.[0]?.b64_json;
 
 
-      if (!image) {
+      if(!b64){
 
         throw new Error(
-          "AIから画像データが返されませんでした。"
+          "AIから画像が返ってきませんでした。"
         );
 
       }
@@ -288,7 +564,7 @@ export default async function handler(req, res) {
       return res.status(200).json({
 
         image:
-          `data:image/png;base64,${image}`
+          `data:image/png;base64,${b64}`
 
       });
 
@@ -296,199 +572,111 @@ export default async function handler(req, res) {
 
 
     /*
-     * =====================================================
-     * アップロード画像を編集
-     * =====================================================
+     * =========================================
+     * 原画編集
+     * =========================================
      */
 
-    const imageData =
-      dataUrlToBuffer(
-        body.imageBase64
-      );
+    if(mode === "edit"){
 
+      if(!body.imageBase64){
 
-    const extension =
-      extensionFromMime(
-        imageData.mimeType
-      );
+        throw new Error(
+          "編集する原画がありません。"
+        );
 
+      }
 
-    const prompt = `
 
-EDIT THE PROVIDED IMAGE.
+      const imageData =
+        dataUrlToBuffer(
+          body.imageBase64
+        );
 
-Use the uploaded image as the primary visual reference.
 
-Preserve the identity and important visual characteristics
-of the original character unless the user explicitly asks
-to change them.
+      const extension =
+        getExtension(
+          imageData.mimeType
+        );
 
-The user wants an original premium mobile game icon.
 
-IMPORTANT:
+      const file =
+        await OpenAI.toFile(
 
-DO NOT add any text to the image.
+          imageData.buffer,
 
-DO NOT add:
+          `original.${extension}`,
 
-- player names
-- usernames
-- alliance names
-- clan names
-- team names
-- letters
-- numbers
-- logos
-- watermarks
-- UI
-- captions
-- typography
+          {
+            type:
+              imageData.mimeType
+          }
 
-The website will add all names AFTER generation.
+        );
 
-USER'S CHARACTER TYPE:
 
-${clean(body.character,80)}
+      const prompt =
+        buildEditPrompt(body);
 
 
-USER'S MOOD:
+      const result =
+        await openai.images.edit({
 
-${clean(body.mood,80)}
+          model:"gpt-image-1",
 
+          image:file,
 
-USER'S PRIMARY COLOR:
+          prompt,
 
-${clean(body.color,40)}
+          input_fidelity:
+            fidelityToAPI(
+              body.fidelity
+            ),
 
-${clean(body.colorHex,12)}
+          size:"1024x1024",
 
+          quality:"medium",
 
-USER'S BACKGROUND REQUEST:
+          n:1
 
-${clean(body.backgroundPreset,100)}
+        });
 
-${clean(body.background,1000)}
 
+      const b64 =
+        result?.data?.[0]?.b64_json;
 
-DETAILED EDITING INSTRUCTIONS:
 
-${clean(body.extraPrompt,3000) ||
-"Improve the image into a premium high-quality mobile game icon while preserving the character."}
+      if(!b64){
 
+        throw new Error(
+          "AI編集後の画像が返ってきませんでした。"
+        );
 
-IMPORTANT:
+      }
 
-Follow the detailed editing instructions carefully.
 
-If the user asks to change only one element,
-keep everything else as close to the original as possible.
+      return res.status(200).json({
 
-Examples:
-
-If they ask to change the background,
-do not unnecessarily change the face.
-
-If they ask to change clothing,
-keep the character identity and pose.
-
-If they ask to change hair,
-keep the rest of the character consistent.
-
-If they ask to make the character larger,
-increase the character's visual dominance while keeping
-the composition natural.
-
-
-QUALITY:
-
-Premium mobile game artwork.
-
-Highly detailed.
-
-Cinematic lighting.
-
-Professional character design.
-
-Strong depth.
-
-Beautiful materials.
-
-Clean composition.
-
-High-quality face rendering.
-
-The final result must remain a square 1:1 game icon.
-
-
-ABSOLUTELY NO TEXT.
-
-NO LETTERS.
-
-NO NUMBERS.
-
-NO LOGOS.
-
-NO WATERMARK.
-
-NO UI.
-
-`;
-
-
-    const file =
-      await OpenAI.toFile(
-        imageData.buffer,
-        `reference.${extension}`,
-        {
-          type:
-            imageData.mimeType
-        }
-      );
-
-
-    const result =
-      await openai.images.edit({
-
-        model: "gpt-image-1",
-
-        image: file,
-
-        prompt,
-
-        size: "1024x1024",
-
-        quality: "medium",
-
-        n: 1
+        image:
+          `data:image/png;base64,${b64}`
 
       });
-
-
-    const image =
-      result?.data?.[0]?.b64_json;
-
-
-    if (!image) {
-
-      throw new Error(
-        "AI編集後の画像データが返されませんでした。"
-      );
 
     }
 
 
-    return res.status(200).json({
+    return res.status(400).json({
 
-      image:
-        `data:image/png;base64,${image}`
+      error:
+        "不正な生成モードです。"
 
     });
 
 
-  } catch (error) {
+  }catch(error){
 
     console.error(
-      "IMAGE GENERATION ERROR:",
+      "IMAGE API ERROR:",
       error
     );
 
@@ -498,21 +686,24 @@ NO UI.
       "画像生成に失敗しました。";
 
 
-    if (
-      String(message)
-        .toLowerCase()
-        .includes("payload")
-    ) {
+    if(
+      message.includes(
+        "maximum"
+      ) ||
+      message.includes(
+        "payload"
+      )
+    ){
 
       message =
-        "画像データが大きすぎます。別の画像を試してください。";
+        "画像サイズが大きすぎます。12MB以下の画像を使用してください。";
 
     }
 
 
     return res.status(500).json({
 
-      error: message
+      error:message
 
     });
 
