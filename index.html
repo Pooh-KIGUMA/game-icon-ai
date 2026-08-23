@@ -1,2367 +1,982 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#080910">
 <title>Game Icon AI</title>
-
 <style>
-
-*{
-  box-sizing:border-box;
+:root{
+  --bg:#080910;
+  --panel:#11131d;
+  --panel2:#171a26;
+  --line:#2a2d3d;
+  --text:#f7f8ff;
+  --muted:#9ea3b8;
+  --accent:#7657ff;
+  --accent2:#22c8ff;
 }
-
-body{
+*{box-sizing:border-box}
+html,body{
   margin:0;
-  background:
-    radial-gradient(circle at top,#24144d 0,#0d0c1c 45%,#080811 100%);
-  color:#fff;
-  font-family:
-    -apple-system,
-    BlinkMacSystemFont,
-    "Segoe UI",
-    sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,
+  "SF Pro Display","Hiragino Kaku Gothic ProN",Meiryo,sans-serif
 }
-
+body{min-height:100vh}
+button,textarea{font:inherit}
+button{
+  color:inherit;
+  border:0;
+  cursor:pointer
+}
+.app{
+  max-width:760px;
+  margin:auto;
+  min-height:100vh;
+  padding-bottom:145px
+}
 header{
   position:sticky;
   top:0;
-  z-index:20;
-  padding:18px 20px;
-  background:rgba(10,10,20,.92);
-  backdrop-filter:blur(18px);
-  border-bottom:1px solid #29293b;
+  z-index:30;
+  padding:12px 14px calc(10px + env(safe-area-inset-top));
   display:flex;
+  align-items:center;
   justify-content:space-between;
-  align-items:center;
-}
-
-.logo{
-  display:flex;
-  align-items:center;
   gap:12px;
-  font-size:24px;
-  font-weight:900;
+  background:rgba(8,9,16,.88);
+  backdrop-filter:blur(20px);
+  border-bottom:1px solid var(--line)
 }
-
-.logoIcon{
-  width:48px;
-  height:48px;
-  border-radius:15px;
+.brand{
   display:flex;
   align-items:center;
-  justify-content:center;
-  background:linear-gradient(135deg,#7655ff,#00bfff);
-  font-size:24px;
+  gap:10px;
+  min-width:0
 }
-
+.logo{
+  width:43px;
+  height:43px;
+  border-radius:14px;
+  display:grid;
+  place-items:center;
+  background:linear-gradient(135deg,#7958ff,#16c9ff);
+  font-size:22px;
+  box-shadow:0 8px 28px #6f55ff33;
+  flex:0 0 auto
+}
+.brand strong{
+  font-size:19px;
+  display:block;
+  white-space:nowrap
+}
+.brand small{
+  display:block;
+  color:var(--muted);
+  font-size:11px;
+  margin-top:2px
+}
 .reset{
-  border:1px solid #38384d;
-  background:#171722;
-  color:#fff;
-  border-radius:15px;
-  padding:12px 18px;
-  font-size:16px;
-  font-weight:700;
-}
-
-.container{
-  max-width:900px;
-  margin:auto;
-  padding:24px 16px 80px;
-}
-
-.hero{
-  text-align:center;
-  padding:20px 0 30px;
-}
-
-.hero h1{
-  margin:0;
-  font-size:38px;
-  font-weight:900;
-  background:linear-gradient(90deg,#fff,#8e7cff,#5dcfff);
-  -webkit-background-clip:text;
-  color:transparent;
-}
-
-.hero p{
-  color:#aaaac0;
-  line-height:1.8;
-  font-size:15px;
-}
-
-.card{
-  background:rgba(20,20,34,.88);
-  border:1px solid #303047;
-  border-radius:22px;
-  padding:20px;
-  margin-bottom:18px;
-  box-shadow:0 15px 50px rgba(0,0,0,.2);
-}
-
-.card h2{
-  margin:0 0 18px;
-  font-size:20px;
-}
-
-label{
-  display:block;
-  font-weight:800;
-  margin:16px 0 8px;
-}
-
-input,
-textarea,
-select{
-  width:100%;
-  border:1px solid #37374e;
-  background:#10101c;
-  color:#fff;
+  background:var(--panel2);
+  border:1px solid var(--line);
   border-radius:14px;
-  padding:14px;
-  font-size:15px;
-  outline:none;
-}
-
-textarea{
-  min-height:130px;
-  resize:vertical;
-  line-height:1.6;
-}
-
-input:focus,
-textarea:focus,
-select:focus{
-  border-color:#805cff;
-  box-shadow:0 0 0 2px rgba(128,92,255,.15);
-}
-
-.modeGrid{
-  display:grid;
-  grid-template-columns:repeat(3,1fr);
-  gap:10px;
-}
-
-.mode{
-  border:1px solid #37374e;
-  background:#11111e;
-  border-radius:15px;
-  padding:15px 10px;
-  text-align:center;
-  cursor:pointer;
-  font-weight:800;
-  transition:.2s;
-}
-
-.mode.active{
-  border-color:#855fff;
-  background:linear-gradient(
-    135deg,
-    rgba(133,95,255,.25),
-    rgba(0,190,255,.08)
-  );
-  box-shadow:0 0 0 1px #855fff inset;
-}
-
-.toggleRow{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  padding:12px 0;
-  border-bottom:1px solid #28283a;
-}
-
-.toggleRow:last-child{
-  border-bottom:0;
-}
-
-.toggle{
-  position:relative;
-  width:54px;
-  height:30px;
-}
-
-.toggle input{
-  display:none;
-}
-
-.slider{
-  position:absolute;
-  inset:0;
-  border-radius:20px;
-  background:#343446;
-  cursor:pointer;
-}
-
-.slider:before{
-  content:"";
-  position:absolute;
-  width:22px;
-  height:22px;
-  left:4px;
-  top:4px;
-  border-radius:50%;
-  background:#fff;
-  transition:.2s;
-}
-
-.toggle input:checked + .slider{
-  background:#7655ff;
-}
-
-.toggle input:checked + .slider:before{
-  transform:translateX(24px);
-}
-
-.colorGrid{
-  display:grid;
-  grid-template-columns:repeat(8,1fr);
-  gap:8px;
-}
-
-.color{
-  height:38px;
-  border-radius:10px;
-  border:2px solid transparent;
-  cursor:pointer;
-}
-
-.color.active{
-  border-color:#fff;
-  box-shadow:0 0 0 2px #7655ff;
-}
-
-.optionGrid{
-  display:flex;
-  flex-wrap:wrap;
-  gap:9px;
-}
-
-.option{
   padding:10px 14px;
-  border:1px solid #38384d;
-  background:#11111e;
-  border-radius:999px;
-  cursor:pointer;
-  font-weight:700;
+  font-weight:800;
+  white-space:nowrap
 }
-
-.option.active{
-  background:#7655ff;
-  border-color:#9c88ff;
+main{padding:18px 14px}
+.hero{padding:7px 3px 18px}
+.hero h1{
+  margin:0 0 8px;
+  font-size:30px;
+  line-height:1.18;
+  background:linear-gradient(90deg,#fff,#a68aff,#55d5ff);
+  -webkit-background-clip:text;
+  background-clip:text;
+  color:transparent
 }
-
-.uploadBox{
-  border:2px dashed #42425b;
-  border-radius:18px;
-  padding:25px 15px;
-  text-align:center;
-  cursor:pointer;
-  background:#10101c;
+.hero p{
+  margin:0;
+  color:var(--muted);
+  line-height:1.65;
+  font-size:14px
 }
-
-.uploadBox strong{
-  display:block;
-  margin-bottom:6px;
-}
-
-.uploadPreview{
-  margin-top:15px;
-  display:none;
-}
-
-.uploadPreview img{
-  width:100%;
-  max-height:350px;
-  object-fit:contain;
-  border-radius:15px;
-  background:#080811;
-}
-
-.sliderValue{
+.chat{
   display:flex;
-  justify-content:space-between;
-  align-items:center;
-  margin-bottom:8px;
+  flex-direction:column;
+  gap:16px
 }
-
-.range{
-  width:100%;
+.msg{
+  display:flex;
+  gap:9px;
+  align-items:flex-start
 }
-
-.exampleBox{
-  margin-top:10px;
-  padding:13px;
-  border:1px solid #303047;
-  border-radius:14px;
-  background:#0d0d18;
-  color:#a9a9c0;
-  line-height:1.6;
-  font-size:14px;
-}
-
-.generateBtn{
-  width:100%;
-  padding:18px;
-  border:0;
-  border-radius:17px;
-  color:#fff;
-  font-size:18px;
-  font-weight:900;
-  background:linear-gradient(135deg,#7655ff,#00a9ff);
-  cursor:pointer;
-  box-shadow:0 12px 35px rgba(88,80,255,.3);
-}
-
-.generateBtn:disabled{
-  opacity:.5;
-  cursor:not-allowed;
-}
-
-.previewImage{
-  width:100%;
-  aspect-ratio:1;
-  object-fit:cover;
-  border-radius:20px;
-  background:#080811;
-}
-
-.previewWrap{
-  position:relative;
-}
-
-.status{
-  position:absolute;
-  top:12px;
-  left:12px;
-  padding:7px 11px;
-  border-radius:999px;
-  background:rgba(0,0,0,.7);
-  font-size:12px;
-  font-weight:800;
-}
-
-.previewActions{
+.msg.user{justify-content:flex-end}
+.avatar{
+  width:30px;
+  height:30px;
+  border-radius:10px;
+  flex:0 0 auto;
   display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:10px;
-  margin-top:12px;
+  place-items:center;
+  background:linear-gradient(135deg,#7958ff,#16c9ff);
+  font-size:14px
 }
-
-.secondary{
-  border:1px solid #37374e;
-  background:#151521;
-  color:#fff;
-  border-radius:14px;
-  padding:14px;
-  font-weight:800;
+.user .avatar{display:none}
+.bubble{
+  max-width:91%;
+  padding:12px 14px;
+  border-radius:18px;
+  line-height:1.65;
+  white-space:pre-wrap;
+  word-break:break-word
 }
-
-.hidden{
-  display:none!important;
+.assistant .bubble{
+  background:var(--panel);
+  border:1px solid var(--line);
+  border-top-left-radius:7px
 }
-
-.textPreview{
-  position:relative;
-  width:100%;
-  aspect-ratio:1;
-  overflow:hidden;
-  border-radius:20px;
-  background:#000;
+.user .bubble{
+  background:linear-gradient(135deg,#6f50f5,#5a42d5);
+  border-bottom-right-radius:6px
 }
-
-.textPreview img{
-  width:100%;
-  height:100%;
+.attach-in-chat{
+  margin-top:9px;
+  border:1px solid #393c51;
+  border-radius:13px;
+  padding:7px;
+  background:#0b0c13;
+  display:flex;
+  align-items:center;
+  gap:9px
+}
+.attach-in-chat img{
+  width:58px;
+  height:58px;
   object-fit:cover;
+  border-radius:9px
 }
-
-.overlayText{
-  position:absolute;
-  left:50%;
-  bottom:6%;
-  transform:translateX(-50%);
-  width:90%;
+.examples{
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  margin-top:11px
+}
+.example{
+  text-align:left;
+  background:#1a1d2a;
+  border:1px solid #34384d;
+  border-radius:13px;
+  padding:10px 12px;
+  color:#e3e5f1;
+  line-height:1.45
+}
+.example:active{transform:scale(.99)}
+.image-card{
+  margin-top:10px;
+  background:#0a0b11;
+  border:1px solid var(--line);
+  border-radius:18px;
+  padding:8px
+}
+.image-card img{
+  width:100%;
+  display:block;
+  border-radius:13px;
+  background:#10111a
+}
+.image-actions{
+  display:flex;
+  gap:8px;
+  margin-top:8px
+}
+.image-actions a,
+.image-actions button{
+  flex:1;
+  background:#1a1d2a;
+  border:1px solid #34384d;
+  border-radius:12px;
+  padding:10px;
   text-align:center;
-  font-size:clamp(28px,7vw,80px);
-  line-height:1;
-  font-weight:1000;
-  color:#fff;
-  text-shadow:
-    0 4px 0 #000,
-    0 0 12px rgba(0,0,0,.8);
-  word-break:break-word;
+  text-decoration:none;
+  font-weight:800
 }
-
-.overlaySub{
-  position:absolute;
-  left:50%;
-  bottom:1.5%;
-  transform:translateX(-50%);
-  width:90%;
+.composer-wrap{
+  position:fixed;
+  left:0;
+  right:0;
+  bottom:0;
+  z-index:40;
+  padding:9px 11px calc(9px + env(safe-area-inset-bottom));
+  background:linear-gradient(180deg,transparent 0,#080910 27%)
+}
+.composer{
+  max-width:760px;
+  margin:auto;
+  background:rgba(20,22,33,.97);
+  border:1px solid #363a4f;
+  border-radius:22px;
+  padding:9px;
+  box-shadow:0 14px 44px #000b
+}
+.preview{
+  display:none;
+  align-items:center;
+  gap:9px;
+  padding:2px 2px 8px
+}
+.preview.show{display:flex}
+.preview img{
+  width:52px;
+  height:52px;
+  object-fit:cover;
+  border-radius:10px
+}
+.preview span{
+  font-size:12px;
+  color:var(--muted);
+  flex:1
+}
+.preview button{
+  background:#292c3d;
+  border-radius:10px;
+  padding:7px 10px
+}
+textarea{
+  width:100%;
+  min-height:48px;
+  max-height:155px;
+  resize:none;
+  background:transparent;
+  border:0;
+  outline:0;
+  color:var(--text);
+  padding:7px 8px;
+  line-height:1.5
+}
+.bottom{
+  display:flex;
+  align-items:center;
+  gap:8px
+}
+.iconbtn{
+  width:43px;
+  height:43px;
+  border-radius:14px;
+  background:#202331;
+  border:1px solid #303448;
+  display:grid;
+  place-items:center;
+  font-size:23px
+}
+.send{
+  margin-left:auto;
+  width:43px;
+  height:43px;
+  border-radius:14px;
+  background:linear-gradient(135deg,#7958ff,#20c8ff);
+  font-weight:900;
+  font-size:20px
+}
+.send:disabled{
+  opacity:.45;
+  cursor:default
+}
+.status{
+  font-size:11px;
+  color:#969aae;
+  min-width:0;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap
+}
+.hint{
   text-align:center;
-  font-size:clamp(13px,3vw,30px);
-  font-weight:800;
-  color:#fff;
-  text-shadow:0 2px 5px #000;
+  color:#777b90;
+  font-size:10px;
+  margin-top:6px
 }
-
-@media(max-width:650px){
-
-  .modeGrid{
-    grid-template-columns:1fr;
-  }
-
-  .colorGrid{
-    grid-template-columns:repeat(6,1fr);
-  }
-
-  .hero h1{
-    font-size:30px;
-  }
-
+.typing{
+  display:inline-flex;
+  gap:4px
 }
-
+.typing i{
+  width:6px;
+  height:6px;
+  border-radius:50%;
+  background:#aab0c5;
+  animation:dot 1s infinite
+}
+.typing i:nth-child(2){animation-delay:.15s}
+.typing i:nth-child(3){animation-delay:.3s}
+@keyframes dot{
+  50%{
+    opacity:.25;
+    transform:translateY(-2px)
+  }
+}
+@media(min-width:760px){
+  main{padding:26px 20px}
+  .hero h1{font-size:36px}
+}
 </style>
 </head>
 
 <body>
 
-<header>
+<div class="app">
 
-  <div class="logo">
-    <div class="logoIcon">✦</div>
-    <span>Game Icon AI</span>
+<header>
+  <div class="brand">
+    <div class="logo">✦</div>
+    <div>
+      <strong>Game Icon AI</strong>
+      <small>会話するだけで、理想のゲームアイコンへ</small>
+    </div>
   </div>
 
-  <button class="reset" onclick="resetAll()">
-    リセット
+  <button class="reset" id="reset">
+    新しい会話
   </button>
-
 </header>
 
+<main>
 
-<div class="container">
+<section class="hero">
+  <h1>理想を、そのまま話してください。</h1>
 
-  <section class="hero">
+  <p>
+    画像がなくてもオリジナルキャラクターを作れます。
+    画像を送れば、その画像をベースに編集できます。
+    細かい設定項目はありません。
+  </p>
+</section>
 
-    <h1>自分だけのゲームアイコン</h1>
+<section class="chat" id="chat"></section>
 
-    <p>
-      新規生成・原画編集・文字入れを自由に選択。<br>
-      AIへの詳細な指示もそのまま入力できます。
-    </p>
+</main>
+</div>
 
-  </section>
+<div class="composer-wrap">
 
+<div class="composer">
 
-  <!-- プレビュー -->
+<div class="preview" id="preview">
 
-  <div class="card">
+<img id="previewImg" alt="参考画像">
 
-    <h2>🖼️ プレビュー</h2>
+<span>参考画像を添付中</span>
 
-    <div id="previewArea">
-
-      <div class="previewWrap">
-
-        <img
-          id="previewImage"
-          class="previewImage"
-          src=""
-          alt=""
-        >
-
-        <div
-          id="status"
-          class="status hidden"
-        >
-          未生成
-        </div>
-
-      </div>
-
-    </div>
-
-    <div class="previewActions">
-
-      <button
-        id="saveBtn"
-        class="secondary"
-        onclick="saveImage()"
-        disabled
-      >
-        ⬇️ 保存
-      </button>
-
-      <button
-        class="secondary"
-        onclick="copySettings()"
-      >
-        📋 設定をコピー
-      </button>
-
-    </div>
-
-  </div>
-
-
-  <!-- モード -->
-
-  <div class="card">
-
-    <h2>🎮 生成モード</h2>
-
-    <div class="modeGrid">
-
-      <div
-        class="mode active"
-        data-mode="create"
-        onclick="selectMode('create')"
-      >
-        ✨<br>
-        新しく生成
-      </div>
-
-      <div
-        class="mode"
-        data-mode="edit"
-        onclick="selectMode('edit')"
-      >
-        🖼️<br>
-        原画を編集
-      </div>
-
-      <div
-        class="mode"
-        data-mode="text"
-        onclick="selectMode('text')"
-      >
-        ✏️<br>
-        原画＋文字
-      </div>
-
-    </div>
-
-  </div>
-
-
-  <!-- 原画 -->
-
-  <div
-    id="uploadCard"
-    class="card hidden"
-  >
-
-    <h2>📤 原画をアップロード</h2>
-
-    <div
-      class="uploadBox"
-      onclick="document.getElementById('imageInput').click()"
-    >
-
-      <strong>画像を選択</strong>
-
-      <span>
-        タップして画像をアップロード
-      </span>
-
-    </div>
-
-    <input
-      id="imageInput"
-      type="file"
-      accept="image/png,image/jpeg,image/webp"
-      class="hidden"
-    >
-
-    <div
-      id="uploadPreview"
-      class="uploadPreview"
-    >
-
-      <img
-        id="uploadedImage"
-        src=""
-        alt=""
-      >
-
-    </div>
-
-  </div>
-
-
-  <!-- 原画維持度 -->
-
-  <div
-    id="fidelityCard"
-    class="card hidden"
-  >
-
-    <h2>🎯 原画維持度</h2>
-
-    <div class="sliderValue">
-
-      <span>AIアレンジ</span>
-
-      <strong id="fidelityValue">
-        80%
-      </strong>
-
-      <span>原画重視</span>
-
-    </div>
-
-    <input
-      id="fidelity"
-      class="range"
-      type="range"
-      min="20"
-      max="100"
-      step="20"
-      value="80"
-      oninput="updateFidelity()"
-    >
-
-    <div class="exampleBox">
-
-      <strong id="fidelityTitle">
-        原画重視
-      </strong>
-
-      <div id="fidelityDescription">
-        顔・髪・服・構図などをできるだけ維持します。
-      </div>
-
-    </div>
-
-  </div>
-
-
-  <!-- 基本情報 -->
-
-  <div class="card">
-
-    <h2>✏️ 文字設定</h2>
-
-    <label>
-      プレイヤー名
-    </label>
-
-    <input
-      id="playerName"
-      placeholder="例：プレイヤー名"
-    >
-
-    <label>
-      同盟名
-    </label>
-
-    <input
-      id="allianceName"
-      placeholder="例：同盟名（任意）"
-    >
-
-    <label>
-      クラン名・チーム名
-    </label>
-
-    <input
-      id="clanName"
-      placeholder="例：クラン名（任意）"
-    >
-
-    <label>
-      その他の文字
-    </label>
-
-    <input
-      id="customText"
-      placeholder="好きな文字を入力（任意）"
-    >
-
-    <label>
-      文字位置
-    </label>
-
-    <select id="textPosition">
-
-      <option value="bottom">
-        下部中央
-      </option>
-
-      <option value="top">
-        上部中央
-      </option>
-
-      <option value="left">
-        左側
-      </option>
-
-      <option value="right">
-        右側
-      </option>
-
-      <option value="center">
-        中央
-      </option>
-
-    </select>
-
-  </div>
-
-
-  <!-- 使用設定 -->
-
-  <div class="card">
-
-    <h2>⚙️ AI設定を使用するか</h2>
-
-    <div class="toggleRow">
-
-      <span>
-        キャラクタータイプ
-      </span>
-
-      <label class="toggle">
-
-        <input
-          id="useCharacter"
-          type="checkbox"
-          checked
-        >
-
-        <span class="slider"></span>
-
-      </label>
-
-    </div>
-
-
-    <div class="toggleRow">
-
-      <span>
-        雰囲気
-      </span>
-
-      <label class="toggle">
-
-        <input
-          id="useMood"
-          type="checkbox"
-          checked
-        >
-
-        <span class="slider"></span>
-
-      </label>
-
-    </div>
-
-
-    <div class="toggleRow">
-
-      <span>
-        イメージカラー
-      </span>
-
-      <label class="toggle">
-
-        <input
-          id="useColor"
-          type="checkbox"
-          checked
-        >
-
-        <span class="slider"></span>
-
-      </label>
-
-    </div>
-
-  </div>
-
-
-  <!-- キャラクター -->
-
-  <div
-    id="characterCard"
-    class="card"
-  >
-
-    <h2>👤 キャラクタータイプ</h2>
-
-    <div
-      id="characterOptions"
-      class="optionGrid"
-    ></div>
-
-  </div>
-
-
-  <!-- 雰囲気 -->
-
-  <div
-    id="moodCard"
-    class="card"
-  >
-
-    <h2>🌌 雰囲気</h2>
-
-    <div
-      id="moodOptions"
-      class="optionGrid"
-    ></div>
-
-  </div>
-
-
-  <!-- 色 -->
-
-  <div
-    id="colorCard"
-    class="card"
-  >
-
-    <h2>🎨 イメージカラー</h2>
-
-    <div
-      id="colorOptions"
-      class="colorGrid"
-    ></div>
-
-    <input
-      id="colorHex"
-      style="margin-top:12px"
-      placeholder="#8B5CF6"
-      value="#8B5CF6"
-    >
-
-  </div>
-
-
-  <!-- 背景 -->
-
-  <div class="card">
-
-    <h2>🌃 背景</h2>
-
-    <label>
-      背景プリセット
-    </label>
-
-    <select id="backgroundPreset">
-
-      <option value="">
-        使用しない / 自由入力
-      </option>
-
-      <option value="ネオン都市">
-        ネオン都市
-      </option>
-
-      <option value="ダークファンタジー">
-        ダークファンタジー
-      </option>
-
-      <option value="未来都市">
-        未来都市
-      </option>
-
-      <option value="美しい自然">
-        美しい自然
-      </option>
-
-      <option value="夜空と星">
-        夜空と星
-      </option>
-
-      <option value="炎と煙">
-        炎と煙
-      </option>
-
-      <option value="雪と氷">
-        雪と氷
-      </option>
-
-      <option value="日本の夜景">
-        日本の夜景
-      </option>
-
-    </select>
-
-
-    <label>
-      背景を自由に指示
-    </label>
-
-    <textarea
-      id="backgroundCustom"
-      placeholder="例：夜の東京。雨が降っていて、道路に青と紫のネオンが反射している。後ろに大きな満月を入れて、高級感のある映画のような雰囲気にしたい。"
-    ></textarea>
-
-  </div>
-
-
-  <!-- 追加イメージ -->
-
-  <div class="card">
-
-    <h2>💡 追加イメージ</h2>
-
-    <div
-      id="extraExamples"
-      class="optionGrid"
-    ></div>
-
-    <textarea
-      id="extraPrompt"
-      placeholder="例：人物を少し大きくして、顔を明るく見せたい。右側から青い光を当てて、迫力のあるゲームアイコンにしたい。"
-    ></textarea>
-
-  </div>
-
-
-  <!-- 自由指示 -->
-
-  <div class="card">
-
-    <h2>💬 AIへの詳細指示</h2>
-
-    <textarea
-      id="freePrompt"
-      placeholder="ChatGPTに話しかけるように自由に入力できます。
-
-例：
-この原画をできるだけそのまま使用してください。
-顔と髪型は変更しないでください。
-背景だけ夜のネオン都市に変更。
-人物を少し大きくして、青い光を右側から当ててください。
-ゲームアイコンらしく高級感のある仕上がりにしてください。"
-    ></textarea>
-
-  </div>
-
-
-  <div class="card">
-
-    <button
-      id="generateBtn"
-      class="generateBtn"
-      onclick="generate()"
-    >
-      ✨ 画像を生成
-    </button>
-
-  </div>
+<button id="removeImage" type="button">
+×
+</button>
 
 </div>
 
+<textarea
+id="prompt"
+rows="1"
+placeholder="例：「完全オリジナルのキャラ。黒髪の男性、冷酷で強そう。青い炎、夜の東京、人物を大きく」">
+</textarea>
+
+<div class="bottom">
+
+<button
+class="iconbtn"
+id="uploadBtn"
+type="button"
+title="画像を追加">
+＋
+</button>
+
+<input
+id="fileInput"
+type="file"
+accept="image/png,image/jpeg,image/webp"
+hidden>
+
+<span class="status" id="status"></span>
+
+<button
+class="send"
+id="send"
+type="button">
+↑
+</button>
+
+</div>
+
+<div class="hint">
+画像なし＝オリジナル作成　／　画像あり＝その画像をベースに編集
+</div>
+
+</div>
+</div>
 
 <script>
 
-const characters = [
-  "クールな戦士",
-  "ダークヒーロー",
-  "天才ハッカー",
-  "侍・武将",
-  "魔法使い",
-  "騎士",
-  "サイボーグ",
-  "ドラゴン使い",
-  "狼・獣系",
-  "可愛いキャラ",
-  "女性キャラクター",
-  "男性キャラクター"
+const chat = document.getElementById("chat");
+const promptEl = document.getElementById("prompt");
+const sendBtn = document.getElementById("send");
+
+const fileInput = document.getElementById("fileInput");
+const uploadBtn = document.getElementById("uploadBtn");
+
+const preview = document.getElementById("preview");
+const previewImg = document.getElementById("previewImg");
+
+const removeImage = document.getElementById("removeImage");
+const resetBtn = document.getElementById("reset");
+
+const statusEl = document.getElementById("status");
+
+let imageData = null;
+let previousResponseId = null;
+let busy = false;
+
+const examples = [
+
+"完全オリジナルの男性キャラクター。冷酷で強そう。黒い服、青い炎、夜の東京。人物を大きくして、ゲームアイコンらしい迫力のある構図にして。",
+
+"完全オリジナルの女性キャラクター。美しくて強い雰囲気。黒と赤を基調にして、月夜の背景。顔を綺麗に見せてゲームアイコン向けに。",
+
+"まだイメージが決まっていない。ゲームで使いたくなるカッコいいオリジナルキャラクターを3案考えて、その中から1つ作って。"
+
 ];
 
-const moods = [
-  "超クール",
-  "冷酷・ダーク",
-  "高級感",
-  "可愛い",
-  "美しい",
-  "迫力重視",
-  "知的",
-  "神秘的",
-  "未来的",
-  "王者・最強"
-];
+function addMessage(role,text,extra={}){
 
-const colors = [
-  ["#ef4444","赤"],
-  ["#f97316","オレンジ"],
-  ["#f59e0b","金"],
-  ["#eab308","黄色"],
-  ["#84cc16","黄緑"],
-  ["#22c55e","緑"],
-  ["#14b8a6","ターコイズ"],
-  ["#06b6d4","水色"],
-  ["#3b82f6","青"],
-  ["#6366f1","藍"],
-  ["#8b5cf6","紫"],
-  ["#a855f7","マゼンタ"],
-  ["#ec4899","ピンク"],
-  ["#f43f5e","ローズ"],
-  ["#ffffff","白"],
-  ["#111827","黒"]
-];
+const row=document.createElement("div");
 
-let state = {
-  mode:"create",
-  character:"クールな戦士",
-  mood:"超クール",
-  color:"#8b5cf6",
-  imageBase64:"",
-  currentImage:"",
-  generatedImage:"",
-  fidelity:80
-};
+row.className="msg "+role;
 
+const avatar=document.createElement("div");
 
-function renderOptions(){
+avatar.className="avatar";
 
-  const c =
-    document.getElementById("characterOptions");
+avatar.textContent=role==="assistant"?"✦":"";
 
-  c.innerHTML = "";
+const bubble=document.createElement("div");
 
-  characters.forEach(x=>{
+bubble.className="bubble";
 
-    const el =
-      document.createElement("div");
+if(extra.typing){
 
-    el.className =
-      "option" +
-      (state.character === x ? " active" : "");
+bubble.innerHTML=
+'<span class="typing"><i></i><i></i><i></i></span>';
 
-    el.textContent = x;
+}else if(text){
 
-    el.onclick = ()=>{
-
-      state.character = x;
-
-      renderOptions();
-
-      renderExamples();
-
-    };
-
-    c.appendChild(el);
-
-  });
-
-
-  const m =
-    document.getElementById("moodOptions");
-
-  m.innerHTML = "";
-
-  moods.forEach(x=>{
-
-    const el =
-      document.createElement("div");
-
-    el.className =
-      "option" +
-      (state.mood === x ? " active" : "");
-
-    el.textContent = x;
-
-    el.onclick = ()=>{
-
-      state.mood = x;
-
-      renderOptions();
-
-    };
-
-    m.appendChild(el);
-
-  });
-
-
-  const colorsEl =
-    document.getElementById("colorOptions");
-
-  colorsEl.innerHTML = "";
-
-  colors.forEach(([hex,name])=>{
-
-    const el =
-      document.createElement("div");
-
-    el.className =
-      "color" +
-      (state.color === hex ? " active" : "");
-
-    el.style.background = hex;
-
-    el.title = name;
-
-    el.onclick = ()=>{
-
-      state.color = hex;
-
-      document.getElementById("colorHex").value = hex;
-
-      renderOptions();
-
-    };
-
-    colorsEl.appendChild(el);
-
-  });
+bubble.textContent=text;
 
 }
 
+if(extra.inputImage){
 
-const examples = {
+const wrap=document.createElement("div");
 
-  "クールな戦士":[
-    "青い炎をまとわせる",
-    "黒銀の鎧にする",
-    "戦闘中のようなポーズ",
-    "迫力のある光を追加"
-  ],
+wrap.className="attach-in-chat";
 
-  "ダークヒーロー":[
-    "黒いコート",
-    "赤い光を追加",
-    "暗い背景",
-    "冷たい表情"
-  ],
+const img=document.createElement("img");
 
-  "天才ハッカー":[
-    "青いホログラム",
-    "ネオン都市",
-    "大量のデジタル情報",
-    "サイバー空間"
-  ],
+img.src=extra.inputImage;
 
-  "侍・武将":[
-    "美しい日本刀",
-    "桜吹雪",
-    "月明かり",
-    "戦国風の背景"
-  ],
+img.alt="添付画像";
 
-  "魔法使い":[
-    "魔法陣",
-    "発光する杖",
-    "魔力の粒子",
-    "幻想的な背景"
-  ],
+const label=document.createElement("span");
 
-  "騎士":[
-    "黒銀の鎧",
-    "巨大な剣",
-    "城を背景にする",
-    "強い逆光"
-  ],
+label.textContent="参考画像";
 
-  "サイボーグ":[
-    "機械の腕",
-    "青い回路",
-    "未来都市",
-    "ホログラム"
-  ],
+wrap.append(img,label);
 
-  "ドラゴン使い":[
-    "美しいドラゴン",
-    "炎のエフェクト",
-    "巨大な翼",
-    "幻想的な空"
-  ],
+bubble.appendChild(wrap);
 
-  "狼・獣系":[
-    "巨大な狼",
-    "月明かり",
-    "青いオーラ",
-    "野性的な雰囲気"
-  ],
+}
 
-  "可愛いキャラ":[
-    "柔らかい光",
-    "可愛い背景",
-    "パステルカラー",
-    "笑顔"
-  ],
+if(extra.image){
 
-  "女性キャラクター":[
-    "長い髪",
-    "美しい衣装",
-    "幻想的な光",
-    "美しい瞳"
-  ],
+const card=document.createElement("div");
 
-  "男性キャラクター":[
-    "鋭い目",
-    "スタイリッシュな服",
-    "強い逆光",
-    "迫力のある構図"
-  ]
+card.className="image-card";
+
+const img=document.createElement("img");
+
+img.src=extra.image;
+
+img.alt="生成されたゲームアイコン";
+
+const actions=document.createElement("div");
+
+actions.className="image-actions";
+
+const save=document.createElement("a");
+
+save.href=extra.image;
+
+save.download="game-icon-ai.png";
+
+save.textContent="↓ 保存";
+
+const edit=document.createElement("button");
+
+edit.type="button";
+
+edit.textContent="この画像を続けて編集";
+
+edit.onclick=()=>{
+
+imageData=extra.image;
+
+showPreview();
+
+promptEl.focus();
 
 };
 
+actions.append(save,edit);
 
-function renderExamples(){
+card.append(img,actions);
 
-  const box =
-    document.getElementById("extraExamples");
-
-  box.innerHTML = "";
-
-  const list =
-    examples[state.character] ||
-    [
-      "人物を大きくする",
-      "背景を美しくする",
-      "光を追加する",
-      "高級感を出す"
-    ];
-
-  list.forEach(text=>{
-
-    const el =
-      document.createElement("div");
-
-    el.className = "option";
-
-    el.textContent = text;
-
-    el.onclick = ()=>{
-
-      const textarea =
-        document.getElementById("extraPrompt");
-
-      if(textarea.value){
-
-        textarea.value +=
-          "、" + text;
-
-      }else{
-
-        textarea.value = text;
-
-      }
-
-    };
-
-    box.appendChild(el);
-
-  });
+bubble.appendChild(card);
 
 }
 
+if(Array.isArray(extra.examples) && extra.examples.length){
 
-function selectMode(mode){
+const box=document.createElement("div");
 
-  state.mode = mode;
+box.className="examples";
 
-  document
-    .querySelectorAll(".mode")
-    .forEach(x=>{
+extra.examples.slice(0,3).forEach(value=>{
 
-      x.classList.toggle(
-        "active",
-        x.dataset.mode === mode
-      );
+const b=document.createElement("button");
 
-    });
+b.type="button";
 
+b.className="example";
 
-  const upload =
-    document.getElementById("uploadCard");
+b.textContent="💡 "+value;
 
-  const fidelity =
-    document.getElementById("fidelityCard");
+b.onclick=()=>{
 
+promptEl.value=value;
 
-  if(mode === "create"){
+autoSize();
 
-    upload.classList.add("hidden");
-    fidelity.classList.add("hidden");
+promptEl.focus();
 
-  }
+};
 
-  if(mode === "edit"){
-
-    upload.classList.remove("hidden");
-    fidelity.classList.remove("hidden");
-
-  }
-
-  if(mode === "text"){
-
-    upload.classList.remove("hidden");
-    fidelity.classList.add("hidden");
-
-  }
-
-}
-
-
-function updateFidelity(){
-
-  const value =
-    Number(
-      document.getElementById("fidelity").value
-    );
-
-  state.fidelity = value;
-
-  document.getElementById(
-    "fidelityValue"
-  ).textContent = value + "%";
-
-
-  let title = "";
-  let description = "";
-
-  if(value >= 100){
-
-    title = "ほぼ原画そのまま";
-
-    description =
-      "原画の顔・髪・服・構図などを最大限維持します。";
-
-  }else if(value >= 80){
-
-    title = "原画重視";
-
-    description =
-      "原画をかなり維持しながらAI編集します。";
-
-  }else if(value >= 60){
-
-    title = "バランス";
-
-    description =
-      "原画を維持しながら、AIによる変更も行います。";
-
-  }else if(value >= 40){
-
-    title = "AIアレンジ";
-
-    description =
-      "原画を参考にしながら大胆にアレンジします。";
-
-  }else{
-
-    title = "大幅アレンジ";
-
-    description =
-      "原画の雰囲気を参考に、大きくAIアレンジします。";
-
-  }
-
-  document.getElementById(
-    "fidelityTitle"
-  ).textContent = title;
-
-  document.getElementById(
-    "fidelityDescription"
-  ).textContent = description;
-
-}
-
-
-document
-  .getElementById("imageInput")
-  .addEventListener("change", async function(){
-
-    const file = this.files?.[0];
-
-    if(!file) return;
-
-    if(file.size > 12 * 1024 * 1024){
-
-      alert(
-        "画像が大きすぎます。12MB以下の画像を使用してください。"
-      );
-
-      return;
-
-    }
-
-    const reader =
-      new FileReader();
-
-    reader.onload = ()=>{
-
-      state.imageBase64 =
-        reader.result;
-
-      document
-        .getElementById("uploadedImage")
-        .src =
-        reader.result;
-
-      document
-        .getElementById("uploadPreview")
-        .style.display =
-        "block";
-
-      if(state.mode === "text"){
-
-        showTextPreview();
-
-      }
-
-    };
-
-    reader.readAsDataURL(file);
-
-  });
-
-
-function showTextPreview(){
-
-  if(!state.imageBase64){
-
-    return;
-
-  }
-
-  const area =
-    document.getElementById("previewArea");
-
-  area.innerHTML = "";
-
-  const wrapper =
-    document.createElement("div");
-
-  wrapper.className =
-    "textPreview";
-
-  const img =
-    document.createElement("img");
-
-  img.src =
-    state.imageBase64;
-
-  wrapper.appendChild(img);
-
-
-  const name =
-    document.getElementById("playerName")
-      .value.trim();
-
-  const alliance =
-    document.getElementById("allianceName")
-      .value.trim();
-
-  const clan =
-    document.getElementById("clanName")
-      .value.trim();
-
-  const custom =
-    document.getElementById("customText")
-      .value.trim();
-
-
-  const mainText =
-    name || custom;
-
-  const subText =
-    alliance || clan;
-
-
-  if(mainText){
-
-    const t =
-      document.createElement("div");
-
-    t.className =
-      "overlayText";
-
-    t.textContent =
-      mainText;
-
-    const pos =
-      document.getElementById(
-        "textPosition"
-      ).value;
-
-    if(pos === "top"){
-
-      t.style.top = "6%";
-      t.style.bottom = "auto";
-
-    }
-
-    if(pos === "center"){
-
-      t.style.top = "50%";
-      t.style.bottom = "auto";
-      t.style.transform =
-        "translate(-50%,-50%)";
-
-    }
-
-    if(pos === "left"){
-
-      t.style.left = "7%";
-      t.style.bottom = "50%";
-      t.style.transform =
-        "translateY(50%)";
-      t.style.textAlign = "left";
-
-    }
-
-    if(pos === "right"){
-
-      t.style.left = "93%";
-      t.style.bottom = "50%";
-      t.style.transform =
-        "translate(-100%,50%)";
-      t.style.textAlign = "right";
-
-    }
-
-    wrapper.appendChild(t);
-
-  }
-
-
-  if(subText){
-
-    const s =
-      document.createElement("div");
-
-    s.className =
-      "overlaySub";
-
-    s.textContent =
-      subText;
-
-    wrapper.appendChild(s);
-
-  }
-
-
-  area.appendChild(wrapper);
-
-  document
-    .getElementById("saveBtn")
-    .disabled = false;
-
-}
-
-
-async function createTextImage(){
-
-  if(!state.imageBase64){
-
-    throw new Error(
-      "原画をアップロードしてください。"
-    );
-
-  }
-
-  showTextPreview();
-
-  await new Promise(
-    resolve =>
-      setTimeout(resolve,100)
-  );
-
-  const wrapper =
-    document.querySelector(
-      ".textPreview"
-    );
-
-  const img =
-    wrapper.querySelector("img");
-
-  const canvas =
-    document.createElement("canvas");
-
-  canvas.width = 1024;
-  canvas.height = 1024;
-
-  const ctx =
-    canvas.getContext("2d");
-
-  await new Promise((resolve,reject)=>{
-
-    const image =
-      new Image();
-
-    image.onload = ()=>{
-
-      const scale =
-        Math.max(
-          1024 / image.width,
-          1024 / image.height
-        );
-
-      const w =
-        image.width * scale;
-
-      const h =
-        image.height * scale;
-
-      ctx.drawImage(
-        image,
-        (1024-w)/2,
-        (1024-h)/2,
-        w,
-        h
-      );
-
-      resolve();
-
-    };
-
-    image.onerror = reject;
-
-    image.src =
-      state.imageBase64;
-
-  });
-
-
-  const name =
-    document.getElementById("playerName")
-      .value.trim();
-
-  const alliance =
-    document.getElementById("allianceName")
-      .value.trim();
-
-  const clan =
-    document.getElementById("clanName")
-      .value.trim();
-
-  const custom =
-    document.getElementById("customText")
-      .value.trim();
-
-  const mainText =
-    name || custom;
-
-  const subText =
-    alliance || clan;
-
-
-  const pos =
-    document.getElementById(
-      "textPosition"
-    ).value;
-
-
-  ctx.textAlign = "center";
-  ctx.textBaseline = "middle";
-
-  if(mainText){
-
-    let x = 512;
-    let y = 900;
-
-    if(pos === "top") y = 100;
-    if(pos === "center") y = 512;
-    if(pos === "left"){
-      x = 180;
-      y = 512;
-      ctx.textAlign = "left";
-    }
-
-    if(pos === "right"){
-      x = 844;
-      y = 512;
-      ctx.textAlign = "right";
-    }
-
-
-    const fontSize =
-      Math.max(
-        48,
-        Math.min(
-          100,
-          900 / Math.max(mainText.length,6)
-        )
-      );
-
-    ctx.font =
-      `900 ${fontSize}px Arial`;
-
-    ctx.lineWidth =
-      Math.max(4,fontSize*.08);
-
-    ctx.strokeStyle =
-      "#000";
-
-    ctx.strokeText(
-      mainText,
-      x,
-      y
-    );
-
-    ctx.fillStyle =
-      "#ffffff";
-
-    ctx.fillText(
-      mainText,
-      x,
-      y
-    );
-
-  }
-
-
-  if(subText){
-
-    ctx.textAlign = "center";
-
-    ctx.font =
-      "800 34px Arial";
-
-    ctx.lineWidth = 6;
-
-    ctx.strokeStyle = "#000";
-
-    ctx.strokeText(
-      subText,
-      512,
-      970
-    );
-
-    ctx.fillStyle =
-      "#ffffff";
-
-    ctx.fillText(
-      subText,
-      512,
-      970
-    );
-
-  }
-
-
-  return canvas.toDataURL(
-    "image/png"
-  );
-
-}
-
-
-function getSelectedData(){
-
-  const useCharacter =
-    document.getElementById(
-      "useCharacter"
-    ).checked;
-
-  const useMood =
-    document.getElementById(
-      "useMood"
-    ).checked;
-
-  const useColor =
-    document.getElementById(
-      "useColor"
-    ).checked;
-
-
-  return {
-
-    mode:state.mode,
-
-    character:
-      useCharacter
-        ? state.character
-        : "",
-
-    mood:
-      useMood
-        ? state.mood
-        : "",
-
-    color:
-      useColor
-        ? state.color
-        : "",
-
-    colorHex:
-      useColor
-        ? document.getElementById(
-            "colorHex"
-          ).value
-        : "",
-
-    backgroundPreset:
-      document.getElementById(
-        "backgroundPreset"
-      ).value,
-
-    background:
-      document.getElementById(
-        "backgroundCustom"
-      ).value,
-
-    extraPrompt:
-      [
-        document.getElementById(
-          "extraPrompt"
-        ).value,
-
-        document.getElementById(
-          "freePrompt"
-        ).value
-      ]
-      .filter(Boolean)
-      .join("\n\n"),
-
-    fidelity:
-      state.fidelity,
-
-    imageBase64:
-      state.imageBase64
-
-  };
-
-}
-
-
-async function generate(){
-
-  const btn =
-    document.getElementById(
-      "generateBtn"
-    );
-
-  const status =
-    document.getElementById(
-      "status"
-    );
-
-  try{
-
-    btn.disabled = true;
-
-    btn.textContent =
-      "⏳ 生成中...";
-
-    status.classList.remove(
-      "hidden"
-    );
-
-    status.textContent =
-      "生成中";
-
-
-    if(state.mode === "text"){
-
-      const result =
-        await createTextImage();
-
-      state.currentImage =
-        result;
-
-      document
-        .getElementById(
-          "previewImage"
-        )
-        .src = result;
-
-      status.textContent =
-        "完成";
-
-      return;
-
-    }
-
-
-    if(
-      state.mode === "edit" &&
-      !state.imageBase64
-    ){
-
-      throw new Error(
-        "編集する原画をアップロードしてください。"
-      );
-
-    }
-
-
-    const data =
-      getSelectedData();
-
-
-    const response =
-      await fetch(
-        "/api/generate",
-        {
-
-          method:"POST",
-
-          headers:{
-            "Content-Type":
-              "application/json"
-          },
-
-          body:
-            JSON.stringify(data)
-
-        }
-      );
-
-
-    const result =
-      await response.json();
-
-
-    if(!response.ok){
-
-      throw new Error(
-        result.error ||
-        "生成に失敗しました。"
-      );
-
-    }
-
-
-    if(!result.image){
-
-      throw new Error(
-        "画像が返ってきませんでした。"
-      );
-
-    }
-
-
-    state.generatedImage =
-      result.image;
-
-
-    /*
-     * AI画像には文字を入れない。
-     * 最後にサイト側で文字を合成する。
-     */
-
-    const finalImage =
-      await addTextToImage(
-        result.image
-      );
-
-
-    state.currentImage =
-      finalImage;
-
-
-    document
-      .getElementById(
-        "previewImage"
-      )
-      .src =
-      finalImage;
-
-
-    status.textContent =
-      "完成";
-
-    document
-      .getElementById(
-        "saveBtn"
-      )
-      .disabled = false;
-
-
-  }catch(error){
-
-    console.error(error);
-
-    status.classList.remove(
-      "hidden"
-    );
-
-    status.textContent =
-      "生成エラー";
-
-    alert(
-      error.message ||
-      "画像生成に失敗しました。"
-    );
-
-  }finally{
-
-    btn.disabled = false;
-
-    btn.textContent =
-      "✨ 画像を生成";
-
-  }
-
-}
-
-
-async function addTextToImage(imageSrc){
-
-  const canvas =
-    document.createElement(
-      "canvas"
-    );
-
-  canvas.width = 1024;
-  canvas.height = 1024;
-
-  const ctx =
-    canvas.getContext("2d");
-
-
-  const image =
-    new Image();
-
-  image.src =
-    imageSrc;
-
-  await new Promise(
-    (resolve,reject)=>{
-
-      image.onload = resolve;
-
-      image.onerror = reject;
-
-    }
-  );
-
-
-  const scale =
-    Math.max(
-      1024/image.width,
-      1024/image.height
-    );
-
-  const w =
-    image.width * scale;
-
-  const h =
-    image.height * scale;
-
-
-  ctx.drawImage(
-    image,
-    (1024-w)/2,
-    (1024-h)/2,
-    w,
-    h
-  );
-
-
-  const name =
-    document.getElementById(
-      "playerName"
-    ).value.trim();
-
-  const alliance =
-    document.getElementById(
-      "allianceName"
-    ).value.trim();
-
-  const clan =
-    document.getElementById(
-      "clanName"
-    ).value.trim();
-
-  const custom =
-    document.getElementById(
-      "customText"
-    ).value.trim();
-
-
-  const mainText =
-    name || custom;
-
-  const subText =
-    alliance || clan;
-
-
-  if(!mainText && !subText){
-
-    return canvas.toDataURL(
-      "image/png"
-    );
-
-  }
-
-
-  const position =
-    document.getElementById(
-      "textPosition"
-    ).value;
-
-
-  ctx.textBaseline =
-    "middle";
-
-
-  if(mainText){
-
-    let x = 512;
-    let y = 900;
-
-    ctx.textAlign =
-      "center";
-
-
-    if(position === "top"){
-
-      y = 100;
-
-    }
-
-    if(position === "center"){
-
-      y = 512;
-
-    }
-
-    if(position === "left"){
-
-      x = 80;
-      y = 512;
-
-      ctx.textAlign =
-        "left";
-
-    }
-
-    if(position === "right"){
-
-      x = 944;
-      y = 512;
-
-      ctx.textAlign =
-        "right";
-
-    }
-
-
-    let size =
-      92;
-
-    while(size > 42){
-
-      ctx.font =
-        `900 ${size}px Arial`;
-
-      if(
-        ctx.measureText(mainText)
-          .width < 850
-      ){
-
-        break;
-
-      }
-
-      size -= 4;
-
-    }
-
-
-    ctx.lineWidth =
-      Math.max(5,size*.08);
-
-    ctx.strokeStyle =
-      "#000";
-
-    ctx.strokeText(
-      mainText,
-      x,
-      y
-    );
-
-    ctx.fillStyle =
-      "#fff";
-
-    ctx.fillText(
-      mainText,
-      x,
-      y
-    );
-
-  }
-
-
-  if(subText){
-
-    ctx.textAlign =
-      "center";
-
-    ctx.font =
-      "800 34px Arial";
-
-    ctx.lineWidth =
-      6;
-
-    ctx.strokeStyle =
-      "#000";
-
-    ctx.strokeText(
-      subText,
-      512,
-      970
-    );
-
-    ctx.fillStyle =
-      "#fff";
-
-    ctx.fillText(
-      subText,
-      512,
-      970
-    );
-
-  }
-
-
-  return canvas.toDataURL(
-    "image/png"
-  );
-
-}
-
-
-function saveImage(){
-
-  if(!state.currentImage){
-
-    return;
-
-  }
-
-  const a =
-    document.createElement("a");
-
-  a.href =
-    state.currentImage;
-
-  a.download =
-    "game-icon.png";
-
-  document.body.appendChild(a);
-
-  a.click();
-
-  a.remove();
-
-}
-
-
-function copySettings(){
-
-  const data =
-    getSelectedData();
-
-  navigator.clipboard
-    .writeText(
-      JSON.stringify(
-        data,
-        null,
-        2
-      )
-    )
-    .then(()=>{
-
-      alert(
-        "設定をコピーしました。"
-      );
-
-    });
-
-}
-
-
-function resetAll(){
-
-  location.reload();
-
-}
-
-
-/* 初期化 */
-
-renderOptions();
-
-renderExamples();
-
-updateFidelity();
-
-selectMode("create");
-
-
-/* ON/OFF */
-
-document
-  .getElementById("useCharacter")
-  .addEventListener("change",e=>{
-
-    document
-      .getElementById("characterCard")
-      .classList.toggle(
-        "hidden",
-        !e.target.checked
-      );
-
-  });
-
-
-document
-  .getElementById("useMood")
-  .addEventListener("change",e=>{
-
-    document
-      .getElementById("moodCard")
-      .classList.toggle(
-        "hidden",
-        !e.target.checked
-      );
-
-  });
-
-
-document
-  .getElementById("useColor")
-  .addEventListener("change",e=>{
-
-    document
-      .getElementById("colorCard")
-      .classList.toggle(
-        "hidden",
-        !e.target.checked
-      );
-
-  });
-
-
-/* 入力変更時も文字プレビュー更新 */
-
-[
-  "playerName",
-  "allianceName",
-  "clanName",
-  "customText",
-  "textPosition"
-].forEach(id=>{
-
-  document
-    .getElementById(id)
-    .addEventListener("input",()=>{
-
-      if(state.mode === "text"){
-
-        showTextPreview();
-
-      }
-
-    });
+box.appendChild(b);
 
 });
 
+bubble.appendChild(box);
+
+}
+
+row.append(avatar,bubble);
+
+chat.appendChild(row);
+
+row.scrollIntoView({
+behavior:"smooth",
+block:"end"
+});
+
+return row;
+
+}
+
+function welcome(){
+
+addMessage(
+"assistant",
+
+`こんにちは。Game Icon AIです。
+
+ここでは細かい設定を選ぶ必要はありません。
+作りたいものを、ChatGPTに話しかけるように普通の言葉で伝えてください。
+
+画像がなくてもオリジナルキャラクターを作れます。
+画像を送れば、その画像をベースに「人物はそのまま」「背景だけ変更」「もっと明るく」などの編集もできます。
+
+まだイメージが決まっていなくても大丈夫です。
+「何かカッコいいキャラを作って」だけでも、こちらから具体的な案を出します。
+
+例えば👇`,
+
+{examples}
+);
+
+}
+
+function showPreview(){
+
+if(imageData){
+
+previewImg.src=imageData;
+
+preview.classList.add("show");
+
+}else{
+
+preview.classList.remove("show");
+
+previewImg.removeAttribute("src");
+
+}
+
+}
+
+function autoSize(){
+
+promptEl.style.height="auto";
+
+promptEl.style.height=
+Math.min(promptEl.scrollHeight,155)+"px";
+
+}
+
+function setBusy(v){
+
+busy=v;
+
+sendBtn.disabled=v;
+
+statusEl.textContent=
+v?"AIが考えています…":"";
+
+}
+
+async function compressImage(file){
+
+const src=await new Promise((resolve,reject)=>{
+
+const reader=new FileReader();
+
+reader.onload=()=>resolve(reader.result);
+
+reader.onerror=reject;
+
+reader.readAsDataURL(file);
+
+});
+
+const img=await new Promise((resolve,reject)=>{
+
+const el=new Image();
+
+el.onload=()=>resolve(el);
+
+el.onerror=reject;
+
+el.src=src;
+
+});
+
+const maxSide=1200;
+
+const scale=Math.min(
+1,
+maxSide/Math.max(img.width,img.height)
+);
+
+const canvas=document.createElement("canvas");
+
+canvas.width=
+Math.max(1,Math.round(img.width*scale));
+
+canvas.height=
+Math.max(1,Math.round(img.height*scale));
+
+canvas
+.getContext("2d")
+.drawImage(
+img,
+0,
+0,
+canvas.width,
+canvas.height
+);
+
+return canvas.toDataURL(
+"image/jpeg",
+0.82
+);
+
+}
+
+async function send(){
+
+if(busy)return;
+
+const text=promptEl.value.trim();
+
+if(!text && !imageData)return;
+
+addMessage(
+"user",
+text || "この画像をベースに編集してください。",
+{
+inputImage:imageData || null
+}
+);
+
+promptEl.value="";
+
+autoSize();
+
+setBusy(true);
+
+const typing=
+addMessage(
+"assistant",
+"",
+{typing:true}
+);
+
+try{
+
+const response=await fetch(
+"/api/generate",
+{
+method:"POST",
+
+headers:{
+"Content-Type":"application/json"
+},
+
+body:JSON.stringify({
+
+message:
+text ||
+"この画像をベースにしてください。まず画像を見て、より良くするために必要なことを判断してください。",
+
+image:imageData,
+
+previousResponseId
+
+})
+}
+);
+
+const data=await response.json();
+
+typing.remove();
+
+if(!response.ok){
+
+throw new Error(
+data.error ||
+"生成に失敗しました。"
+);
+
+}
+
+previousResponseId=
+data.responseId ||
+previousResponseId;
+
+if(data.image){
+
+imageData=data.image;
+
+showPreview();
+
+addMessage(
+"assistant",
+data.reply ||
+"できました。ここからさらに修正できます。",
+{
+image:data.image,
+examples:data.examples || []
+}
+);
+
+}else{
+
+addMessage(
+"assistant",
+data.reply ||
+"もちろん。もう少し希望を教えてください。",
+{
+examples:data.examples || []
+}
+);
+
+}
+
+}catch(error){
+
+typing.remove();
+
+addMessage(
+"assistant",
+"うまく処理できませんでした。\n\n"+
+(error.message || "不明なエラーです。")
+);
+
+}finally{
+
+setBusy(false);
+
+}
+
+}
+
+uploadBtn.addEventListener(
+"click",
+()=>fileInput.click()
+);
+
+fileInput.addEventListener(
+"change",
+async()=>{
+
+const file=
+fileInput.files &&
+fileInput.files[0];
+
+if(!file)return;
+
+try{
+
+imageData=
+await compressImage(file);
+
+showPreview();
+
+statusEl.textContent=
+"画像を添付しました";
+
+setTimeout(()=>{
+if(!busy)
+statusEl.textContent="";
+},1400);
+
+}catch{
+
+statusEl.textContent=
+"画像を読み込めませんでした";
+
+}
+
+}
+);
+
+removeImage.addEventListener(
+"click",
+()=>{
+
+imageData=null;
+
+fileInput.value="";
+
+showPreview();
+
+}
+);
+
+promptEl.addEventListener(
+"input",
+autoSize
+);
+
+promptEl.addEventListener(
+"keydown",
+e=>{
+
+if(e.key==="Enter" && !e.shiftKey){
+
+e.preventDefault();
+
+send();
+
+}
+
+}
+);
+
+document.addEventListener(
+"paste",
+async e=>{
+
+const items=
+Array.from(
+e.clipboardData?.items || []
+);
+
+const imageItem=
+items.find(
+item=>item.type.startsWith("image/")
+);
+
+if(!imageItem)return;
+
+const file=
+imageItem.getAsFile();
+
+if(!file)return;
+
+e.preventDefault();
+
+try{
+
+imageData=
+await compressImage(file);
+
+showPreview();
+
+statusEl.textContent=
+"貼り付けた画像を添付しました";
+
+setTimeout(()=>{
+if(!busy)
+statusEl.textContent="";
+},1500);
+
+}catch{
+
+statusEl.textContent=
+"画像を読み込めませんでした";
+
+}
+
+}
+);
+
+sendBtn.addEventListener(
+"click",
+send
+);
+
+resetBtn.addEventListener(
+"click",
+()=>{
+
+previousResponseId=null;
+
+imageData=null;
+
+fileInput.value="";
+
+promptEl.value="";
+
+autoSize();
+
+showPreview();
+
+chat.innerHTML="";
+
+welcome();
+
+}
+);
+
+welcome();
 
 </script>
 
