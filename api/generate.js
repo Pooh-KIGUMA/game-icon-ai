@@ -7,6 +7,7 @@ export default async function handler(req, res) {
 
   try {
     const {
+      mode,
       prompt,
       playerName,
       style,
@@ -20,9 +21,6 @@ export default async function handler(req, res) {
       });
     }
 
-    /*
-     * スタイル
-     */
     const styleMap = {
       anime: "high quality Japanese anime game illustration",
       dark: "dark, cool and mysterious game character",
@@ -32,9 +30,6 @@ export default async function handler(req, res) {
       cute: "cute and stylish game character"
     };
 
-    /*
-     * カラー
-     */
     const colorMap = {
       black: "black",
       blue: "blue",
@@ -52,9 +47,6 @@ export default async function handler(req, res) {
       colorMap[color] ||
       "black";
 
-    /*
-     * AIへの指示
-     */
     let finalPrompt = `
 Create a premium professional game profile icon.
 
@@ -70,53 +62,52 @@ ${selectedColor}
 PLAYER NAME:
 ${playerName || "None"}
 
-IMPORTANT DESIGN REQUIREMENTS:
-
+IMPORTANT:
 - Square 1:1 composition
 - Professional mobile game profile icon
 - Character should be large and clearly visible
-- Character should be the main focus
+- Character is the main focus
 - High quality detailed illustration
-- Beautiful face and detailed eyes
+- Detailed face and eyes
 - Strong dramatic lighting
 - Premium gaming artwork
-- Clean composition
-- High contrast
 - Beautiful background
-- Professional typography if a player name is provided
+- Clean composition
+- High visual impact
 - No watermark
-- No unnecessary text
 `;
 
     /*
-     * アップロード画像がある場合
+     * 画像アップロードあり
      */
-    if (image) {
+    if (mode === "image" && image) {
       finalPrompt += `
 
-IMPORTANT:
+Use the uploaded image as the MAIN CHARACTER REFERENCE.
 
-Use the uploaded image as the main character reference.
-
-Preserve the recognizable identity of the character,
-including:
-
+Preserve the recognizable identity of the character:
 - face
 - hairstyle
 - hair color
 - clothing
-- important accessories
-- overall character appearance
+- accessories
+- important character features
 
-Transform the character into a premium game profile icon.
+Do not replace the character with a completely different person.
 
-Do not completely replace the character.
-Keep the character recognizable.
+Transform the uploaded character into a professional game profile icon.
+
+Keep the character recognizable while improving:
+- lighting
+- composition
+- background
+- visual quality
+- gaming aesthetic
 `;
     }
 
     /*
-     * OpenAI API
+     * OpenAI画像生成
      */
     const response = await fetch(
       "https://api.openai.com/v1/images/generations",
@@ -142,10 +133,9 @@ Keep the character recognizable.
     const data = await response.json();
 
     /*
-     * OpenAI側のエラー
+     * APIエラー
      */
     if (!response.ok) {
-
       console.error(
         "OpenAI API Error:",
         JSON.stringify(data)
@@ -165,12 +155,6 @@ Keep the character recognizable.
       data?.data?.[0]?.b64_json;
 
     if (!base64Image) {
-
-      console.error(
-        "No image returned:",
-        JSON.stringify(data)
-      );
-
       return res.status(500).json({
         error:
           "The AI did not return an image."
@@ -178,14 +162,11 @@ Keep the character recognizable.
     }
 
     /*
-     * ブラウザで表示できる形式に変換
+     * ブラウザ表示用
      */
     const imageUrl =
       `data:image/png;base64,${base64Image}`;
 
-    /*
-     * index.htmlへ画像だけ返す
-     */
     return res.status(200).json({
       success: true,
       image: imageUrl
