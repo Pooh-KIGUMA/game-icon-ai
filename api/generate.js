@@ -1,8 +1,10 @@
 import OpenAI, { toFile } from "openai";
 
 const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-const MODEL = "gpt-image-2";
-const clean = (v, max = 7000) => String(v ?? "").trim().slice(0, max);
+const PLANNER_MODEL = "gpt-5.6";
+const IMAGE_MODEL = "gpt-image-2";
+
+const clean = (v, max = 9000) => String(v ?? "").trim().slice(0, max);
 
 function imageBuffer(dataUrl) {
   const m = String(dataUrl || "").match(/^data:image\/[^;]+;base64,(.+)$/);
@@ -12,6 +14,7 @@ function imageBuffer(dataUrl) {
 
 function detectSize(text) {
   const t = String(text || "").toLowerCase();
+  if (/1\s*[:：]\s*1|正方形|square|アイコン/.test(t)) return "1024x1024";
   if (/(x|twitter).*(ヘッダー|header)|ヘッダー|banner|バナー|横長/.test(t)) return "1536x1024";
   if (/縦長|portrait|ストーリー|story|tiktok/.test(t)) return "1024x1536";
   return "1024x1024";
@@ -35,91 +38,159 @@ function extractRequestedText(message) {
   return null;
 }
 
-function isStyleRequest(text) {
-  return /イラストタッチ|絵柄|画風|タッチ|作画|描き方|アートスタイル|イラスト風|絵の感じ|絵の雰囲気|テイスト|anime style|art style|style transfer/i.test(String(text || ""));
-}
-
-function isTextOnlyRequest(message, hasImage, forceAiDesign = false) {
-  if (!hasImage || forceAiDesign) return false;
-  const t = String(message || "");
-  const text = extractRequestedText(t);
-  if (!text || isStyleRequest(t)) return false;
-  const other = /背景(?:だけ|のみ|を変更|を変え)|ポーズ(?:だけ|のみ|を変更|を変え)|髪(?:だけ|型だけ|のみ|を変更|を変え)|服(?:だけ|装だけ|のみ|を変更|を変え)|人物(?:だけ|のみ|を変更|を変え)|顔(?:だけ|のみ|を変更|を変え)/u.test(t);
-  return !other && /文字|テキスト|ロゴ|名前|クラン|チーム|同盟|原画|元画像|そのまま|だけ|のみ|追加|入れて|書いて|カッコよく|かっこよく|デザイン/u.test(t);
-}
-
-function editMode(message, hasImage, forceAiDesign = false) {
+function fallbackMode(message, hasImage) {
   if (!hasImage) return "ORIGINAL";
-  if (isTextOnlyRequest(message, true, forceAiDesign)) return "TEXT_ONLY";
   const t = String(message || "");
-  if (isStyleRequest(t)) return "STYLE_ONLY";
+  if (/イラストタッチ|絵柄|画風|タッチ|作画|アートスタイル|絵の感じ|テイスト|style transfer/i.test(t)) return "STYLE_ONLY";
   if (/背景だけ|背景のみ|背景を変更|背景を変え/.test(t)) return "BACKGROUND_ONLY";
   if (/ポーズだけ|ポーズのみ|ポーズを変更|ポーズを変え/.test(t)) return "POSE_ONLY";
   if (/髪だけ|髪型だけ|髪のみ|髪を変更|髪を変え/.test(t)) return "HAIR_ONLY";
   if (/服だけ|衣装だけ|服装だけ|衣装を変更|服を変更/.test(t)) return "CLOTHING_ONLY";
   if (/ほぼそのまま|ほとんどそのまま|原画のまま|原画をそのまま|できるだけそのまま|極力そのまま|原型を残|原画維持|原画を維持|元画像.*そのまま/.test(t)) return "FAITHFUL";
-  return forceAiDesign ? "AI_DESIGN" : "TARGETED_EDIT";
+  return "TARGETED_EDIT";
 }
 
-function buildPrompt({ message, history, hasImage, mode, requestedText }) {
+function parseJson(text) {
+  const raw = String(text || "").trim().replace(/^```json\s*/i, "").replace(/^```\s*/i, "").replace(/\s*```$/i, "");
+  try { return JSON.parse(raw); } catch {}
+  const a = raw.indexOf("{");
+  const b = raw.lastIndexOf("}");
+  if (a >= 0 && b > a) {
+    try { return JSON.parse(raw.slice(a, b + 1)); } catch {}
+  }
+  return null;
+}
+
+async function understandRequest({ message, history, image }) {
   const recent = Array.isArray(history)
-    ? history.slice(-8).map(x => `${x.role === "user" ? "USER" : "ASSISTANT"}: ${clean(x.text, 1200)}`).join("\n")
+    ? history.slice(-16).map(x => `${x.role === "user" ? "USER" : "ASSISTANT"}: ${clean(x.text, 1600)}`).join("\n")
     : "";
 
-  const styleOnly = mode === "STYLE_ONLY" ? `
-STYLE-ONLY HARD LOCK:
-- This is a style transfer, NOT a character redesign.
-- Treat the reference image as an exact visual blueprint.
-- Keep the exact same character/person and recognizable identity.
-- Keep the exact same face, facial landmarks, eyes, nose, mouth, expression, hairstyle, hair color, skin tone, body proportions, pose, clothing, accessories, distinctive marks, camera angle, crop, background layout and major objects.
-- Change ONLY the rendering language: line art, brush texture, shading technique, color rendering, lighting treatment and illustration finish.
-- The result must be recognizable as the SAME IMAGE redrawn by a different artist.
-- Do NOT replace the subject with a generic person, beauty portrait, different anime character, realistic woman/man, or new composition.
-- Do NOT change gender, age, ethnicity, facial structure, hairstyle, outfit, pose or scene.
-- If the requested style is vague, choose a polished anime/game illustration style while preserving the source exactly.
-- Prioritize identity preservation over stylistic strength.` : "";
+  const developer = `You are the reasoning brain of Iconia AI, a conversational image editing product.
+Your job is NOT to generate an image. Your job is to understand the user's intent and produce a precise editing plan for an image model.
 
-  return `You are Iconia AI, a professional conversational image creation and editing assistant.
+Think like a strong ChatGPT assistant: use the entire recent conversation, resolve references such as "これ", "さっきの", "そのまま", "もっと", and understand natural Japanese rather than matching keywords.
 
-LATEST REQUEST:
+CRITICAL IMAGE-EDITING RULES:
+1. If a reference image is supplied, it is the source of truth.
+2. Preserve the subject's identity unless the user explicitly asks to replace or redesign the subject.
+3. If the user asks only to change illustration style / art style / rendering, this is STYLE_ONLY. Preserve the exact person/character, face, hair, expression, pose, clothing, accessories, composition, camera angle and scene. Change only linework, rendering, shading, brushwork, color treatment and finish.
+4. If the user asks for a creative redesign such as "もっとカッコよく", "AIに任せる", "ゲームクラン風に", allow creative design, but still preserve the existing character unless the user asks for a different character.
+5. If the user asks for exact text, extract the exact text. Never change its spelling, capitalization or symbols.
+6. Exact text should be added by the application overlay when possible, not invented by the image model. The image model should reserve clean space for the text and design around it.
+7. If the user asks to make the text/logo stylish, describe the desired logo treatment but keep the exact letters.
+8. Never interpret "イラストタッチを変えて" as "make a different person".
+9. If the user asks for "このまま" or "元画像をそのまま", make the preserve list very strict.
+10. For a new image with no reference, use ORIGINAL and creatively fulfill the request.
+
+Return ONLY valid JSON with these keys:
+{
+  "mode": "ORIGINAL|FAITHFUL|STYLE_ONLY|TARGETED_EDIT|AI_DESIGN|BACKGROUND_ONLY|POSE_ONLY|HAIR_ONLY|CLOTHING_ONLY|TEXT_ONLY",
+  "requested_text": string|null,
+  "keep": string[],
+  "change": string[],
+  "composition": string,
+  "style": string,
+  "text_design": string,
+  "image_prompt": string,
+  "assistant_reply": string
+}
+
+The image_prompt must be an actionable, detailed prompt for the image model. It must explicitly say what NOT to change when preservation matters.`;
+
+  const userContent = [
+    { type: "input_text", text: `LATEST USER REQUEST:\n${clean(message)}\n\nRECENT CONVERSATION:\n${recent || "No previous conversation."}\n\nREFERENCE IMAGE: ${image ? "YES" : "NO"}` }
+  ];
+  if (image) userContent.push({ type: "input_image", image_url: image, detail: "high" });
+
+  const response = await client.responses.create({
+    model: PLANNER_MODEL,
+    input: [
+      { role: "developer", content: developer },
+      { role: "user", content: userContent }
+    ],
+    temperature: 0.2
+  });
+
+  const plan = parseJson(response.output_text);
+  if (!plan) throw new Error("AIの編集プランを読み取れませんでした。");
+  return plan;
+}
+
+function normalizePlan(plan, message, hasImage, forceAiDesign) {
+  const fallback = fallbackMode(message, hasImage);
+  let mode = String(plan?.mode || fallback).toUpperCase();
+  const allowed = new Set(["ORIGINAL","FAITHFUL","STYLE_ONLY","TARGETED_EDIT","AI_DESIGN","BACKGROUND_ONLY","POSE_ONLY","HAIR_ONLY","CLOTHING_ONLY","TEXT_ONLY"]);
+  if (!allowed.has(mode)) mode = fallback;
+  if (forceAiDesign && hasImage && !/文字だけ|テキストだけ|ロゴだけ/.test(message)) mode = "AI_DESIGN";
+
+  const exact = clean(plan?.requested_text || extractRequestedText(message), 80) || null;
+  const keep = Array.isArray(plan?.keep) ? plan.keep.map(x => clean(x, 500)).filter(Boolean).slice(0, 30) : [];
+  const change = Array.isArray(plan?.change) ? plan.change.map(x => clean(x, 700)).filter(Boolean).slice(0, 30) : [];
+
+  if (mode === "STYLE_ONLY") {
+    keep.push("same character/person identity", "same face and facial landmarks", "same hairstyle and hair color", "same expression", "same pose", "same clothing and accessories", "same composition and camera angle", "same background and major objects");
+    change.push("only line art, brushwork, shading, rendering method, color treatment and illustration finish");
+  }
+
+  return {
+    mode,
+    requestedText: exact,
+    keep: [...new Set(keep)],
+    change: [...new Set(change)],
+    composition: clean(plan?.composition || "Preserve the source composition unless the user explicitly requested a composition change.", 1800),
+    style: clean(plan?.style || "Professional polished game illustration.", 1800),
+    textDesign: clean(plan?.text_design || "If exact text is requested, reserve a clean area for it; do not alter the spelling.", 1800),
+    imagePrompt: clean(plan?.image_prompt || message, 12000),
+    reply: clean(plan?.assistant_reply || "できました。気になるところがあれば、そのまま続けて指示してください。", 500)
+  };
+}
+
+function buildImagePrompt({ plan, message, hasImage }) {
+  const preserve = plan.keep.length ? `\nPRESERVE EXACTLY:\n- ${plan.keep.join("\n- ")}` : "";
+  const change = plan.change.length ? `\nCHANGE ONLY AS REQUESTED:\n- ${plan.change.join("\n- ")}` : "";
+  const exactText = plan.requestedText ? `\nEXACT TEXT REQUESTED: ${plan.requestedText}\nDo not alter the spelling, capitalization or symbols. Leave intentional clean space for the application to place this exact text.` : "";
+  const modeRules = plan.mode === "STYLE_ONLY"
+    ? `\nSTYLE TRANSFER HARD LOCK:\nThis is the SAME IMAGE rendered in a different illustration language. Do not redesign the person/character. Do not change face, hair, age, gender, expression, pose, outfit, accessories, composition, camera angle or scene. Only change rendering, line quality, brush texture, shading, lighting treatment and finish.`
+    : plan.mode === "FAITHFUL"
+      ? `\nFAITHFUL EDIT HARD LOCK:\nKeep the reference almost identical. Make only the explicitly requested changes. Do not improve, redesign or reinterpret unrelated elements.`
+      : "";
+
+  return `You are the image-generation stage of Iconia AI. Follow the reasoning plan below exactly.
+
+USER REQUEST:
 ${clean(message)}
 
-RECENT CONVERSATION:
-${recent || "No previous conversation."}
+EDIT MODE: ${plan.mode}
 
-REFERENCE IMAGE: ${hasImage ? "YES" : "NO"}
-EDIT MODE: ${mode}
-EXACT REQUESTED TEXT: ${requestedText || "none"}
+AI REASONING PLAN:
+${plan.imagePrompt}
 
-REFERENCE PRIORITY:
-- A supplied reference image is the PRIMARY SOURCE.
-- Never replace the subject unless the user explicitly requests a replacement or full transformation.
-- Preserve identity, face, hair, body proportions, pose, clothing, accessories, distinctive marks, camera angle and composition unless that specific element is requested to change.
-${styleOnly}
+COMPOSITION:
+${plan.composition}
 
-OTHER EDIT MODES:
-- TEXT_ONLY: do not regenerate the reference; the application overlays the exact requested text.
-- FAITHFUL: preserve the source as closely as possible and change only requested parts.
-- TARGETED_EDIT: change only what the user asks for and preserve everything else.
-- AI_DESIGN: creatively redesign requested visual elements, but preserve character identity unless the user explicitly asks for a full transformation.
-- BACKGROUND_ONLY: change only the background.
-- POSE_ONLY: change only the pose while preserving identity and appearance.
-- HAIR_ONLY: change only hair while preserving identity and everything else.
-- CLOTHING_ONLY: change only clothing while preserving identity and everything else.
+STYLE:
+${plan.style}
+${preserve}
+${change}
+${exactText}
+${modeRules}
 
-TEXT:
-- Never invent text, watermarks, signatures, usernames or logos.
-- If exact text is requested in TEXT_ONLY mode, do not render it yourself; the application adds it afterward.
+REFERENCE IMAGE: ${hasImage ? "YES - treat it as the primary visual source" : "NO"}
 
-QUALITY:
-- Professional game/SNS artwork, clean anatomy, coherent lighting and detailed materials.
-- Respect the requested aspect ratio and composition.`;
+GLOBAL RULES:
+- Never invent or add random text, watermarks, signatures or usernames.
+- Preserve requested elements even if they are unusual.
+- Do not substitute a different character/person when the user asked to modify the existing one.
+- Make the requested change visually strong enough to be noticeable, but do not change unrelated elements.
+- Produce polished professional game/SNS artwork with coherent anatomy, lighting, materials and composition.
+- If exact text will be overlaid by the application, create a clean, visually appropriate area for it and avoid fake text in that area.`;
 }
 
 export default async function handler(req, res) {
-  if (req.method !== "POST") return res.status(405).json({ success:false, error:"POSTリクエストのみ対応しています。" });
+  if (req.method !== "POST") return res.status(405).json({ success: false, error: "POSTリクエストのみ対応しています。" });
   try {
-    if (!process.env.OPENAI_API_KEY) return res.status(500).json({ success:false, error:"OPENAI_API_KEY がVercelに設定されていません。" });
+    if (!process.env.OPENAI_API_KEY) return res.status(500).json({ success: false, error: "OPENAI_API_KEY がVercelに設定されていません。" });
 
     const body = req.body || {};
     const message = clean(body.message);
@@ -127,54 +198,75 @@ export default async function handler(req, res) {
     const history = Array.isArray(body.history) ? body.history : [];
     const forceAiDesign = body.aiDesign === true;
 
-    if (!message && !image) return res.status(400).json({ success:false, error:"画像またはメッセージを入力してください。" });
+    if (!message && !image) return res.status(400).json({ success: false, error: "画像またはメッセージを入力してください。" });
 
-    const requestedText = clean(body.requestedText || extractRequestedText(message), 80) || null;
-    const size = detectSize(message);
-    const mode = editMode(message, Boolean(image), forceAiDesign);
-    const quality = (mode === "STYLE_ONLY" || wantsHighQuality(message)) ? "high" : "low";
-    const prompt = buildPrompt({ message, history, hasImage:Boolean(image), mode, requestedText });
+    const rawPlan = await understandRequest({ message, history, image });
+    const plan = normalizePlan(rawPlan, message, Boolean(image), forceAiDesign);
 
-    if (image && mode === "TEXT_ONLY" && requestedText) {
-      return res.status(200).json({ success:true, image, overlay:{text:requestedText,message}, reply:`できました。「${requestedText}」を正確に追加します。元画像は変更していません。` });
+    // Exact-text-only requests are returned without regenerating the source image.
+    // The frontend can use overlay.text to place the exact string with CSS/canvas.
+    if (image && plan.mode === "TEXT_ONLY" && plan.requestedText) {
+      return res.status(200).json({
+        success: true,
+        image,
+        overlay: { text: plan.requestedText, message, design: plan.textDesign },
+        plan: { mode: plan.mode, keep: plan.keep, change: plan.change },
+        reply: `できました。「${plan.requestedText}」を元画像に追加します。`
+      });
     }
+
+    const size = detectSize(message);
+    const quality = (plan.mode === "STYLE_ONLY" || wantsHighQuality(message)) ? "high" : "medium";
+    const prompt = buildImagePrompt({ plan, message, hasImage: Boolean(image) });
 
     let outputBuffer;
     if (image) {
       const sourceBuffer = imageBuffer(image);
-      const file = await toFile(sourceBuffer, "reference.jpg", { type:"image/jpeg" });
+      const file = await toFile(sourceBuffer, "reference.jpg", { type: "image/jpeg" });
       const editParams = {
-        model:MODEL,
-        image:file,
+        model: IMAGE_MODEL,
+        image: file,
         prompt,
         size,
         quality,
-        output_format:"jpeg",
-        output_compression:72,
-        n:1
+        output_format: "jpeg",
+        output_compression: 86,
+        n: 1
       };
-      // High input fidelity is especially important for style-only edits so facial
-      // features and other source-image details are matched as closely as possible.
-      if (mode === "STYLE_ONLY" || mode === "FAITHFUL") editParams.input_fidelity = "high";
+      if (plan.mode === "STYLE_ONLY" || plan.mode === "FAITHFUL") editParams.input_fidelity = "high";
       const response = await client.images.edit(editParams);
       const base64 = response?.data?.[0]?.b64_json;
       if (!base64) throw new Error("画像データがOpenAIから返されませんでした。");
       outputBuffer = Buffer.from(base64, "base64");
     } else {
-      const response = await client.images.generate({ model:MODEL, prompt, size, quality, output_format:"jpeg", output_compression:72, n:1 });
+      const response = await client.images.generate({
+        model: IMAGE_MODEL,
+        prompt,
+        size,
+        quality,
+        output_format: "jpeg",
+        output_compression: 86,
+        n: 1
+      });
       const base64 = response?.data?.[0]?.b64_json;
       if (!base64) throw new Error("画像データがOpenAIから返されませんでした。");
       outputBuffer = Buffer.from(base64, "base64");
     }
 
     return res.status(200).json({
-      success:true,
-      image:`data:image/jpeg;base64,${outputBuffer.toString("base64")}`,
-      ...(requestedText && !forceAiDesign && mode !== "STYLE_ONLY" ? {overlay:{text:requestedText,message}} : {}),
-      reply:"できました。気になるところがあれば、そのまま続けて指示してください。"
+      success: true,
+      image: `data:image/jpeg;base64,${outputBuffer.toString("base64")}`,
+      ...(plan.requestedText && plan.mode !== "STYLE_ONLY" ? { overlay: { text: plan.requestedText, message, design: plan.textDesign } } : {}),
+      plan: { mode: plan.mode, requestedText: plan.requestedText, keep: plan.keep, change: plan.change },
+      reply: plan.reply
     });
   } catch (error) {
     console.error("ICONIA API ERROR", error);
-    return res.status(Number(error?.status)||500).json({ success:false, error:error?.error?.message||error?.message||"不明なエラーが発生しました。", code:error?.error?.code||error?.code||null, type:error?.error?.type||error?.type||null });
+    return res.status(Number(error?.status) || 500).json({
+      success: false,
+      error: error?.error?.message || error?.message || "不明なエラーが発生しました。",
+      code: error?.error?.code || error?.code || null,
+      type: error?.error?.type || error?.type || null
+    });
   }
 }
