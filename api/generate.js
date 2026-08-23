@@ -22,8 +22,9 @@ function wantsHighQuality(text) {
   return /高品質|高画質|最高|細かく|超高精細|精密|high quality|high-res/i.test(String(text || ""));
 }
 
-// Extract the exact text independently from the image model.
-// Supports Japanese, Latin, numbers, symbols and quoted text.
+// Extract the exact requested text independently from the image model.
+// Put the Latin-name patterns BEFORE the generic "文字を..." pattern so
+// phrases such as "Poohの文字を入れて" return "Pooh", not "入れて".
 function extractRequestedText(message) {
   const t = String(message || "").trim();
   if (!t) return null;
@@ -31,12 +32,18 @@ function extractRequestedText(message) {
   const quoted = t.match(/[「『“"]([^」』”"]{1,80})[」』”"]/u);
   if (quoted?.[1]?.trim()) return quoted[1].trim();
 
-  const explicit = t.match(/(?:文字|テキスト|ロゴ|名前|チーム名|クラン名|同盟名)\s*(?:は|を|：|:|=)\s*[「『“"]?([^\s、。,.!！?？\n]{1,60})[」』”"]?/u);
-  if (explicit?.[1]) return explicit[1].trim();
+  // Most common Japanese game-icon requests: "Poohの文字を入れて",
+  // "AxLFの文字を追加して", "MCLEという文字を入れて".
+  const namedText = t.match(/([A-Za-z][A-Za-z0-9._-]{0,39})\s*(?:の|という)?\s*(?:文字|テキスト|ロゴ)\s*(?:を|は|として)?\s*(?:入れて|追加して|加えて|書いて|載せて|入れたい|追加したい|入れてください|追加してください)/i);
+  if (namedText?.[1]) return namedText[1].trim();
+
+  const explicit = t.match(/(?:文字|テキスト|ロゴ|名前|チーム名|クラン名|同盟名)\s*(?:は|を|：|:)\s*[「『“"]?([^\s、。,.!！?？\n]{1,60})[」』”"]?/u);
+  if (explicit?.[1] && !/^(?:入れて|追加して|加えて|書いて|載せて|ください|ほしい|欲しい)$/u.test(explicit[1])) return explicit[1].trim();
 
   const latin = t.match(/([A-Za-z][A-Za-z0-9._-]{0,39})\s*(?:の文字|という文字|だけ(?:を|に)?|のみ(?:を|に)?)/i);
   if (latin?.[1]) return latin[1].trim();
-  const latin2 = t.match(/([A-Za-z][A-Za-z0-9._-]{0,39})\s*(?:を|って)\s*(?:入れて|追加して|入れたい|入れてください)/i);
+
+  const latin2 = t.match(/([A-Za-z][A-Za-z0-9._-]{0,39})\s*(?:を|って)\s*(?:入れて|追加して|入れたい|入れてください|追加してください)/i);
   if (latin2?.[1]) return latin2[1].trim();
 
   if (/(?:文字|テキスト|ロゴ|名前|クラン|チーム|同盟|原画|元画像|そのまま|だけ|追加|入れて|入れたい|書いて)/u.test(t)) {
@@ -111,7 +118,7 @@ export default async function handler(req, res) {
     const mode = editMode(message, Boolean(image));
     const prompt = buildPrompt({ message, history, hasImage:Boolean(image), mode, requestedText });
 
-    // Text is never rasterized on Vercel. The browser uses the user's real Japanese fonts.
+    // Exact text requests use the original image and browser overlay.
     if (image && mode === "TEXT_ONLY" && requestedText) {
       return res.status(200).json({
         success:true,
