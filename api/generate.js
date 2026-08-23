@@ -4,11 +4,11 @@ const client = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
 });
 
-function clean(value, max = 300) {
-  return String(value ?? "").trim().slice(0, max);
-}
+const clean = (value, max) =>
+  String(value ?? "").trim().slice(0, max);
 
 export default async function handler(req, res) {
+
   if (req.method !== "POST") {
     return res.status(405).json({
       error: "POST only"
@@ -17,125 +17,226 @@ export default async function handler(req, res) {
 
   if (!process.env.OPENAI_API_KEY) {
     return res.status(500).json({
-      error: "OPENAI_API_KEY が設定されていません。"
+      error:
+        "OPENAI_API_KEY がVercelに設定されていません。"
     });
   }
 
   try {
+
     const body = req.body || {};
 
-    const playerName = clean(body.playerName, 24);
-    const allianceName = clean(body.allianceName, 24);
-    const clanName = clean(body.clanName, 24);
-    const color = clean(body.color, 30);
-    const colorHex = clean(body.colorHex, 12);
-    const character = clean(body.character, 60);
-    const mood = clean(body.mood, 40);
-    const background = clean(body.background, 50);
-    const textPosition = clean(body.textPosition, 40);
-    const extraPrompt = clean(body.extraPrompt, 300);
+    const character =
+      clean(body.character, 80);
 
-    if (!playerName && !allianceName && !clanName) {
-      return res.status(400).json({
-        error:
-          "名前・同盟名・クラン名のいずれかを入力してください。"
-      });
-    }
+    const mood =
+      clean(body.mood, 80);
 
-    const textLines = [
-      playerName
-        ? `Player name: ${playerName}`
-        : "",
-      allianceName
-        ? `Alliance name: ${allianceName}`
-        : "",
-      clanName
-        ? `Clan/team name: ${clanName}`
-        : ""
-    ]
-      .filter(Boolean)
-      .join(", ");
+    const color =
+      clean(body.color, 40);
+
+    const colorHex =
+      clean(body.colorHex, 12);
+
+    const backgroundPreset =
+      clean(body.backgroundPreset, 100);
+
+    const background =
+      clean(body.background, 1000);
+
+    const extraPrompt =
+      clean(body.extraPrompt, 2000);
+
+
+    const scene =
+      background ||
+      backgroundPreset ||
+      "キャラクターを引き立てる高品質なゲーム背景";
+
 
     const prompt = `
-Create a premium original square game profile icon for a competitive mobile game.
+
+Create an ORIGINAL premium square game profile icon
+for a competitive mobile game.
+
+IMPORTANT:
+
+This image is the ARTWORK ONLY.
+
+DO NOT render ANY:
+
+- text
+- letters
+- numbers
+- words
+- names
+- usernames
+- alliance names
+- clan names
+- logos
+- UI
+- watermark
+- title
+- typography
+- fake symbols
+
+The website will add all text after generation.
 
 Canvas:
-1:1 square composition.
 
-Character:
-${character || "cool heroic character"}
+1024 x 1024 pixels.
+
+Aspect ratio:
+
+1:1
+
+Character type:
+
+${character || "cool powerful original game character"}
 
 Mood:
-${mood || "ultra cool"}
 
-Background:
-${background || "neon fantasy"}
+${mood || "cool"}
 
 Primary color:
+
 ${color || "purple"}
+
+Color:
+
 ${colorHex || "#8b5cf6"}
 
-Make the character large and clearly visible.
+Background / scene:
+
+${scene}
+
+
+USER'S DETAILED INSTRUCTIONS:
+
+${extraPrompt || "Make the character large, powerful, polished and visually impressive."}
+
+
+IMPORTANT INSTRUCTION:
+
+Follow the user's detailed instructions carefully.
+
+The user's detailed instructions should control:
+
+- hairstyle
+- hair color
+- clothing
+- armor
+- accessories
+- facial expression
+- pose
+- camera angle
+- character size
+- lighting
+- atmosphere
+- background
+- special effects
+- composition
+
+
+QUALITY:
+
+Create a premium mobile game avatar.
 
 Use:
-- high detail
-- professional game avatar quality
-- polished digital illustration
-- strong lighting
-- dynamic depth
-- crisp silhouette
-- beautiful background effects
 
-No watermark.
-No logos.
-No UI.
+- highly detailed digital illustration
+- cinematic lighting
+- strong character silhouette
+- dramatic depth
+- beautiful atmosphere
+- polished professional game artwork
+- high-quality materials
+- detailed face
+- detailed clothing
+- attractive composition
+- strong contrast
+- character should be large and dominant
+- keep the head fully inside the image
+- keep important details away from the extreme edges
 
-Typography requirement:
 
-Place the requested text at:
-${textPosition || "bottom center"}
+STYLE:
 
-Requested text:
-${textLines || "GAME ICON"}
+Original high-end game artwork.
 
-Preserve spelling and capitalization exactly.
+Do NOT copy an existing copyrighted character.
 
-Do not invent additional names.
+Create an original character based on the user's description.
 
-Keep text away from the face and important character details.
+Again:
 
-Additional direction:
-${extraPrompt || "Make the design unique, premium, stylish and suitable for a competitive game player avatar."}
+NO TEXT.
+
+NO LETTERS.
+
+NO NUMBERS.
+
+NO LOGOS.
+
+NO WATERMARK.
+
+NO UI.
+
 `;
 
-    const result = await client.images.generate({
-      model: "gpt-image-1",
-      prompt,
-      size: "1024x1024",
-      quality: "medium",
-      n: 1,
-      output_format: "png"
-    });
 
-    const b64 = result?.data?.[0]?.b64_json;
+    const result =
+      await client.images.generate({
 
-    if (!b64) {
+        model: "gpt-image-1",
+
+        prompt,
+
+        size: "1024x1024",
+
+        quality: "medium",
+
+        n: 1,
+
+        output_format: "png"
+
+      });
+
+
+    const image =
+      result?.data?.[0]?.b64_json;
+
+
+    if (!image) {
+
       throw new Error(
         "画像データが返されませんでした。"
       );
+
     }
 
+
     return res.status(200).json({
-      image: `data:image/png;base64,${b64}`
+
+      image:
+        `data:image/png;base64,${image}`
+
     });
+
 
   } catch (error) {
+
     console.error(error);
 
+
     return res.status(500).json({
+
       error:
         error?.message ||
-        "画像生成中にエラーが発生しました。"
+        "画像生成に失敗しました。"
+
     });
+
   }
+
 }
