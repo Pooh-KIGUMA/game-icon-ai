@@ -1,6 +1,6 @@
 {
-  "name": "game-icon-ai",
-  "version": "3.0.0",
+  "name": "iconia-ai",
+  "version": "1.0.0",
   "private": true,
   "type": "module",
   "dependencies": {
