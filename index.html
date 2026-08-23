@@ -3,323 +3,424 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#080910">
-<title>Game Icon AI</title>
+<meta name="theme-color" content="#08090f">
+<title>Iconia AI</title>
+
 <style>
 :root{
-  --bg:#080910;
+  --bg:#08090f;
   --panel:#11131d;
   --panel2:#171a26;
-  --line:#2a2d3d;
+  --line:#292d3d;
   --text:#f7f8ff;
-  --muted:#9ea3b8;
-  --accent:#7657ff;
-  --accent2:#22c8ff;
+  --muted:#9ca2b7;
+  --a:#7958ff;
+  --b:#25c9ff;
 }
-*{box-sizing:border-box}
+
+*{
+  box-sizing:border-box;
+}
+
 html,body{
   margin:0;
   background:var(--bg);
   color:var(--text);
   font-family:-apple-system,BlinkMacSystemFont,
-  "SF Pro Display","Hiragino Kaku Gothic ProN",Meiryo,sans-serif
+  "SF Pro Display","Hiragino Kaku Gothic ProN",Meiryo,sans-serif;
 }
-body{min-height:100vh}
-button,textarea{font:inherit}
+
+body{
+  min-height:100vh;
+}
+
+button,textarea{
+  font:inherit;
+}
+
 button{
   color:inherit;
   border:0;
-  cursor:pointer
+  cursor:pointer;
 }
+
 .app{
-  max-width:760px;
+  max-width:820px;
   margin:auto;
   min-height:100vh;
-  padding-bottom:145px
+  padding-bottom:150px;
 }
+
 header{
   position:sticky;
   top:0;
   z-index:30;
-  padding:12px 14px calc(10px + env(safe-area-inset-top));
+  padding:10px 13px calc(9px + env(safe-area-inset-top));
   display:flex;
   align-items:center;
   justify-content:space-between;
-  gap:12px;
-  background:rgba(8,9,16,.88);
+  gap:10px;
+  background:#08090fe8;
   backdrop-filter:blur(20px);
-  border-bottom:1px solid var(--line)
+  border-bottom:1px solid var(--line);
 }
+
 .brand{
   display:flex;
   align-items:center;
   gap:10px;
-  min-width:0
 }
+
 .logo{
-  width:43px;
-  height:43px;
+  width:42px;
+  height:42px;
   border-radius:14px;
   display:grid;
   place-items:center;
-  background:linear-gradient(135deg,#7958ff,#16c9ff);
+  background:linear-gradient(135deg,var(--a),var(--b));
   font-size:22px;
-  box-shadow:0 8px 28px #6f55ff33;
-  flex:0 0 auto
 }
+
 .brand strong{
   font-size:19px;
-  display:block;
-  white-space:nowrap
 }
+
 .brand small{
   display:block;
   color:var(--muted);
-  font-size:11px;
-  margin-top:2px
+  font-size:10px;
+  margin-top:2px;
 }
-.reset{
+
+.topbtn{
   background:var(--panel2);
   border:1px solid var(--line);
-  border-radius:14px;
-  padding:10px 14px;
+  border-radius:13px;
+  padding:9px 12px;
   font-weight:800;
-  white-space:nowrap
 }
-main{padding:18px 14px}
-.hero{padding:7px 3px 18px}
+
+main{
+  padding:17px 13px;
+}
+
+.hero{
+  padding:6px 3px 18px;
+}
+
 .hero h1{
-  margin:0 0 8px;
-  font-size:30px;
+  margin:0 0 7px;
+  font-size:31px;
   line-height:1.18;
-  background:linear-gradient(90deg,#fff,#a68aff,#55d5ff);
+  background:linear-gradient(90deg,#fff,#b198ff,#62dcff);
   -webkit-background-clip:text;
   background-clip:text;
-  color:transparent
+  color:transparent;
 }
+
 .hero p{
   margin:0;
   color:var(--muted);
+  font-size:14px;
   line-height:1.65;
-  font-size:14px
 }
+
 .chat{
   display:flex;
   flex-direction:column;
-  gap:16px
+  gap:15px;
 }
+
 .msg{
   display:flex;
   gap:9px;
-  align-items:flex-start
+  align-items:flex-start;
 }
-.msg.user{justify-content:flex-end}
+
+.msg.user{
+  justify-content:flex-end;
+}
+
 .avatar{
   width:30px;
   height:30px;
   border-radius:10px;
-  flex:0 0 auto;
   display:grid;
   place-items:center;
-  background:linear-gradient(135deg,#7958ff,#16c9ff);
-  font-size:14px
+  background:linear-gradient(135deg,var(--a),var(--b));
+  font-size:14px;
+  flex:0 0 auto;
 }
-.user .avatar{display:none}
+
+.user .avatar{
+  display:none;
+}
+
 .bubble{
-  max-width:91%;
+  max-width:93%;
   padding:12px 14px;
   border-radius:18px;
-  line-height:1.65;
+  line-height:1.62;
   white-space:pre-wrap;
-  word-break:break-word
+  word-break:break-word;
 }
+
 .assistant .bubble{
   background:var(--panel);
   border:1px solid var(--line);
-  border-top-left-radius:7px
+  border-top-left-radius:7px;
 }
+
 .user .bubble{
-  background:linear-gradient(135deg,#6f50f5,#5a42d5);
-  border-bottom-right-radius:6px
+  background:linear-gradient(135deg,#7052f5,#5b43d5);
+  border-bottom-right-radius:6px;
 }
-.attach-in-chat{
-  margin-top:9px;
-  border:1px solid #393c51;
-  border-radius:13px;
-  padding:7px;
-  background:#0b0c13;
-  display:flex;
-  align-items:center;
-  gap:9px
-}
-.attach-in-chat img{
-  width:58px;
-  height:58px;
-  object-fit:cover;
-  border-radius:9px
-}
+
 .examples{
   display:flex;
   flex-direction:column;
-  gap:8px;
-  margin-top:11px
+  gap:7px;
+  margin-top:10px;
 }
+
 .example{
+  width:100%;
   text-align:left;
-  background:#1a1d2a;
-  border:1px solid #34384d;
+  background:#1a1d29;
+  border:1px solid #34384b;
   border-radius:13px;
-  padding:10px 12px;
-  color:#e3e5f1;
-  line-height:1.45
+  padding:10px 11px;
+  line-height:1.45;
 }
-.example:active{transform:scale(.99)}
+
+.example:active{
+  transform:scale(.99);
+}
+
 .image-card{
   margin-top:10px;
-  background:#0a0b11;
+  background:#090a10;
   border:1px solid var(--line);
   border-radius:18px;
-  padding:8px
+  padding:8px;
 }
+
 .image-card img{
-  width:100%;
   display:block;
+  width:100%;
   border-radius:13px;
-  background:#10111a
 }
+
 .image-actions{
   display:flex;
   gap:8px;
-  margin-top:8px
+  margin-top:8px;
 }
-.image-actions a,
-.image-actions button{
+
+.image-actions>*{
   flex:1;
-  background:#1a1d2a;
-  border:1px solid #34384d;
+  background:#1a1d29;
+  border:1px solid #34384b;
   border-radius:12px;
   padding:10px;
   text-align:center;
+  font-weight:800;
   text-decoration:none;
-  font-weight:800
 }
+
+.statusline{
+  display:flex;
+  align-items:center;
+  gap:7px;
+  margin-top:8px;
+  color:#9298ad;
+  font-size:11px;
+}
+
+.dot{
+  width:7px;
+  height:7px;
+  border-radius:50%;
+  background:#7b5cff;
+  box-shadow:0 0 12px #7b5cff;
+  animation:pulse 1.2s infinite;
+}
+
+@keyframes pulse{
+  50%{
+    opacity:.3;
+    transform:scale(.7);
+  }
+}
+
 .composer-wrap{
   position:fixed;
   left:0;
   right:0;
   bottom:0;
   z-index:40;
-  padding:9px 11px calc(9px + env(safe-area-inset-bottom));
-  background:linear-gradient(180deg,transparent 0,#080910 27%)
+  padding:9px 10px calc(9px + env(safe-area-inset-bottom));
+  background:linear-gradient(180deg,transparent,#08090f 28%);
 }
+
 .composer{
-  max-width:760px;
+  max-width:820px;
   margin:auto;
-  background:rgba(20,22,33,.97);
-  border:1px solid #363a4f;
+  background:#141621f7;
+  border:1px solid #363a4e;
   border-radius:22px;
-  padding:9px;
-  box-shadow:0 14px 44px #000b
+  padding:8px;
+  box-shadow:0 14px 45px #000c;
 }
+
 .preview{
   display:none;
   align-items:center;
-  gap:9px;
-  padding:2px 2px 8px
+  gap:8px;
+  padding:2px 2px 8px;
 }
-.preview.show{display:flex}
+
+.preview.show{
+  display:flex;
+}
+
 .preview img{
-  width:52px;
-  height:52px;
+  width:53px;
+  height:53px;
   object-fit:cover;
-  border-radius:10px
-}
-.preview span{
-  font-size:12px;
-  color:var(--muted);
-  flex:1
-}
-.preview button{
-  background:#292c3d;
   border-radius:10px;
-  padding:7px 10px
 }
+
+.preview span{
+  flex:1;
+  color:var(--muted);
+  font-size:12px;
+}
+
+.preview button{
+  background:#292d3d;
+  border-radius:9px;
+  padding:6px 9px;
+}
+
 textarea{
   width:100%;
   min-height:48px;
   max-height:155px;
   resize:none;
-  background:transparent;
   border:0;
   outline:0;
+  background:transparent;
   color:var(--text);
   padding:7px 8px;
-  line-height:1.5
+  line-height:1.5;
 }
+
 .bottom{
   display:flex;
   align-items:center;
-  gap:8px
+  gap:8px;
 }
-.iconbtn{
+
+.iconbtn,
+.send{
   width:43px;
   height:43px;
   border-radius:14px;
-  background:#202331;
-  border:1px solid #303448;
   display:grid;
   place-items:center;
-  font-size:23px
 }
+
+.iconbtn{
+  background:#202331;
+  border:1px solid #303448;
+  font-size:22px;
+}
+
 .send{
   margin-left:auto;
-  width:43px;
-  height:43px;
-  border-radius:14px;
-  background:linear-gradient(135deg,#7958ff,#20c8ff);
+  background:linear-gradient(135deg,var(--a),var(--b));
+  font-size:20px;
   font-weight:900;
-  font-size:20px
 }
+
 .send:disabled{
   opacity:.45;
-  cursor:default
 }
-.status{
-  font-size:11px;
-  color:#969aae;
-  min-width:0;
-  overflow:hidden;
-  text-overflow:ellipsis;
-  white-space:nowrap
-}
+
 .hint{
   text-align:center;
-  color:#777b90;
+  color:#73788d;
   font-size:10px;
-  margin-top:6px
+  margin-top:5px;
 }
-.typing{
-  display:inline-flex;
-  gap:4px
+
+.drawer{
+  position:fixed;
+  inset:0;
+  z-index:60;
+  display:none;
+  background:#0008;
 }
-.typing i{
-  width:6px;
-  height:6px;
-  border-radius:50%;
-  background:#aab0c5;
-  animation:dot 1s infinite
+
+.drawer.open{
+  display:block;
 }
-.typing i:nth-child(2){animation-delay:.15s}
-.typing i:nth-child(3){animation-delay:.3s}
-@keyframes dot{
-  50%{
-    opacity:.25;
-    transform:translateY(-2px)
-  }
+
+.drawer-panel{
+  width:min(88vw,340px);
+  height:100%;
+  background:#0d0f18;
+  border-right:1px solid var(--line);
+  padding:16px;
+  overflow:auto;
 }
+
+.drawer-head{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:15px;
+}
+
+.drawer h2{
+  font-size:17px;
+  margin:0;
+}
+
+.history{
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+}
+
+.history button{
+  text-align:left;
+  background:#161925;
+  border:1px solid #2c3040;
+  border-radius:13px;
+  padding:10px;
+}
+
+.history strong{
+  display:block;
+  font-size:13px;
+}
+
+.history small{
+  color:var(--muted);
+  display:block;
+  margin-top:3px;
+}
+
 @media(min-width:760px){
-  main{padding:26px 20px}
-  .hero h1{font-size:36px}
+  main{
+    padding:25px 20px;
+  }
+
+  .hero h1{
+    font-size:36px;
+  }
 }
 </style>
 </head>
@@ -329,47 +430,81 @@ textarea{
 <div class="app">
 
 <header>
-  <div class="brand">
-    <div class="logo">✦</div>
-    <div>
-      <strong>Game Icon AI</strong>
-      <small>会話するだけで、理想のゲームアイコンへ</small>
-    </div>
-  </div>
 
-  <button class="reset" id="reset">
-    新しい会話
-  </button>
+<div class="brand">
+
+<div class="logo">
+✦
+</div>
+
+<div>
+<strong>Iconia AI</strong>
+<small>話すだけで、画像をつくる</small>
+</div>
+
+</div>
+
+<div style="display:flex;gap:7px">
+
+<button
+class="topbtn"
+id="historyBtn">
+履歴
+</button>
+
+<button
+class="topbtn"
+id="newBtn">
+新しい会話
+</button>
+
+</div>
+
 </header>
 
 <main>
 
 <section class="hero">
-  <h1>理想を、そのまま話してください。</h1>
 
-  <p>
-    画像がなくてもオリジナルキャラクターを作れます。
-    画像を送れば、その画像をベースに編集できます。
-    細かい設定項目はありません。
-  </p>
+<h1>
+作りたい画像を、普通に話してください。
+</h1>
+
+<p>
+画像がなくてもオリジナルを作れます。
+画像があれば、その画像をベースに編集できます。
+ゲーム・X・Instagram・LINE・YouTubeなど、
+用途もAIが会話から判断します。
+</p>
+
 </section>
 
-<section class="chat" id="chat"></section>
+<section
+class="chat"
+id="chat">
+</section>
 
 </main>
+
 </div>
 
 <div class="composer-wrap">
 
 <div class="composer">
 
-<div class="preview" id="preview">
+<div
+class="preview"
+id="preview">
 
-<img id="previewImg" alt="参考画像">
+<img
+id="previewImg">
 
-<span>参考画像を添付中</span>
+<span>
+参考画像を添付中
+</span>
 
-<button id="removeImage" type="button">
+<button
+id="removeImage">
 ×
 </button>
 
@@ -378,16 +513,14 @@ textarea{
 <textarea
 id="prompt"
 rows="1"
-placeholder="例：「完全オリジナルのキャラ。黒髪の男性、冷酷で強そう。青い炎、夜の東京、人物を大きく」">
+placeholder="例：「このキャラでXのヘッダーを作って。夜の東京、青いネオン。キャラは左側。」">
 </textarea>
 
 <div class="bottom">
 
 <button
 class="iconbtn"
-id="uploadBtn"
-type="button"
-title="画像を追加">
+id="uploadBtn">
 ＋
 </button>
 
@@ -397,137 +530,326 @@ type="file"
 accept="image/png,image/jpeg,image/webp"
 hidden>
 
-<span class="status" id="status"></span>
+<span
+id="status"
+style="color:#9298ad;font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
+</span>
 
 <button
 class="send"
-id="send"
-type="button">
+id="send">
 ↑
 </button>
 
 </div>
 
 <div class="hint">
-画像なし＝オリジナル作成　／　画像あり＝その画像をベースに編集
+画像なし＝オリジナル　／　画像あり＝編集　／　Enter＝送信
 </div>
 
 </div>
+</div>
+
+<div
+class="drawer"
+id="drawer">
+
+<div class="drawer-panel">
+
+<div class="drawer-head">
+
+<h2>
+最近の作品
+</h2>
+
+<button
+class="topbtn"
+id="closeDrawer">
+閉じる
+</button>
+
+</div>
+
+<div
+class="history"
+id="history">
+</div>
+
+</div>
+
 </div>
 
 <script>
 
-const chat = document.getElementById("chat");
-const promptEl = document.getElementById("prompt");
-const sendBtn = document.getElementById("send");
+const chat =
+document.getElementById("chat");
 
-const fileInput = document.getElementById("fileInput");
-const uploadBtn = document.getElementById("uploadBtn");
+const promptEl =
+document.getElementById("prompt");
 
-const preview = document.getElementById("preview");
-const previewImg = document.getElementById("previewImg");
+const sendBtn =
+document.getElementById("send");
 
-const removeImage = document.getElementById("removeImage");
-const resetBtn = document.getElementById("reset");
+const fileInput =
+document.getElementById("fileInput");
 
-const statusEl = document.getElementById("status");
+const preview =
+document.getElementById("preview");
 
-let imageData = null;
-let previousResponseId = null;
-let busy = false;
+const previewImg =
+document.getElementById("previewImg");
 
-const examples = [
+const statusEl =
+document.getElementById("status");
 
-"完全オリジナルの男性キャラクター。冷酷で強そう。黒い服、青い炎、夜の東京。人物を大きくして、ゲームアイコンらしい迫力のある構図にして。",
+const drawer =
+document.getElementById("drawer");
 
-"完全オリジナルの女性キャラクター。美しくて強い雰囲気。黒と赤を基調にして、月夜の背景。顔を綺麗に見せてゲームアイコン向けに。",
+const historyEl =
+document.getElementById("history");
 
-"まだイメージが決まっていない。ゲームで使いたくなるカッコいいオリジナルキャラクターを3案考えて、その中から1つ作って。"
+let state = {
+  id:null,
+  title:"新しい作品",
+  messages:[],
+  image:null,
+  previousResponseId:null,
+  updatedAt:Date.now()
+};
+
+let busy=false;
+
+const EXAMPLES=[
+
+"完全オリジナルの男性キャラクター。黒髪、黒い服、青い炎。冷酷で強そう。ゲームアイコン向けに人物を大きくして。",
+
+"このキャラクターを使ってXのヘッダーを作って。夜の東京、青いネオン、キャラクターは左側。高級感のある雰囲気で。",
+
+"まだイメージが決まってない。SNSで使いたくなるカッコいいオリジナルキャラクターを3案考えて、その中から1つ作って。"
 
 ];
 
-function addMessage(role,text,extra={}){
+function uid(){
 
-const row=document.createElement("div");
+return "c_"+
+Date.now()+
+"_"+Math.random()
+.toString(36)
+.slice(2,8);
 
-row.className="msg "+role;
+}
 
-const avatar=document.createElement("div");
+function saveState(){
+
+state.updatedAt=Date.now();
+
+try{
+
+localStorage.setItem(
+"iconia_current",
+JSON.stringify(state)
+);
+
+}catch(e){}
+
+const list=
+JSON.parse(
+localStorage.getItem(
+"iconia_history"
+) || "[]"
+)
+.filter(
+x=>x.id!==state.id
+);
+
+list.unshift({
+
+id:state.id,
+title:state.title,
+image:state.image,
+updatedAt:state.updatedAt,
+messages:state.messages.slice(-12),
+previousResponseId:
+state.previousResponseId
+
+});
+
+localStorage.setItem(
+"iconia_history",
+JSON.stringify(
+list.slice(0,20)
+)
+);
+
+renderHistory();
+
+}
+
+function loadState(){
+
+try{
+
+const saved=
+JSON.parse(
+localStorage.getItem(
+"iconia_current"
+) || "null"
+);
+
+if(saved&&saved.id){
+
+state=saved;
+
+renderMessages();
+
+return true;
+
+}
+
+}catch(e){}
+
+return false;
+
+}
+
+function renderMessages(){
+
+chat.innerHTML="";
+
+if(!state.messages.length){
+
+welcome();
+
+return;
+
+}
+
+state.messages.forEach(
+m=>
+addMessage(
+m.role,
+m.text,
+m.extra || {},
+false
+)
+);
+
+}
+
+function addMessage(
+role,
+text,
+extra={},
+store=true
+){
+
+const row=
+document.createElement("div");
+
+const bubble=
+document.createElement("div");
+
+const avatar=
+document.createElement("div");
+
+row.className=
+"msg "+role;
 
 avatar.className="avatar";
 
-avatar.textContent=role==="assistant"?"✦":"";
-
-const bubble=document.createElement("div");
+avatar.textContent=
+role==="assistant"
+?"✦"
+:"";
 
 bubble.className="bubble";
 
 if(extra.typing){
 
 bubble.innerHTML=
-'<span class="typing"><i></i><i></i><i></i></span>';
+'<span class="typing">● ● ●</span>';
 
-}else if(text){
+}else{
 
-bubble.textContent=text;
+bubble.textContent=
+text || "";
 
 }
 
 if(extra.inputImage){
 
-const wrap=document.createElement("div");
+const w=
+document.createElement("div");
 
-wrap.className="attach-in-chat";
+w.className=
+"attach-in-chat";
 
-const img=document.createElement("img");
+const im=
+document.createElement("img");
 
-img.src=extra.inputImage;
+im.src=
+extra.inputImage;
 
-img.alt="添付画像";
+im.style.cssText=
+"width:58px;height:58px;object-fit:cover;border-radius:9px";
 
-const label=document.createElement("span");
+const s=
+document.createElement("span");
 
-label.textContent="参考画像";
+s.textContent=
+"参考画像";
 
-wrap.append(img,label);
+w.append(im,s);
 
-bubble.appendChild(wrap);
+bubble.appendChild(w);
 
 }
 
 if(extra.image){
 
-const card=document.createElement("div");
+const card=
+document.createElement("div");
 
-card.className="image-card";
+card.className=
+"image-card";
 
-const img=document.createElement("img");
+const im=
+document.createElement("img");
 
-img.src=extra.image;
+im.src=
+extra.image;
 
-img.alt="生成されたゲームアイコン";
+im.alt=
+"生成画像";
 
-const actions=document.createElement("div");
+const actions=
+document.createElement("div");
 
-actions.className="image-actions";
+actions.className=
+"image-actions";
 
-const save=document.createElement("a");
+const a=
+document.createElement("a");
 
-save.href=extra.image;
+a.href=
+extra.image;
 
-save.download="game-icon-ai.png";
+a.download=
+"iconia-ai.png";
 
-save.textContent="↓ 保存";
+a.textContent=
+"↓ 保存";
 
-const edit=document.createElement("button");
+const b=
+document.createElement("button");
 
-edit.type="button";
+b.textContent=
+"この画像を続けて編集";
 
-edit.textContent="この画像を続けて編集";
+b.onclick=()=>{
 
-edit.onclick=()=>{
-
-imageData=extra.image;
+state.image=
+extra.image;
 
 showPreview();
 
@@ -535,33 +857,44 @@ promptEl.focus();
 
 };
 
-actions.append(save,edit);
+actions.append(a,b);
 
-card.append(img,actions);
+card.append(
+im,
+actions
+);
 
 bubble.appendChild(card);
 
 }
 
-if(Array.isArray(extra.examples) && extra.examples.length){
+if(
+extra.examples &&
+extra.examples.length
+){
 
-const box=document.createElement("div");
+const box=
+document.createElement("div");
 
-box.className="examples";
+box.className=
+"examples";
 
-extra.examples.slice(0,3).forEach(value=>{
+extra.examples
+.slice(0,3)
+.forEach(v=>{
 
-const b=document.createElement("button");
+const b=
+document.createElement("button");
 
-b.type="button";
+b.className=
+"example";
 
-b.className="example";
-
-b.textContent="💡 "+value;
+b.textContent=
+"💡 "+v;
 
 b.onclick=()=>{
 
-promptEl.value=value;
+promptEl.value=v;
 
 autoSize();
 
@@ -577,7 +910,26 @@ bubble.appendChild(box);
 
 }
 
-row.append(avatar,bubble);
+if(extra.status){
+
+const s=
+document.createElement("div");
+
+s.className=
+"statusline";
+
+s.innerHTML=
+'<span class="dot"></span>'+
+extra.status;
+
+bubble.appendChild(s);
+
+}
+
+row.append(
+avatar,
+bubble
+);
 
 chat.appendChild(row);
 
@@ -585,6 +937,23 @@ row.scrollIntoView({
 behavior:"smooth",
 block:"end"
 });
+
+if(store){
+
+state.messages.push({
+
+role,
+text,
+extra:{
+...extra,
+typing:undefined
+}
+
+});
+
+saveState();
+
+}
 
 return row;
 
@@ -595,37 +964,48 @@ function welcome(){
 addMessage(
 "assistant",
 
-`こんにちは。Game Icon AIです。
+`こんにちは。Iconia AIです。
 
-ここでは細かい設定を選ぶ必要はありません。
-作りたいものを、ChatGPTに話しかけるように普通の言葉で伝えてください。
+ここでは設定を細かく選ぶ必要はありません。
+作りたい画像を、ChatGPTに話しかけるように普通の言葉で伝えてください。
 
-画像がなくてもオリジナルキャラクターを作れます。
-画像を送れば、その画像をベースに「人物はそのまま」「背景だけ変更」「もっと明るく」などの編集もできます。
+画像がなくてもオリジナル画像を作れます。
+画像を送れば、その画像をベースに編集できます。
+
+「ゲームアイコン」「Xのヘッダー」「Instagram」「LINE」「YouTube」など、用途も会話から判断します。
 
 まだイメージが決まっていなくても大丈夫です。
-「何かカッコいいキャラを作って」だけでも、こちらから具体的な案を出します。
 
 例えば👇`,
 
-{examples}
+{
+examples:EXAMPLES
+}
+
 );
 
 }
 
 function showPreview(){
 
-if(imageData){
+if(state.image){
 
-previewImg.src=imageData;
+previewImg.src=
+state.image;
 
-preview.classList.add("show");
+preview.classList.add(
+"show"
+);
 
 }else{
 
-preview.classList.remove("show");
+preview.classList.remove(
+"show"
+);
 
-previewImg.removeAttribute("src");
+previewImg.removeAttribute(
+"src"
+);
 
 }
 
@@ -633,10 +1013,14 @@ previewImg.removeAttribute("src");
 
 function autoSize(){
 
-promptEl.style.height="auto";
+promptEl.style.height=
+"auto";
 
 promptEl.style.height=
-Math.min(promptEl.scrollHeight,155)+"px";
+Math.min(
+promptEl.scrollHeight,
+155
+)+"px";
 
 }
 
@@ -647,64 +1031,87 @@ busy=v;
 sendBtn.disabled=v;
 
 statusEl.textContent=
-v?"AIが考えています…":"";
+v
+?"生成中…"
+:"";
 
 }
 
 async function compressImage(file){
 
-const src=await new Promise((resolve,reject)=>{
+const src=
+await new Promise(
+(r,j)=>{
 
-const reader=new FileReader();
+const x=
+new FileReader();
 
-reader.onload=()=>resolve(reader.result);
+x.onload=
+()=>r(x.result);
 
-reader.onerror=reject;
+x.onerror=j;
 
-reader.readAsDataURL(file);
+x.readAsDataURL(file);
 
-});
-
-const img=await new Promise((resolve,reject)=>{
-
-const el=new Image();
-
-el.onload=()=>resolve(el);
-
-el.onerror=reject;
-
-el.src=src;
-
-});
-
-const maxSide=1200;
-
-const scale=Math.min(
-1,
-maxSide/Math.max(img.width,img.height)
+}
 );
 
-const canvas=document.createElement("canvas");
+const img=
+await new Promise(
+(r,j)=>{
 
-canvas.width=
-Math.max(1,Math.round(img.width*scale));
+const x=
+new Image();
 
-canvas.height=
-Math.max(1,Math.round(img.height*scale));
+x.onload=
+()=>r(x);
 
-canvas
-.getContext("2d")
+x.onerror=j;
+
+x.src=src;
+
+}
+);
+
+const max=1200;
+
+const scale=
+Math.min(
+1,
+max/
+Math.max(
+img.width,
+img.height
+)
+);
+
+const c=
+document.createElement(
+"canvas"
+);
+
+c.width=
+Math.round(
+img.width*scale
+);
+
+c.height=
+Math.round(
+img.height*scale
+);
+
+c.getContext("2d")
 .drawImage(
 img,
 0,
 0,
-canvas.width,
-canvas.height
+c.width,
+c.height
 );
 
-return canvas.toDataURL(
+return c.toDataURL(
 "image/jpeg",
-0.82
+.82
 );
 
 }
@@ -713,15 +1120,23 @@ async function send(){
 
 if(busy)return;
 
-const text=promptEl.value.trim();
+const text=
+promptEl.value.trim();
 
-if(!text && !imageData)return;
+if(
+!text &&
+!state.image
+)return;
+
+const inputImage=
+state.image;
 
 addMessage(
 "user",
-text || "この画像をベースに編集してください。",
+text ||
+"この画像をベースに編集してください。",
 {
-inputImage:imageData || null
+inputImage
 }
 );
 
@@ -735,64 +1150,77 @@ const typing=
 addMessage(
 "assistant",
 "",
-{typing:true}
+{
+typing:true,
+status:
+"内容を理解しています…"
+}
 );
 
 try{
 
-const response=await fetch(
+const r=
+await fetch(
 "/api/generate",
 {
+
 method:"POST",
 
 headers:{
-"Content-Type":"application/json"
+"Content-Type":
+"application/json"
 },
 
 body:JSON.stringify({
 
 message:
 text ||
-"この画像をベースにしてください。まず画像を見て、より良くするために必要なことを判断してください。",
+"この画像をベースに編集してください。",
 
-image:imageData,
+image:
+inputImage,
 
-previousResponseId
+previousResponseId:
+state.previousResponseId
 
 })
+
 }
 );
 
-const data=await response.json();
+const d=
+await r.json();
 
 typing.remove();
 
-if(!response.ok){
+if(!r.ok){
 
 throw new Error(
-data.error ||
-"生成に失敗しました。"
+d.error ||
+"処理に失敗しました。"
 );
 
 }
 
-previousResponseId=
-data.responseId ||
-previousResponseId;
+state.previousResponseId=
+d.responseId ||
+state.previousResponseId;
 
-if(data.image){
+if(d.image){
 
-imageData=data.image;
+state.image=
+d.image;
 
 showPreview();
 
 addMessage(
 "assistant",
-data.reply ||
-"できました。ここからさらに修正できます。",
+d.reply ||
+"できました。さらに修正できます。",
 {
-image:data.image,
-examples:data.examples || []
+image:d.image,
+examples:
+d.examples || []
 }
 );
 
@@ -800,24 +1228,29 @@ examples:data.examples || []
 
 addMessage(
 "assistant",
-data.reply ||
-"もちろん。もう少し希望を教えてください。",
+d.reply ||
+"もちろんです。もう少し希望を教えてください。",
 {
-examples:data.examples || []
+examples:
+d.examples || []
 }
 );
 
 }
 
-}catch(error){
+saveState();
+
+}catch(e){
 
 typing.remove();
 
 addMessage(
 "assistant",
 "うまく処理できませんでした。\n\n"+
-(error.message || "不明なエラーです。")
+e.message
 );
+
+saveState();
 
 }finally{
 
@@ -827,141 +1260,125 @@ setBusy(false);
 
 }
 
-uploadBtn.addEventListener(
-"click",
-()=>fileInput.click()
+function renderHistory(){
+
+historyEl.innerHTML="";
+
+const list=
+JSON.parse(
+localStorage.getItem(
+"iconia_history"
+) || "[]"
 );
 
-fileInput.addEventListener(
-"change",
-async()=>{
+if(!list.length){
 
-const file=
-fileInput.files &&
-fileInput.files[0];
+historyEl.innerHTML=
+'<div style="color:#888;font-size:13px">まだ作品はありません。</div>';
 
-if(!file)return;
+return;
 
-try{
+}
 
-imageData=
-await compressImage(file);
+list.forEach(
+item=>{
+
+const b=
+document.createElement(
+"button"
+);
+
+const title=
+document.createElement(
+"strong"
+);
+
+title.textContent=
+item.title ||
+"作品";
+
+const small=
+document.createElement(
+"small"
+);
+
+small.textContent=
+new Date(
+item.updatedAt
+).toLocaleString(
+"ja-JP"
+);
+
+b.append(
+title,
+small
+);
+
+b.onclick=()=>{
+
+state={
+
+id:item.id,
+
+title:item.title,
+
+image:item.image || null,
+
+previousResponseId:
+item.previousResponseId || null,
+
+updatedAt:item.updatedAt,
+
+messages:item.messages || []
+
+};
+
+localStorage.setItem(
+"iconia_current",
+JSON.stringify(state)
+);
+
+drawer.classList.remove(
+"open"
+);
+
+renderMessages();
 
 showPreview();
 
-statusEl.textContent=
-"画像を添付しました";
+};
 
-setTimeout(()=>{
-if(!busy)
-statusEl.textContent="";
-},1400);
-
-}catch{
-
-statusEl.textContent=
-"画像を読み込めませんでした";
-
-}
+historyEl.appendChild(b);
 
 }
 );
 
-removeImage.addEventListener(
-"click",
-()=>{
-
-imageData=null;
-
-fileInput.value="";
-
-showPreview();
-
-}
-);
-
-promptEl.addEventListener(
-"input",
-autoSize
-);
-
-promptEl.addEventListener(
-"keydown",
-e=>{
-
-if(e.key==="Enter" && !e.shiftKey){
-
-e.preventDefault();
-
-send();
-
 }
 
-}
+function newChat(){
+
+if(busy)return;
+
+state={
+
+id:uid(),
+
+title:"新しい作品",
+
+messages:[],
+
+image:null,
+
+previousResponseId:null,
+
+updatedAt:Date.now()
+
+};
+
+localStorage.setItem(
+"iconia_current",
+JSON.stringify(state)
 );
-
-document.addEventListener(
-"paste",
-async e=>{
-
-const items=
-Array.from(
-e.clipboardData?.items || []
-);
-
-const imageItem=
-items.find(
-item=>item.type.startsWith("image/")
-);
-
-if(!imageItem)return;
-
-const file=
-imageItem.getAsFile();
-
-if(!file)return;
-
-e.preventDefault();
-
-try{
-
-imageData=
-await compressImage(file);
-
-showPreview();
-
-statusEl.textContent=
-"貼り付けた画像を添付しました";
-
-setTimeout(()=>{
-if(!busy)
-statusEl.textContent="";
-},1500);
-
-}catch{
-
-statusEl.textContent=
-"画像を読み込めませんでした";
-
-}
-
-}
-);
-
-sendBtn.addEventListener(
-"click",
-send
-);
-
-resetBtn.addEventListener(
-"click",
-()=>{
-
-previousResponseId=null;
-
-imageData=null;
-
-fileInput.value="";
 
 promptEl.value="";
 
@@ -969,14 +1386,180 @@ autoSize();
 
 showPreview();
 
-chat.innerHTML="";
+renderMessages();
 
-welcome();
+}
+
+document.getElementById(
+"uploadBtn"
+).onclick=
+()=>fileInput.click();
+
+fileInput.onchange=
+async()=>{
+
+const f=
+fileInput.files?.[0];
+
+if(!f)return;
+
+state.image=
+await compressImage(f);
+
+showPreview();
+
+statusEl.textContent=
+"画像を添付しました";
+
+saveState();
+
+setTimeout(
+()=>{
+
+if(!busy)
+statusEl.textContent="";
+
+},
+1400
+);
+
+};
+
+document.getElementById(
+"removeImage"
+).onclick=
+()=>{
+
+state.image=null;
+
+fileInput.value="";
+
+showPreview();
+
+saveState();
+
+};
+
+promptEl.oninput=
+autoSize;
+
+promptEl.onkeydown=
+e=>{
+
+if(
+e.key==="Enter" &&
+!e.shiftKey
+){
+
+e.preventDefault();
+
+send();
+
+}
+
+};
+
+document.addEventListener(
+"paste",
+async e=>{
+
+const item=
+[
+...(e.clipboardData?.items || [])
+]
+.find(
+x=>x.type.startsWith(
+"image/"
+)
+);
+
+if(!item)return;
+
+const f=
+item.getAsFile();
+
+if(!f)return;
+
+e.preventDefault();
+
+state.image=
+await compressImage(f);
+
+showPreview();
+
+saveState();
+
+statusEl.textContent=
+"貼り付けた画像を添付しました";
+
+setTimeout(
+()=>{
+
+if(!busy)
+statusEl.textContent="";
+
+},
+1400
+);
 
 }
 );
 
+sendBtn.onclick=
+send;
+
+document.getElementById(
+"newBtn"
+).onclick=
+newChat;
+
+document.getElementById(
+"historyBtn"
+).onclick=
+()=>{
+
+renderHistory();
+
+drawer.classList.add(
+"open"
+);
+
+};
+
+document.getElementById(
+"closeDrawer"
+).onclick=
+()=>drawer.classList.remove(
+"open"
+);
+
+drawer.onclick=
+e=>{
+
+if(e.target===drawer)
+drawer.classList.remove(
+"open"
+);
+
+};
+
+if(
+!loadState()
+){
+
+state.id=uid();
+
 welcome();
+
+saveState();
+
+}else{
+
+showPreview();
+
+renderHistory();
+
+}
 
 </script>
 
