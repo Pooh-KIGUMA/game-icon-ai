@@ -33,23 +33,30 @@ export default async function handler(req, res) {
 
     const data = await response.json();
 
-    if (!response.ok) {
-      return res.status(response.status).json({
-        error: data?.error?.message || "Image generation failed"
-      });
-    }
+if (!response.ok) {
+  return res.status(response.status).json({
+    error: data?.error?.message || "Image generation failed"
+  });
+}
 
-    // GPT ImageのBase64画像をURL形式に変換
-    if (data?.data?.[0]?.b64_json) {
-      data.data[0].url =
-        `data:image/png;base64,${data.data[0].b64_json}`;
-    }
+const imageData = data?.data?.[0]?.b64_json;
 
-    return res.status(200).json(data);
+if (!imageData) {
+  return res.status(500).json({
+    error: "The AI did not return an image."
+  });
+}
 
-  } catch (error) {
-    return res.status(500).json({
-      error: error?.message || "Server error"
-    });
-  }
+const imageUrl = `data:image/png;base64,${imageData}`;
+
+return res.status(200).json({
+  image: imageUrl
+});
+
+} catch (error) {
+  console.error("Image generation error:", error);
+
+  return res.status(500).json({
+    error: error?.message || "Server error"
+  });
 }
