@@ -14,21 +14,34 @@ function imageBuffer(dataUrl) {
 function detectSize(text) {
   const t = String(text || "").toLowerCase();
   if (/(x|twitter).*(ヘッダー|header)|ヘッダー|banner|バナー|横長/.test(t)) return "1536x1024";
-  if (/縦長|portrait|ストーリー|story/.test(t)) return "1024x1536";
+  if (/縦長|portrait|ストーリー|story|tiktok/.test(t)) return "1024x1536";
   return "1024x1024";
 }
 
 function wantsHighQuality(text) {
-  return /高品質|高画質|最高|細かく|超高精細|high quality|high-res/i.test(String(text || ""));
+  return /高品質|高画質|最高|細かく|超高精細|精密|high quality|high-res/i.test(String(text || ""));
+}
+
+function editMode(message, hasImage) {
+  if (!hasImage) return "ORIGINAL";
+  const t = String(message || "");
+  if (/文字だけ|文字を入れ|テキストだけ|ロゴだけ|文字のみ/.test(t)) return "TEXT_ONLY";
+  if (/背景だけ|背景のみ|背景を変更|背景を変え/.test(t)) return "BACKGROUND_ONLY";
+  if (/ポーズだけ|ポーズのみ|ポーズを変更|ポーズを変え/.test(t)) return "POSE_ONLY";
+  if (/髪だけ|髪型だけ|髪のみ|髪を変更|髪を変え/.test(t)) return "HAIR_ONLY";
+  if (/服だけ|衣装だけ|服装だけ|衣装を変更|服を変更/.test(t)) return "CLOTHING_ONLY";
+  if (/ほぼそのまま|ほとんどそのまま|原画のまま|原画をそのまま|できるだけそのまま|極力そのまま|原型を残|原画維持|原画を維持/.test(t)) return "FAITHFUL";
+  return "TARGETED_EDIT";
 }
 
 function buildPrompt({ message, history, hasImage }) {
   const recent = Array.isArray(history)
-    ? history.slice(-8).map(x => `${x.role === "user" ? "USER" : "ASSISTANT"}: ${clean(x.text, 1200)}`).join("\n")
+    ? history.slice(-8).map(x => `${x.role === "user" ? "USER" : "ASSISTANT"}: ${clean(x.text, 1400)}`).join("\n")
     : "";
+  const mode = editMode(message, hasImage);
 
-  return `You are Iconia AI, a professional conversational image creation assistant.
-The user speaks naturally in Japanese. Turn the user's request directly into the best possible image.
+  return `You are Iconia AI, a professional conversational image creation and editing assistant.
+The user speaks naturally in Japanese. Do not make the user fill out forms or choose predefined categories. Interpret the request like a skilled human art director and create the best possible image.
 
 LATEST REQUEST:
 ${clean(message)}
@@ -37,20 +50,46 @@ RECENT CONVERSATION:
 ${recent || "No previous conversation."}
 
 REFERENCE IMAGE: ${hasImage ? "YES" : "NO"}
+EDIT MODE: ${mode}
 
-RULES:
-- The latest request has priority, while using conversation context to understand phrases like "もっと", "さっきの", "このまま", "背景だけ", and "もう少し".
-- If a reference image exists, preserve the original subject, face, clothing, identity, important details and composition unless the user asks to change them.
-- Treat the reference image as the main visual source. Make only requested changes when the user asks for an edit.
-- If the user asks to keep the original nearly unchanged, preserve it as faithfully as possible and only apply the requested modifications.
+CORE BEHAVIOR:
+- The latest request is the strongest instruction. Use recent conversation only to resolve references such as "さっきの", "前の", "このキャラ", "これ", "そのまま", "もっと", and "もう少し".
+- Understand ordinary natural language, including vague creative requests such as "いい感じに", "もっとかっこよく", "高級感を出して", "ゲームアイコンっぽく", or "SNSで使いやすく".
+- Infer sensible composition, lighting, color harmony, camera angle, subject scale, background detail and visual polish when the user leaves those choices open.
+- Never force a predefined character type, mood, color, background, clothing or pose when the user did not ask for one.
+
+REFERENCE IMAGE FIDELITY:
+- When a reference image exists, treat it as the primary visual source, not merely inspiration.
+- Preserve identity, face, hairstyle, body proportions, clothing, accessories, distinctive marks and overall art direction unless the user explicitly asks to change them.
+- FAITHFUL mode: preserve the source as closely as the image model allows. Make only the requested modifications and avoid redesigning the character.
+- TEXT_ONLY mode: preserve the source image and composition as closely as possible. Add or modify only the requested text. Do not redesign the character or background.
+- BACKGROUND_ONLY mode: keep the character/subject and its important details essentially unchanged; change only the environment/background and related lighting when necessary.
+- POSE_ONLY mode: keep the character's identity, face, hair, outfit, colors and style stable; change the pose/camera framing as requested.
+- HAIR_ONLY mode: keep everything else stable and modify only hair-related details.
+- CLOTHING_ONLY mode: keep the character and scene stable and modify only clothing/armor/accessories requested.
+- TARGETED_EDIT mode: make the requested changes while preserving everything else that does not need to change.
+- If the user says "顔はそのまま", "キャラはそのまま", "服はそのまま", "背景だけ", etc., treat that as a hard preservation constraint.
+
+TEXT RULES:
+- Never invent, hallucinate or add text that the user did not explicitly request.
+- Never add player names, alliance names, clan names, usernames, logos, watermarks, signatures, "Pooh", "AxLF", "Player name", "Iconia AI", or "Game Icon AI" unless the user explicitly requests that exact text.
+- When text is requested, reproduce the requested wording exactly. Do not silently correct, translate, abbreviate, duplicate or add extra words.
+- If the user asks for a single text item, do not create a second decorative copy of it.
+- Integrate requested text naturally into the composition and obey requested position, size and color.
+
+ORIGINAL CREATION:
 - If there is no reference image, create a completely original character/artwork from the user's natural-language description.
-- Never invent or add text. Never add player names, alliance names, clan names, usernames, logos, watermarks, signatures, "Pooh", "AxLF", "Player name", "Iconia AI", or "Game Icon AI" unless the user explicitly requests that exact text.
-- When text is requested, reproduce exactly what the user requested and place it where requested.
-- Do not force predefined character types, moods, colors or backgrounds. Natural language is the main control.
-- For game icons, X/Instagram/LINE profile images, favor strong subject readability and safe cropping.
-- For X/Twitter headers, banners or other wide formats, use a wide composition and place important content safely inside the crop.
-- Prioritize polished professional game/SNS artwork, clear faces, good lighting, strong composition and appropriate subject scale.
-- Do not explain the prompt. Generate the image.
+- If the user has not decided on an exact design, make a polished, appealing creative choice rather than asking a long list of questions.
+- If the user asks for several concepts and then one final image, choose a strong concept and execute it.
+
+FORMAT:
+- For game icons, X/Instagram/LINE profile images, favor strong subject readability, clear face/subject scale and safe cropping.
+- For X/Twitter headers, banners or other wide formats, use a wide composition and keep important elements away from crop edges.
+- Respect explicit aspect-ratio or format requests when possible.
+
+QUALITY:
+- Prioritize professional game/SNS artwork, clean anatomy, coherent lighting, readable silhouettes, detailed materials and intentional composition.
+- Do not explain the prompt or describe what you plan to do. Generate the image directly.
 `;
 }
 
