@@ -37,12 +37,12 @@ function editMode(message, hasImage) {
 
 function extractRequestedText(message) {
   const t = String(message || "");
-  const quoted = t.match(/[「『“”](.{1,40})[」』“”]/);
+  const quoted = t.match(/[「『“”]([^」』“”]{1,60})[」』“”]/);
   if (quoted?.[1]) return quoted[1].trim();
   const patterns = [
-    /([A-Za-z0-9][A-Za-z0-9._-]{0,30})\s*の文字/,
-    /([A-Za-z0-9][A-Za-z0-9._-]{0,30})\s*という文字/,
-    /([A-Za-z0-9][A-Za-z0-9._-]{0,30})\s*を(?:入れて|追加して|入れたい)/,
+    /([A-Za-z0-9][A-Za-z0-9._-]{0,40})\s*の文字/,
+    /([A-Za-z0-9][A-Za-z0-9._-]{0,40})\s*という文字/,
+    /([A-Za-z0-9][A-Za-z0-9._-]{0,40})\s*を(?:入れて|追加して|入れたい)/,
   ];
   for (const re of patterns) {
     const m = t.match(re);
@@ -52,33 +52,84 @@ function extractRequestedText(message) {
 }
 
 function svgEscape(s) {
-  return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&apos;");
+  return String(s)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&apos;");
 }
 
-function textStyle(message, width, height) {
+function textDesign(message, width, height) {
   const t = String(message || "");
-  const color = /金|ゴールド|gold/i.test(t) ? "#FFD86A" : /紫|パープル|purple/i.test(t) ? "#B889FF" : /青|ブルー|blue/i.test(t) ? "#66B7FF" : /赤|レッド|red/i.test(t) ? "#FF667A" : /黒|ブラック|black/i.test(t) ? "#111111" : "#FFFFFF";
-  const sizeBase = Math.max(44, Math.round(Math.min(width, height) * (/かなり大き|とても大き|超大き/.test(t) ? 0.13 : /大きく|大きめ/.test(t) ? 0.095 : 0.065)));
-  const size = Math.min(sizeBase, Math.max(42, Math.floor(width / 3)));
-  let anchor = "middle", x = width / 2, y = height - Math.round(height * 0.08);
-  if (/右下|右下側/.test(t)) { anchor = "end"; x = width - Math.round(width * 0.06); y = height - Math.round(height * 0.07); }
-  else if (/左下|左下側/.test(t)) { anchor = "start"; x = Math.round(width * 0.06); y = height - Math.round(height * 0.07); }
-  else if (/右上|右上側/.test(t)) { anchor = "end"; x = width - Math.round(width * 0.06); y = Math.round(height * 0.10); }
-  else if (/左上|左上側/.test(t)) { anchor = "start"; x = Math.round(width * 0.06); y = Math.round(height * 0.10); }
+  const min = Math.min(width, height);
+  let colors = ["#FFFFFF", "#DDE7FF"];
+  if (/金|ゴールド|gold/i.test(t)) colors = ["#FFF4A8", "#F2A93B"];
+  else if (/紫|パープル|purple/i.test(t)) colors = ["#F0D8FF", "#8C4DFF"];
+  else if (/青|ブルー|blue/i.test(t)) colors = ["#E8FAFF", "#35A9FF"];
+  else if (/赤|レッド|red/i.test(t)) colors = ["#FFE1E1", "#FF3B55"];
+  else if (/緑|グリーン|green/i.test(t)) colors = ["#E1FFE9", "#26D47B"];
+  else if (/ピンク|pink/i.test(t)) colors = ["#FFE8F6", "#FF4FA3"];
+  else if (/黒|ブラック|black/i.test(t)) colors = ["#666666", "#050505"];
+
+  const size = Math.min(
+    Math.max(48, Math.round(min * (/かなり大き|とても大き|超大き/.test(t) ? 0.125 : /大きく|大きめ/.test(t) ? 0.095 : 0.075))),
+    Math.max(48, Math.floor(width / 2.6))
+  );
+
+  let anchor = "middle";
+  let x = width / 2;
+  let y = height - Math.round(height * 0.075);
+  if (/右下|右下側/.test(t)) { anchor = "end"; x = width - Math.round(width * 0.055); y = height - Math.round(height * 0.065); }
+  else if (/左下|左下側/.test(t)) { anchor = "start"; x = Math.round(width * 0.055); y = height - Math.round(height * 0.065); }
+  else if (/右上|右上側/.test(t)) { anchor = "end"; x = width - Math.round(width * 0.055); y = Math.round(height * 0.105); }
+  else if (/左上|左上側/.test(t)) { anchor = "start"; x = Math.round(width * 0.055); y = Math.round(height * 0.105); }
   else if (/中央|真ん中|センター/.test(t)) { y = height / 2; }
-  return { color, size, anchor, x, y };
+
+  const glow = /光|発光|ネオン|glow|neon/i.test(t);
+  const italic = /斜め|斜体|スタイリッシュ|シャープ|カッコよく|かっこよく|クール/i.test(t);
+  return { colors, size, anchor, x, y, glow, italic };
 }
 
-async function addExactText(buffer, message) {
+async function addDesignedExactText(buffer, message) {
   const text = extractRequestedText(message);
   if (!text) return buffer;
+
   const meta = await sharp(buffer).metadata();
-  const width = meta.width || 1024, height = meta.height || 1024;
-  const s = textStyle(message, width, height);
+  const width = meta.width || 1024;
+  const height = meta.height || 1024;
+  const d = textDesign(message, width, height);
   const safe = svgEscape(text);
-  const stroke = s.color === "#111111" ? "#FFFFFF" : "#111111";
-  const svg = `<svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg"><text x="${s.x}" y="${s.y}" text-anchor="${s.anchor}" font-family="Arial, Helvetica, sans-serif" font-size="${s.size}px" font-weight="800" fill="${s.color}" stroke="${stroke}" stroke-width="${Math.max(2, Math.round(s.size * .055))}" stroke-linejoin="round" paint-order="stroke" opacity="0.98">${safe}</text></svg>`;
-  return sharp(buffer).composite([{ input: Buffer.from(svg), top: 0, left: 0 }]).jpeg({ quality: 92 }).toBuffer();
+  const id = `g${Date.now()}${Math.floor(Math.random() * 10000)}`;
+  const transform = d.italic ? ` transform="skewX(-8)"` : "";
+  const strokeWidth = Math.max(3, Math.round(d.size * 0.045));
+  const glowFilter = d.glow
+    ? `<filter id="${id}glow" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="${Math.max(5, Math.round(d.size * 0.09))}" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>`
+    : "";
+
+  // Exact text is rendered by SVG/Sharp, while the visual treatment is chosen from the user's request.
+  // This avoids image-model spelling errors while keeping the typography polished.
+  const svg = `<svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="${id}grad" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="${d.colors[0]}"/>
+        <stop offset="100%" stop-color="${d.colors[1]}"/>
+      </linearGradient>
+      <filter id="${id}shadow" x="-30%" y="-30%" width="160%" height="170%">
+        <feDropShadow dx="0" dy="${Math.max(5, Math.round(d.size * .07))}" stdDeviation="${Math.max(3, Math.round(d.size * .045))}" flood-color="#000000" flood-opacity="0.75"/>
+      </filter>
+      ${glowFilter}
+    </defs>
+    <g${transform} filter="url(#${id}shadow)"${d.glow ? ` style="filter:url(#${id}glow) url(#${id}shadow)"` : ""}>
+      <text x="${d.x}" y="${d.y}" text-anchor="${d.anchor}" font-family="Arial, Helvetica, sans-serif" font-size="${d.size}px" font-weight="900" letter-spacing="${Math.max(0, Math.round(d.size * .015))}px" fill="url(#${id}grad)" stroke="#080B14" stroke-width="${strokeWidth + Math.max(2, Math.round(d.size * .025))}" stroke-linejoin="round" paint-order="stroke">${safe}</text>
+      <text x="${d.x}" y="${d.y}" text-anchor="${d.anchor}" font-family="Arial, Helvetica, sans-serif" font-size="${d.size}px" font-weight="900" letter-spacing="${Math.max(0, Math.round(d.size * .015))}px" fill="url(#${id}grad)" stroke="#FFFFFF" stroke-opacity="0.28" stroke-width="${strokeWidth}" stroke-linejoin="round" paint-order="stroke">${safe}</text>
+    </g>
+  </svg>`;
+
+  return sharp(buffer)
+    .composite([{ input: Buffer.from(svg), top: 0, left: 0 }])
+    .jpeg({ quality: 94 })
+    .toBuffer();
 }
 
 function buildPrompt({ message, history, hasImage }) {
@@ -109,7 +160,7 @@ REFERENCE IMAGE FIDELITY:
 - When a reference image exists, treat it as the primary visual source, not merely inspiration.
 - Preserve identity, face, hairstyle, body proportions, clothing, accessories, distinctive marks, text and overall art direction unless the user explicitly asks to change them.
 - FAITHFUL mode: preserve the source as closely as the image model allows. Make only the requested modifications and avoid redesigning the character, scene or composition.
-- TEXT_ONLY mode: preserve the source image and composition as closely as possible. The application will place the exact requested text after generation, so do NOT create, redraw, duplicate or invent any text in the image. Do not redesign the character or background.
+- TEXT_ONLY mode: DO NOT generate or redraw text. The server will overlay the exact requested wording after generation. Preserve the reference as closely as possible.
 - BACKGROUND_ONLY mode: keep the character/subject and its important details essentially unchanged; change only the environment/background and related lighting when necessary.
 - POSE_ONLY mode: keep the character's identity, face, hair, outfit, colors and style stable; change the pose/camera framing as requested.
 - HAIR_ONLY mode: keep everything else stable and modify only hair-related details.
@@ -120,7 +171,7 @@ REFERENCE IMAGE FIDELITY:
 TEXT RULES:
 - Never invent, hallucinate or add text that the user did not explicitly request.
 - Never add player names, alliance names, clan names, usernames, logos, watermarks, signatures, "Pooh", "AxLF", "Player name", "Iconia AI", or "Game Icon AI" unless the user explicitly requests that exact text.
-- For TEXT_ONLY requests, do not render any text yourself. The application will add the exact requested wording as a clean overlay after the image is returned.
+- For TEXT_ONLY requests, do not render any text yourself. The application will add the exact requested wording as a styled overlay after the image is returned.
 - When text is requested outside TEXT_ONLY mode, reproduce the requested wording exactly. Do not silently correct, translate, abbreviate, duplicate or add extra words.
 - If the user asks for a single text item, do not create a second decorative copy of it.
 
@@ -158,13 +209,17 @@ export default async function handler(req, res) {
     const mode = editMode(message, Boolean(image));
     const prompt = buildPrompt({ message, history, hasImage: Boolean(image) });
 
-    let response;
     let outputBuffer;
 
-    if (image) {
+    if (image && mode === "TEXT_ONLY") {
+      // Do not spend an image-generation call when the user only wants typography.
+      // The original pixels are preserved and the exact text is added locally.
+      const sourceBuffer = imageBuffer(image);
+      outputBuffer = await addDesignedExactText(sourceBuffer, message);
+    } else if (image) {
       const sourceBuffer = imageBuffer(image);
       const file = await toFile(sourceBuffer, "reference.jpg", { type: "image/jpeg" });
-      response = await client.images.edit({
+      const response = await client.images.edit({
         model: MODEL,
         image: file,
         prompt,
@@ -177,14 +232,8 @@ export default async function handler(req, res) {
       const base64 = response?.data?.[0]?.b64_json;
       if (!base64) throw new Error("画像データがOpenAIから返されませんでした。");
       outputBuffer = Buffer.from(base64, "base64");
-
-      // TEXT_ONLY is deliberately handled as a real pixel-level overlay.
-      // This prevents the image model from redrawing the source just to add text.
-      if (mode === "TEXT_ONLY") {
-        outputBuffer = await addExactText(sourceBuffer, message);
-      }
     } else {
-      response = await client.images.generate({
+      const response = await client.images.generate({
         model: MODEL,
         prompt,
         size,
