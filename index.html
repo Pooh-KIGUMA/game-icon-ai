@@ -1,1 +1,1554 @@
-📄 完成版 index.html⁠￼
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#090b12">
+  <meta name="description" content="Game Icon AI — ゲーム用オリジナルアイコンをAIで作成">
+  <title>Game Icon AI</title>
+  <style>
+    :root{
+      --bg:#080a10;--panel:#111522;--line:#272d3c;
+      --text:#f7f8fc;--muted:#9aa3b6;--accent:#7c5cff;
+      --radius:22px;
+    }
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{
+      margin:0;
+      background:
+        radial-gradient(circle at 80% -10%,rgba(124,92,255,.22),transparent 35%),
+        radial-gradient(circle at 0% 30%,rgba(0,212,255,.10),transparent 30%),
+        var(--bg);
+      color:var(--text);
+      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans JP",sans-serif;
+      min-height:100vh;
+    }
+    button,input,select,textarea{font:inherit}
+    button{cursor:pointer}
+    .wrap{width:min(1120px,calc(100% - 28px));margin:auto}
+
+    header{
+      padding:22px 0 12px;
+      position:sticky;
+      top:0;
+      z-index:20;
+      background:rgba(8,10,16,.82);
+      backdrop-filter:blur(18px);
+      border-bottom:1px solid rgba(255,255,255,.05)
+    }
+
+    .nav{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px
+    }
+
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:11px;
+      font-weight:900;
+      font-size:20px
+    }
+
+    .logo{
+      width:42px;
+      height:42px;
+      border-radius:13px;
+      display:grid;
+      place-items:center;
+      background:linear-gradient(135deg,#7c5cff,#00d4ff);
+      box-shadow:0 8px 28px rgba(124,92,255,.25)
+    }
+
+    .logo span{font-size:21px}
+
+    .ghost{
+      border:1px solid var(--line);
+      background:#121622;
+      color:var(--text);
+      padding:10px 14px;
+      border-radius:14px
+    }
+
+    .hero{
+      padding:46px 0 28px;
+      text-align:center
+    }
+
+    .badge{
+      display:inline-flex;
+      padding:8px 12px;
+      border:1px solid #343b50;
+      border-radius:999px;
+      color:#bfc7d9;
+      background:#111522;
+      font-size:13px;
+      font-weight:800
+    }
+
+    h1{
+      font-size:clamp(38px,8vw,76px);
+      line-height:.98;
+      margin:18px 0 12px;
+      letter-spacing:-.055em
+    }
+
+    .gradient{
+      background:linear-gradient(90deg,#fff,#a995ff,#68e8ff);
+      -webkit-background-clip:text;
+      background-clip:text;
+      color:transparent
+    }
+
+    .lead{
+      max-width:680px;
+      margin:auto;
+      color:var(--muted);
+      font-size:16px;
+      line-height:1.7
+    }
+
+    .layout{
+      display:grid;
+      grid-template-columns:1.05fr .95fr;
+      gap:18px;
+      align-items:start;
+      padding-bottom:50px
+    }
+
+    .card{
+      background:linear-gradient(180deg,rgba(22,26,39,.96),rgba(15,18,28,.96));
+      border:1px solid var(--line);
+      border-radius:var(--radius);
+      padding:18px;
+      box-shadow:0 20px 70px rgba(0,0,0,.22)
+    }
+
+    .card h2{
+      margin:0 0 15px;
+      font-size:18px
+    }
+
+    .section{
+      padding:15px 0;
+      border-top:1px solid rgba(255,255,255,.06)
+    }
+
+    .section:first-of-type{
+      border-top:0;
+      padding-top:0
+    }
+
+    label{
+      display:block;
+      color:#c8cede;
+      font-size:13px;
+      font-weight:800;
+      margin-bottom:7px
+    }
+
+    input,select,textarea{
+      width:100%;
+      border:1px solid #303749;
+      background:#0d111b;
+      color:var(--text);
+      outline:none;
+      border-radius:13px;
+      padding:12px 13px
+    }
+
+    input:focus,select:focus,textarea:focus{
+      border-color:#6654d9;
+      box-shadow:0 0 0 3px rgba(124,92,255,.12)
+    }
+
+    textarea{
+      min-height:78px;
+      resize:vertical
+    }
+
+    .grid2{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:11px
+    }
+
+    .chips{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px
+    }
+
+    .chip{
+      border:1px solid #31384a;
+      background:#0e121c;
+      color:#dbe0ec;
+      border-radius:999px;
+      padding:8px 11px;
+      font-size:13px
+    }
+
+    .chip.active{
+      border-color:var(--accent);
+      background:rgba(124,92,255,.15);
+      box-shadow:0 0 0 2px rgba(124,92,255,.12)
+    }
+
+    .colors{
+      display:grid;
+      grid-template-columns:repeat(9,1fr);
+      gap:8px
+    }
+
+    .color{
+      aspect-ratio:1;
+      border-radius:11px;
+      border:2px solid transparent;
+      position:relative;
+      box-shadow:inset 0 0 0 1px rgba(255,255,255,.14)
+    }
+
+    .color.active{
+      border-color:#fff;
+      transform:scale(1.06)
+    }
+
+    .color.active:after{
+      content:"✓";
+      position:absolute;
+      inset:0;
+      display:grid;
+      place-items:center;
+      font-weight:900;
+      text-shadow:0 1px 5px #000
+    }
+
+    .range{
+      display:grid;
+      grid-template-columns:1fr auto;
+      gap:10px;
+      align-items:center
+    }
+
+    input[type=range]{
+      padding:0;
+      accent-color:var(--accent)
+    }
+
+    .generate{
+      width:100%;
+      padding:15px 18px;
+      border:0;
+      border-radius:15px;
+      color:white;
+      font-weight:900;
+      font-size:16px;
+      background:linear-gradient(100deg,#6f4cff,#a14dff,#00bfe9);
+      box-shadow:0 12px 30px rgba(112,76,255,.28)
+    }
+
+    .generate:disabled{
+      opacity:.55;
+      cursor:wait
+    }
+
+    .subnote{
+      font-size:12px;
+      color:#818a9d;
+      line-height:1.55;
+      margin-top:9px
+    }
+
+    .preview-wrap{
+      position:sticky;
+      top:96px
+    }
+
+    .preview{
+      position:relative;
+      overflow:hidden;
+      aspect-ratio:1;
+      border-radius:24px;
+      background:
+        radial-gradient(circle at 30% 20%,rgba(124,92,255,.35),transparent 30%),
+        linear-gradient(145deg,#161a27,#080a10);
+      border:1px solid #31374a;
+      display:grid;
+      place-items:center
+    }
+
+    .preview.empty:before{
+      content:"AI GAME ICON";
+      font-weight:900;
+      letter-spacing:.16em;
+      color:#384054;
+      font-size:12px
+    }
+
+    .preview img{
+      width:100%;
+      height:100%;
+      object-fit:cover;
+      display:block
+    }
+
+    .overlay{
+      position:absolute;
+      left:5%;
+      right:5%;
+      bottom:5%;
+      text-align:center;
+      pointer-events:none;
+      text-shadow:0 4px 14px #000,0 1px 2px #000
+    }
+
+    .name{
+      font-size:clamp(22px,5vw,42px);
+      font-weight:1000;
+      line-height:1
+    }
+
+    .alliance{
+      font-size:clamp(12px,2.4vw,18px);
+      font-weight:800;
+      opacity:.92;
+      margin-top:7px
+    }
+
+    .clan{
+      font-size:clamp(10px,2vw,14px);
+      opacity:.75;
+      margin-top:4px
+    }
+
+    .preview-top{
+      position:absolute;
+      top:12px;
+      left:12px;
+      right:12px;
+      display:flex;
+      justify-content:space-between;
+      z-index:2
+    }
+
+    .status{
+      background:rgba(5,7,12,.72);
+      backdrop-filter:blur(10px);
+      border:1px solid rgba(255,255,255,.1);
+      padding:7px 10px;
+      border-radius:999px;
+      font-size:11px;
+      font-weight:800
+    }
+
+    .result-actions{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:9px;
+      margin-top:10px
+    }
+
+    .secondary{
+      border:1px solid var(--line);
+      background:#121622;
+      color:var(--text);
+      padding:12px;
+      border-radius:13px;
+      font-weight:800
+    }
+
+    .history{
+      margin-top:18px
+    }
+
+    .history-list{
+      display:grid;
+      grid-template-columns:repeat(3,1fr);
+      gap:8px
+    }
+
+    .history-item{
+      border:1px solid var(--line);
+      border-radius:13px;
+      overflow:hidden;
+      background:#0d111a
+    }
+
+    .history-item img{
+      width:100%;
+      aspect-ratio:1;
+      object-fit:cover;
+      display:block
+    }
+
+    .history-item div{
+      padding:8px;
+      font-size:11px;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis
+    }
+
+    .toast{
+      position:fixed;
+      left:50%;
+      bottom:25px;
+      transform:translate(-50%,20px);
+      opacity:0;
+      pointer-events:none;
+      background:#f5f7ff;
+      color:#10131b;
+      padding:12px 16px;
+      border-radius:999px;
+      font-size:13px;
+      font-weight:900;
+      z-index:100;
+      transition:.25s
+    }
+
+    .toast.show{
+      opacity:1;
+      transform:translate(-50%,0)
+    }
+
+    .loading{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      justify-content:center
+    }
+
+    .dot{
+      width:8px;
+      height:8px;
+      border-radius:50%;
+      background:#fff;
+      animation:b .8s infinite alternate
+    }
+
+    .dot:nth-child(2){animation-delay:.15s}
+    .dot:nth-child(3){animation-delay:.3s}
+
+    @keyframes b{
+      to{
+        opacity:.25;
+        transform:translateY(-3px)
+      }
+    }
+
+    footer{
+      padding:30px 0 60px;
+      color:#6f7789;
+      text-align:center;
+      font-size:12px
+    }
+
+    @media(max-width:820px){
+      .layout{
+        grid-template-columns:1fr
+      }
+
+      .preview-wrap{
+        position:relative;
+        top:auto;
+        order:-1
+      }
+
+      .preview{
+        max-width:620px;
+        margin:auto
+      }
+    }
+
+    @media(max-width:480px){
+      .wrap{
+        width:min(100% - 18px,1120px)
+      }
+
+      .hero{
+        padding-top:32px
+      }
+
+      .grid2{
+        grid-template-columns:1fr
+      }
+
+      .colors{
+        grid-template-columns:repeat(9,1fr);
+        gap:6px
+      }
+
+      .card{
+        padding:14px;
+        border-radius:19px
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+<header>
+  <div class="wrap nav">
+    <div class="brand">
+      <div class="logo"><span>✦</span></div>
+      Game Icon AI
+    </div>
+
+    <div class="nav-actions">
+      <button class="ghost" id="resetBtn">リセット</button>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <section class="hero">
+    <span class="badge">AI GAME ICON GENERATOR</span>
+
+    <h1>
+      ゲーム用アイコンを<br>
+      <span class="gradient">自分だけのデザインに。</span>
+    </h1>
+
+    <p class="lead">
+      名前・同盟名・クラン名・カラー・キャラクター・雰囲気を選んで、
+      1:1のゲームアイコンをAIで生成。
+    </p>
+  </section>
+
+  <section class="layout">
+
+    <div class="card">
+
+      <h2>🎮 アイコン設定</h2>
+
+      <div class="section">
+
+        <div class="grid2">
+
+          <div>
+            <label for="playerName">プレイヤー名</label>
+            <input
+              id="playerName"
+              maxlength="24"
+              placeholder="例：Pooh"
+            >
+          </div>
+
+          <div>
+            <label for="allianceName">同盟名</label>
+            <input
+              id="allianceName"
+              maxlength="24"
+              placeholder="例：AxLF"
+            >
+          </div>
+
+        </div>
+
+        <div style="margin-top:11px">
+
+          <label for="clanName">
+            クラン名 / チーム名
+          </label>
+
+          <input
+            id="clanName"
+            maxlength="24"
+            placeholder="例：LEGENDS"
+          >
+
+        </div>
+
+      </div>
+
+
+      <div class="section">
+
+        <label>イメージカラー</label>
+
+        <div class="colors" id="colors"></div>
+
+      </div>
+
+
+      <div class="section">
+
+        <label>キャラクタータイプ</label>
+
+        <div class="chips" id="characterChips"></div>
+
+      </div>
+
+
+      <div class="section">
+
+        <label>雰囲気</label>
+
+        <div class="chips" id="moodChips"></div>
+
+      </div>
+
+
+      <div class="section">
+
+        <div class="grid2">
+
+          <div>
+
+            <label for="background">
+              背景
+            </label>
+
+            <select id="background">
+
+              <option>ネオン都市</option>
+              <option>ダークファンタジー</option>
+              <option>炎と煙</option>
+              <option>氷とオーロラ</option>
+              <option>宇宙・銀河</option>
+              <option>桜と夜空</option>
+              <option>雷と嵐</option>
+              <option>戦場・SF</option>
+              <option>高級・ブラックゴールド</option>
+
+            </select>
+
+          </div>
+
+
+          <div>
+
+            <label for="textPosition">
+              文字位置
+            </label>
+
+            <select id="textPosition">
+
+              <option>下部中央</option>
+              <option>上部中央</option>
+              <option>左側</option>
+              <option>右側</option>
+              <option>キャラクターの横</option>
+
+            </select>
+
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <div class="section">
+
+        <label>文字の存在感</label>
+
+        <div class="range">
+
+          <input
+            id="textSize"
+            type="range"
+            min="1"
+            max="5"
+            value="4"
+          >
+
+          <strong id="textSizeValue">4</strong>
+
+        </div>
+
+      </div>
+
+
+      <div class="section">
+
+        <label for="extraPrompt">
+          追加イメージ（任意）
+        </label>
+
+        <textarea
+          id="extraPrompt"
+          maxlength="300"
+          placeholder="例：青い光の剣を持たせたい、鎧を黒と銀にしたい、人物を大きくしたい"
+        ></textarea>
+
+      </div>
+
+
+      <button
+        class="generate"
+        id="generateBtn"
+      >
+        ✨ AIでアイコンを生成
+      </button>
+
+      <div class="subnote">
+        生成画像は1:1・1024×1024を想定。
+        APIキーはブラウザには置かず、
+        Vercelのサーバー側環境変数を使用します。
+      </div>
+
+    </div>
+
+
+    <div class="preview-wrap">
+
+      <div class="card">
+
+        <h2>🖼️ プレビュー</h2>
+
+        <div
+          class="preview empty"
+          id="preview"
+        >
+
+          <div class="preview-top">
+
+            <span
+              class="status"
+              id="status"
+            >
+              準備完了
+            </span>
+
+            <span class="status">
+              1 : 1
+            </span>
+
+          </div>
+
+
+          <div
+            class="overlay"
+            id="overlay"
+          >
+
+            <div
+              class="name"
+              id="previewName"
+            >
+              YOUR NAME
+            </div>
+
+            <div
+              class="alliance"
+              id="previewAlliance"
+            ></div>
+
+            <div
+              class="clan"
+              id="previewClan"
+            ></div>
+
+          </div>
+
+        </div>
+
+
+        <div class="result-actions">
+
+          <button
+            class="secondary"
+            id="downloadBtn"
+            disabled
+          >
+            ⬇ 保存
+          </button>
+
+          <button
+            class="secondary"
+            id="copyBtn"
+          >
+            📋 設定をコピー
+          </button>
+
+        </div>
+
+
+        <div class="history">
+
+          <h2 style="font-size:15px">
+            最近の生成
+          </h2>
+
+          <div
+            class="history-list"
+            id="historyList"
+          ></div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </section>
+
+</main>
+
+
+<footer>
+  Game Icon AI · Create your game identity
+</footer>
+
+
+<div
+  class="toast"
+  id="toast"
+></div>
+
+
+<script>
+
+const $ = id => document.getElementById(id);
+
+
+const palette = [
+
+  ["ピンク","#ff4fa3"],
+  ["マゼンタ","#d946ef"],
+  ["紫","#8b5cf6"],
+  ["青紫","#6366f1"],
+  ["ブルー","#2196f3"],
+  ["シアン","#06b6d4"],
+  ["水色","#38bdf8"],
+  ["緑","#22c55e"],
+  ["エメラルド","#10b981"],
+  ["ライム","#84cc16"],
+  ["黄色","#facc15"],
+  ["ゴールド","#f59e0b"],
+  ["オレンジ","#f97316"],
+  ["赤","#ef4444"],
+  ["ワイン","#be123c"],
+  ["白銀","#e5e7eb"],
+  ["ブラック","#111827"],
+  ["ネオン","#00ffcc"]
+
+];
+
+
+const characters = [
+
+  "クールな戦士",
+  "ダークヒーロー",
+  "天才ハッカー",
+  "侍・武将",
+  "魔法使い",
+  "騎士",
+  "サイボーグ",
+  "ドラゴン使い",
+  "狼・獣系",
+  "可愛いキャラ",
+  "女性キャラクター",
+  "男性キャラクター"
+
+];
+
+
+const moods = [
+
+  "超クール",
+  "冷酷・ダーク",
+  "高級感",
+  "可愛い",
+  "美しい",
+  "迫力重視",
+  "知的",
+  "神秘的",
+  "未来的",
+  "王者・最強"
+
+];
+
+
+let state = {
+
+  color: palette[2][1],
+
+  colorName: palette[2][0],
+
+  character: characters[0],
+
+  mood: moods[0],
+
+  image: null
+
+};
+
+
+function renderButtons(){
+
+  $("colors").innerHTML =
+    palette.map((p,i)=>`
+
+      <button
+        class="color ${i===2?"active":""}"
+        title="${p[0]}"
+        aria-label="${p[0]}"
+        style="background:${p[1]}"
+        data-color="${p[1]}"
+        data-name="${p[0]}"
+      ></button>
+
+    `).join("");
+
+
+  $("characterChips").innerHTML =
+    characters.map((x,i)=>`
+
+      <button
+        class="chip ${i===0?"active":""}"
+        data-character="${x}"
+      >
+        ${x}
+      </button>
+
+    `).join("");
+
+
+  $("moodChips").innerHTML =
+    moods.map((x,i)=>`
+
+      <button
+        class="chip ${i===0?"active":""}"
+        data-mood="${x}"
+      >
+        ${x}
+      </button>
+
+    `).join("");
+
+
+  document
+    .querySelectorAll("[data-color]")
+    .forEach(b=>{
+
+      b.onclick=()=>{
+
+        document
+          .querySelectorAll("[data-color]")
+          .forEach(x=>x.classList.remove("active"));
+
+        b.classList.add("active");
+
+        state.color=b.dataset.color;
+        state.colorName=b.dataset.name;
+
+        updatePreview();
+
+      };
+
+    });
+
+
+  document
+    .querySelectorAll("[data-character]")
+    .forEach(b=>{
+
+      b.onclick=()=>{
+
+        document
+          .querySelectorAll("[data-character]")
+          .forEach(x=>x.classList.remove("active"));
+
+        b.classList.add("active");
+
+        state.character=b.dataset.character;
+
+      };
+
+    });
+
+
+  document
+    .querySelectorAll("[data-mood]")
+    .forEach(b=>{
+
+      b.onclick=()=>{
+
+        document
+          .querySelectorAll("[data-mood]")
+          .forEach(x=>x.classList.remove("active"));
+
+        b.classList.add("active");
+
+        state.mood=b.dataset.mood;
+
+      };
+
+    });
+
+}
+
+
+function updatePreview(){
+
+  $("previewName").textContent =
+    $("playerName").value.trim() || "YOUR NAME";
+
+  $("previewAlliance").textContent =
+    $("allianceName").value.trim();
+
+  $("previewClan").textContent =
+    $("clanName").value.trim();
+
+  $("overlay").style.color =
+    state.color;
+
+}
+
+
+[
+  "playerName",
+  "allianceName",
+  "clanName"
+].forEach(id=>{
+
+  $(id).addEventListener(
+    "input",
+    updatePreview
+  );
+
+});
+
+
+$("textSize").addEventListener(
+  "input",
+  e=>{
+    $("textSizeValue").textContent =
+      e.target.value;
+  }
+);
+
+
+function toast(msg){
+
+  $("toast").textContent=msg;
+
+  $("toast").classList.add("show");
+
+  clearTimeout(window.__toast);
+
+  window.__toast=setTimeout(
+    ()=>$("toast").classList.remove("show"),
+    2200
+  );
+
+}
+
+
+function getPayload(){
+
+  return {
+
+    playerName:
+      $("playerName").value.trim(),
+
+    allianceName:
+      $("allianceName").value.trim(),
+
+    clanName:
+      $("clanName").value.trim(),
+
+    color:
+      state.colorName,
+
+    colorHex:
+      state.color,
+
+    character:
+      state.character,
+
+    mood:
+      state.mood,
+
+    background:
+      $("background").value,
+
+    textPosition:
+      $("textPosition").value,
+
+    textSize:
+      Number($("textSize").value),
+
+    extraPrompt:
+      $("extraPrompt").value.trim()
+
+  };
+
+}
+
+
+async function generate(){
+
+  const btn=$("generateBtn");
+
+  const payload=getPayload();
+
+
+  if(
+    !payload.playerName &&
+    !payload.allianceName &&
+    !payload.clanName
+  ){
+
+    toast(
+      "名前・同盟名・クラン名のどれかを入力してね"
+    );
+
+    return;
+
+  }
+
+
+  btn.disabled=true;
+
+  btn.innerHTML=`
+    <span class="loading">
+      <span class="dot"></span>
+      <span class="dot"></span>
+      <span class="dot"></span>
+      生成中…
+    </span>
+  `;
+
+
+  $("status").textContent="AI生成中";
+
+
+  try{
+
+    const res=await fetch(
+      "/api/generate",
+      {
+        method:"POST",
+        headers:{
+          "Content-Type":
+            "application/json"
+        },
+        body:
+          JSON.stringify(payload)
+      }
+    );
+
+
+    const data=await res.json();
+
+
+    if(!res.ok){
+
+      throw new Error(
+        data.error ||
+        "生成に失敗しました"
+      );
+
+    }
+
+
+    const src =
+      data.image?.startsWith("data:")
+        ? data.image
+        : "data:image/png;base64," +
+          data.image;
+
+
+    state.image=src;
+
+
+    $("preview")
+      .classList
+      .remove("empty");
+
+
+    $("preview").innerHTML=`
+
+      <div class="preview-top">
+
+        <span class="status">
+          生成完了
+        </span>
+
+        <span class="status">
+          1 : 1
+        </span>
+
+      </div>
+
+      <img
+        id="resultImage"
+        src="${src}"
+        alt="Generated game icon"
+      >
+
+      <div
+        class="overlay"
+        id="overlay"
+      >
+
+        <div class="name">
+          ${escapeHtml(
+            payload.playerName || ""
+          )}
+        </div>
+
+        <div class="alliance">
+          ${escapeHtml(
+            payload.allianceName || ""
+          )}
+        </div>
+
+        <div class="clan">
+          ${escapeHtml(
+            payload.clanName || ""
+          )}
+        </div>
+
+      </div>
+
+    `;
+
+
+    $("overlay").style.color =
+      state.color;
+
+
+    $("downloadBtn").disabled=false;
+
+
+    saveHistory(
+      src,
+      payload.playerName ||
+      payload.allianceName ||
+      "Game Icon"
+    );
+
+
+    $("status").textContent =
+      "生成完了";
+
+
+    toast(
+      "アイコンを生成しました！"
+    );
+
+
+  }catch(err){
+
+    console.error(err);
+
+    $("status").textContent =
+      "エラー";
+
+    toast(
+      err.message ||
+      "生成に失敗しました"
+    );
+
+  }finally{
+
+    btn.disabled=false;
+
+    btn.textContent =
+      "✨ AIでアイコンを生成";
+
+  }
+
+}
+
+
+function escapeHtml(s){
+
+  return s.replace(
+    /[&<>"']/g,
+    m=>({
+
+      "&":"&amp;",
+      "<":"&lt;",
+      ">":"&gt;",
+      '"':"&quot;",
+      "'":"&#039;"
+
+    }[m])
+  );
+
+}
+
+
+function saveHistory(src,title){
+
+  let h=
+    JSON.parse(
+      localStorage.getItem(
+        "gameIconHistory"
+      ) || "[]"
+    );
+
+
+  h.unshift({
+
+    src,
+    title,
+    at:Date.now()
+
+  });
+
+
+  h=h.slice(0,6);
+
+
+  localStorage.setItem(
+    "gameIconHistory",
+    JSON.stringify(h)
+  );
+
+
+  renderHistory();
+
+}
+
+
+function renderHistory(){
+
+  const h=
+    JSON.parse(
+      localStorage.getItem(
+        "gameIconHistory"
+      ) || "[]"
+    );
+
+
+  $("historyList").innerHTML =
+    h.length
+
+      ? h.map((x,i)=>`
+
+          <button
+            class="history-item"
+            data-history="${i}"
+            title="${escapeHtml(x.title)}"
+          >
+
+            <img
+              src="${x.src}"
+              alt=""
+            >
+
+            <div>
+              ${escapeHtml(x.title)}
+            </div>
+
+          </button>
+
+        `).join("")
+
+      :
+
+        `<div style="color:#6f7789;font-size:12px">
+          まだ生成履歴はありません
+        </div>`;
+
+
+  document
+    .querySelectorAll("[data-history]")
+    .forEach(b=>{
+
+      b.onclick=()=>{
+
+        const x=
+          h[
+            Number(
+              b.dataset.history
+            )
+          ];
+
+
+        state.image=x.src;
+
+
+        $("preview")
+          .classList
+          .remove("empty");
+
+
+        $("preview").innerHTML=`
+
+          <div class="preview-top">
+
+            <span class="status">
+              履歴
+            </span>
+
+            <span class="status">
+              1 : 1
+            </span>
+
+          </div>
+
+
+          <img
+            id="resultImage"
+            src="${x.src}"
+            alt=""
+          >
+
+
+          <div
+            class="overlay"
+            id="overlay"
+          >
+
+            <div class="name">
+              ${escapeHtml(
+                $("playerName")
+                  .value
+                  .trim() || ""
+              )}
+            </div>
+
+            <div class="alliance">
+              ${escapeHtml(
+                $("allianceName")
+                  .value
+                  .trim() || ""
+              )}
+            </div>
+
+            <div class="clan">
+              ${escapeHtml(
+                $("clanName")
+                  .value
+                  .trim() || ""
+              )}
+            </div>
+
+          </div>
+
+        `;
+
+
+        $("overlay").style.color =
+          state.color;
+
+
+        $("downloadBtn")
+          .disabled=false;
+
+      };
+
+    });
+
+}
+
+
+$("downloadBtn").onclick=()=>{
+
+  if(!state.image)return;
+
+
+  const a=
+    document.createElement("a");
+
+
+  a.href=state.image;
+
+  a.download=
+    "game-icon-ai.png";
+
+
+  a.click();
+
+};
+
+
+$("copyBtn").onclick=async()=>{
+
+  try{
+
+    await navigator.clipboard.writeText(
+      JSON.stringify(
+        getPayload(),
+        null,
+        2
+      )
+    );
+
+    toast(
+      "設定をコピーしました"
+    );
+
+  }catch{
+
+    toast(
+      "コピーできませんでした"
+    );
+
+  }
+
+};
+
+
+$("generateBtn").onclick=
+  generate;
+
+
+$("resetBtn").onclick=()=>{
+
+  [
+    "playerName",
+    "allianceName",
+    "clanName",
+    "extraPrompt"
+  ].forEach(
+    id=>$(id).value=""
+  );
+
+
+  $("background").selectedIndex=0;
+
+  $("textPosition").selectedIndex=0;
+
+  $("textSize").value=4;
+
+  $("textSizeValue")
+    .textContent="4";
+
+
+  state.color=
+    palette[2][1];
+
+  state.colorName=
+    palette[2][0];
+
+  state.character=
+    characters[0];
+
+  state.mood=
+    moods[0];
+
+
+  renderButtons();
+
+  updatePreview();
+
+  toast(
+    "リセットしました"
+  );
+
+};
+
+
+renderButtons();
+
+updatePreview();
+
+renderHistory();
+
+</script>
+
+</body>
+</html>
