@@ -9,130 +9,108 @@ const TEXT_MODEL =
 
 const IMAGE_MODEL = "gpt-image-2";
 
-const INSTRUCTIONS = `
-あなたは「Game Icon AI」の画像ディレクター兼会話アシスタントです。
+const SYSTEM = `
+あなたは「Iconia AI」という画像制作サービスの会話AIです。
 
-ユーザーと日本語で自然に会話しながら、
-ゲーム用の1:1アイコンを一緒に完成させます。
+目的は、ユーザーがChatGPTに話しかけるように自然な文章だけで画像を作ったり編集したりできるようにすることです。
 
 重要:
 
-- 細かいフォームや選択項目をユーザーに強制しない。
-- ユーザーの自然な文章から意図を理解する。
-- 曖昧な依頼でも生成意図があれば自分で良い方向を考える。
-- ユーザーが曖昧なら具体的な候補を最大3個提示する。
-- 過去の会話を踏まえて修正する。
-- 「もっと」「やっぱり戻して」「ここだけ変えて」などの指示を理解する。
+- 細かい設定項目をユーザーに要求しない。
+- ユーザーの自然な文章から用途、構図、雰囲気、色、文字、編集範囲を理解する。
+- ゲーム、X、Instagram、LINE、YouTube、Discord、Twitch、プロフィール画像、ヘッダーなど用途を会話から判断する。
+- 画像なしならオリジナル画像を作る。
+- 画像ありなら原則としてその画像を編集対象として扱う。
+- 「人物はそのまま」「顔は変えない」「背景だけ」などの制約を最優先する。
+- 「原画をほぼそのまま」は変更を最小限にする。
+- 「自由にアレンジ」は元画像の良さを残しつつ改善する。
+- 以前の会話の内容を踏まえ、ユーザーの「もっと」「戻して」「ここだけ変えて」を理解する。
+- 指定されていないプレイヤーネーム、Pooh、AxLF、同盟名、クラン名、ロゴ、ウォーターマークを絶対に勝手に追加しない。
+- ユーザーが文字を指定した場合は、文字列の大文字小文字、記号、スペースをできる限り正確に保持する。
+- 画像内の文字が不要なら文字を入れない。
+- SNSヘッダーなど横長用途では、重要な人物や文字が端で切れないよう安全領域を考える。
+- プロフィール画像では小さく表示されても主役が認識できる構図にする。
+- 1:1以外の用途では、目的に合う横長・縦長・正方形の構図を自動判断する。
+- 画像編集ではユーザーが指定していない部分を不必要に変更しない。
+- 特定の作品や作家の完全な模倣ではなく、一般化した特徴でオリジナル表現にする。
 
-画像がある場合:
-
-- 画像は編集対象。
-- ユーザーが「そのまま」と言った部分は可能な限り維持する。
-- 「顔は変えない」なら顔を変更しない。
-- 「人物はそのまま、背景だけ変更」なら人物を維持する。
-- 「原画をほぼそのまま」と言われたら変更を最小限にする。
-- 「自由にアレンジ」と言われた場合は元画像の良さを残しながら改善する。
-
-画像がない場合:
-
-- 完全オリジナルのキャラクターを作る。
-
-文字について:
-
-- ユーザーが指定した文字列は正確に使う。
-- 大文字小文字や記号を勝手に変更しない。
-- ユーザーが指定していない名前を絶対に追加しない。
-- Pooh、AxLF、Player nameなどを勝手に入れない。
-- 同盟名、クラン名、プレイヤー名も指定がない限り入れない。
-- ウォーターマークも勝手に入れない。
-- 「文字だけ追加」と言われた場合、人物や背景を大幅に変更しない。
-
-ゲームアイコンなので:
-
-- 1:1 square
-- 主役を見やすくする
-- 必要なら人物を大きくする
-- 顔を見やすくする
-- 高品質
-- 印象的
-- ゲームプロフィール画像として成立する構図
-
-以下のJSONだけを返してください。
+回答は以下のJSONだけ。
 
 {
-  "action": "GENERATE" | "EDIT" | "CHAT",
-  "image_prompt": "",
-  "reply": "",
-  "examples": []
+  "action":"GENERATE"|"EDIT"|"CHAT",
+  "image_prompt":"",
+  "reply":"",
+  "examples":[]
 }
 
 判断:
 
-具体的に画像を作る
+具体的な画像作成依頼
 → GENERATE
 
-画像なしで新しいキャラクター
+画像なしの新規キャラクター
 → GENERATE
 
-参考画像を変更
+画像をベースにした変更
 → EDIT
 
-相談・アイデア出しだけ
+アイデア相談・質問だけ
 → CHAT
 
-「何かカッコいいの作って」
+「何かカッコいい画像を作って」
 → GENERATE
 
-examplesは必要な場合のみ最大3個。
+examples:
+
+- 最大3個
+- 必要なときだけ
+- 抽象的な助言ではなく、そのまま次に送れる具体的な指示
 
 image_prompt:
 
-- 必ず英語
-- 1:1 square game icon
-- ユーザーの指定を最優先
-- 指定されていない文字は入れない
-- 文字を指定された場合は正確な文字列を入れる
-- 編集では変更しない部分を明示する
+- 英語
+- 画像生成モデルに直接渡せる具体的な指示
+- ユーザーの要望を最優先
+- 指定されていない文字は追加しない
+- 指定された文字は正確な文字列として明示
+- 編集の場合は保持する要素を明示
 `;
 
 const schema = {
 
-  type: "object",
+  type:"object",
 
-  additionalProperties: false,
+  additionalProperties:false,
 
-  properties: {
+  properties:{
 
-    action: {
-      type: "string",
-      enum: [
+    action:{
+      type:"string",
+      enum:[
         "GENERATE",
         "EDIT",
         "CHAT"
       ]
     },
 
-    image_prompt: {
-      type: "string"
+    image_prompt:{
+      type:"string"
     },
 
-    reply: {
-      type: "string"
+    reply:{
+      type:"string"
     },
 
-    examples: {
-
-      type: "array",
-
-      items: {
-        type: "string"
+    examples:{
+      type:"array",
+      items:{
+        type:"string"
       }
-
     }
 
   },
 
-  required: [
+  required:[
     "action",
     "image_prompt",
     "reply",
@@ -141,15 +119,15 @@ const schema = {
 
 };
 
-function dataUrlToBuffer(dataUrl){
+function decodeDataUrl(dataUrl){
 
-  const match =
+  const m =
     String(dataUrl || "")
     .match(
-      /^data:image\/([a-zA-Z0-9.+-]+);base64,(.+)$/
+      /^data:image\/[a-zA-Z0-9.+-]+;base64,(.+)$/
     );
 
-  if(!match){
+  if(!m){
 
     throw new Error(
       "画像データの形式が正しくありません。"
@@ -158,71 +136,18 @@ function dataUrlToBuffer(dataUrl){
   }
 
   return Buffer.from(
-    match[2],
+    m[1],
     "base64"
   );
 
 }
 
-function limitText(value,max){
+export default async function handler(
+  req,
+  res
+){
 
-  return String(
-    value ?? ""
-  )
-  .trim()
-  .slice(0,max);
-
-}
-
-function normalizePlan(raw){
-
-  const plan =
-    raw &&
-    typeof raw === "object"
-      ? raw
-      : {};
-
-  const action =
-    [
-      "GENERATE",
-      "EDIT",
-      "CHAT"
-    ].includes(plan.action)
-      ? plan.action
-      : "GENERATE";
-
-  const examples =
-    Array.isArray(plan.examples)
-      ? plan.examples
-          .map(x=>String(x).trim())
-          .filter(Boolean)
-          .slice(0,3)
-      : [];
-
-  return {
-
-    action,
-
-    image_prompt:
-      String(
-        plan.image_prompt || ""
-      ).trim(),
-
-    reply:
-      String(
-        plan.reply ||
-        "できました。ここからさらに修正できます。"
-      ).trim(),
-
-    examples
-
-  };
-
-}
-
-export default async function handler(req,res){
-
-  if(req.method !== "POST"){
+  if(req.method!=="POST"){
 
     return res.status(405).json({
       error:"POST only"
@@ -235,7 +160,7 @@ export default async function handler(req,res){
     return res.status(500).json({
 
       error:
-        "OPENAI_API_KEY がVercelのEnvironment Variablesに設定されていません。"
+        "OPENAI_API_KEY がVercelに設定されていません。"
 
     });
 
@@ -246,19 +171,21 @@ export default async function handler(req,res){
     const body=req.body || {};
 
     const message=
-      limitText(
-        body.message,
-        7000
-      );
+      String(
+        body.message || ""
+      )
+      .trim()
+      .slice(0,7000);
 
     const image=
       body.image || null;
 
     const previousResponseId=
-      limitText(
-        body.previousResponseId,
-        120
-      );
+      String(
+        body.previousResponseId || ""
+      )
+      .trim()
+      .slice(0,120);
 
     if(!message && !image){
 
@@ -299,11 +226,11 @@ export default async function handler(req,res){
 
     }
 
-    const responseParams={
+    const params={
 
       model:TEXT_MODEL,
 
-      instructions:INSTRUCTIONS,
+      instructions:SYSTEM,
 
       input:[
         {
@@ -312,7 +239,7 @@ export default async function handler(req,res){
         }
       ],
 
-      max_output_tokens:1400,
+      max_output_tokens:1500,
 
       store:true,
 
@@ -322,7 +249,7 @@ export default async function handler(req,res){
 
           type:"json_schema",
 
-          name:"game_icon_plan",
+          name:"iconia_plan",
 
           strict:true,
 
@@ -336,14 +263,14 @@ export default async function handler(req,res){
 
     if(previousResponseId){
 
-      responseParams.previous_response_id =
+      params.previous_response_id =
         previousResponseId;
 
     }
 
-    const planResponse =
+    const planRes=
       await client.responses.create(
-        responseParams
+        params
       );
 
     let plan;
@@ -351,11 +278,9 @@ export default async function handler(req,res){
     try{
 
       plan=
-        normalizePlan(
-          JSON.parse(
-            planResponse.output_text ||
-            "{}"
-          )
+        JSON.parse(
+          planRes.output_text ||
+          "{}"
         );
 
     }catch{
@@ -369,7 +294,7 @@ export default async function handler(req,res){
 
         image_prompt:
           message ||
-          "Create a high-quality original game icon.",
+          "Create a high-quality original image.",
 
         reply:
           "内容を理解しました。画像を作ります。",
@@ -380,57 +305,69 @@ export default async function handler(req,res){
 
     }
 
-    if(plan.action==="CHAT"){
+    const examples=
+      Array.isArray(plan.examples)
+        ? plan.examples
+            .filter(Boolean)
+            .slice(0,3)
+        : [];
+
+    if(
+      plan.action==="CHAT"
+    ){
 
       return res.status(200).json({
 
         responseId:
-          planResponse.id,
+          planRes.id,
 
         action:"CHAT",
 
-        reply:plan.reply,
+        reply:
+          plan.reply ||
+          "もちろんです。",
 
-        examples:plan.examples
+        examples
 
       });
 
     }
 
-    if(!plan.image_prompt){
-
-      plan.image_prompt =
+    const prompt=
+      String(
+        plan.image_prompt ||
         message ||
-        "Create a high-quality original game icon.";
-
-    }
+        "Create a high-quality original image."
+      )
+      .trim();
 
     let result;
 
     if(image){
 
-      const buffer =
-        dataUrlToBuffer(image);
-
-      const file =
+      const file=
         await toFile(
-          buffer,
+
+          decodeDataUrl(image),
+
           "reference.jpg",
+
           {
             type:"image/jpeg"
           }
+
         );
 
-      result =
+      result=
         await client.images.edit({
 
           model:IMAGE_MODEL,
 
           image:file,
 
-          prompt:plan.image_prompt,
+          prompt,
 
-          size:"1024x1024",
+          size:"auto",
 
           quality:"high",
 
@@ -442,14 +379,14 @@ export default async function handler(req,res){
 
     }else{
 
-      result =
+      result=
         await client.images.generate({
 
           model:IMAGE_MODEL,
 
-          prompt:plan.image_prompt,
+          prompt,
 
-          size:"1024x1024",
+          size:"auto",
 
           quality:"high",
 
@@ -461,7 +398,7 @@ export default async function handler(req,res){
 
     }
 
-    const b64 =
+    const b64=
       result?.data?.[0]?.b64_json;
 
     if(!b64){
@@ -475,7 +412,7 @@ export default async function handler(req,res){
     return res.status(200).json({
 
       responseId:
-        planResponse.id,
+        planRes.id,
 
       action:
         plan.action,
@@ -485,21 +422,20 @@ export default async function handler(req,res){
 
       reply:
         plan.reply ||
-        "できました。ここからさらに普通に修正できます。",
+        "できました。ここからさらに修正できます。",
 
-      examples:
-        plan.examples
+      examples
 
     });
 
-  }catch(error){
+  }catch(err){
 
-    console.error(error);
+    console.error(err);
 
     return res.status(500).json({
 
       error:
-        error?.message ||
+        err?.message ||
         "画像生成中にエラーが発生しました。"
 
     });
