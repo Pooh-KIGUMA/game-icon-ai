@@ -35,17 +35,17 @@ function extractRequestedText(message) {
   return null;
 }
 
-function isStyleRequest(t) {
-  return /イラストタッチ|絵柄|画風|タッチ|作画|描き方|アートスタイル|イラスト風|絵の感じ|絵の雰囲気|テイスト|anime style|art style|style transfer/i.test(String(t || ""));
+function isStyleRequest(text) {
+  return /イラストタッチ|絵柄|画風|タッチ|作画|描き方|アートスタイル|イラスト風|絵の感じ|絵の雰囲気|テイスト|anime style|art style|style transfer/i.test(String(text || ""));
 }
 
 function isTextOnlyRequest(message, hasImage, forceAiDesign = false) {
   if (!hasImage || forceAiDesign) return false;
   const t = String(message || "");
   const text = extractRequestedText(t);
-  if (!text) return false;
+  if (!text || isStyleRequest(t)) return false;
   const other = /背景(?:だけ|のみ|を変更|を変え)|ポーズ(?:だけ|のみ|を変更|を変え)|髪(?:だけ|型だけ|のみ|を変更|を変え)|服(?:だけ|装だけ|のみ|を変更|を変え)|人物(?:だけ|のみ|を変更|を変え)|顔(?:だけ|のみ|を変更|を変え)/u.test(t);
-  return !other && !isStyleRequest(t) && /文字|テキスト|ロゴ|名前|クラン|チーム|同盟|原画|元画像|そのまま|だけ|のみ|追加|入れて|書いて|カッコよく|かっこよく|デザイン/u.test(t);
+  return !other && /文字|テキスト|ロゴ|名前|クラン|チーム|同盟|原画|元画像|そのまま|だけ|のみ|追加|入れて|書いて|カッコよく|かっこよく|デザイン/u.test(t);
 }
 
 function editMode(message, hasImage, forceAiDesign = false) {
@@ -66,7 +66,20 @@ function buildPrompt({ message, history, hasImage, mode, requestedText }) {
     ? history.slice(-8).map(x => `${x.role === "user" ? "USER" : "ASSISTANT"}: ${clean(x.text, 1200)}`).join("\n")
     : "";
 
-  return `You are Iconia AI, a professional conversational image creation and editing assistant. Interpret the user's Japanese request like a skilled art director and create the image directly.
+  const styleOnly = mode === "STYLE_ONLY" ? `
+STYLE-ONLY HARD LOCK:
+- This is a style transfer, NOT a character redesign.
+- Treat the reference image as an exact visual blueprint.
+- Keep the exact same character/person and recognizable identity.
+- Keep the exact same face, facial landmarks, eyes, nose, mouth, expression, hairstyle, hair color, skin tone, body proportions, pose, clothing, accessories, distinctive marks, camera angle, crop, background layout and major objects.
+- Change ONLY the rendering language: line art, brush texture, shading technique, color rendering, lighting treatment and illustration finish.
+- The result must be recognizable as the SAME IMAGE redrawn by a different artist.
+- Do NOT replace the subject with a generic person, beauty portrait, different anime character, realistic woman/man, or new composition.
+- Do NOT change gender, age, ethnicity, facial structure, hairstyle, outfit, pose or scene.
+- If the requested style is vague, choose a polished anime/game illustration style while preserving the source exactly.
+- Prioritize identity preservation over stylistic strength.` : "";
+
+  return `You are Iconia AI, a professional conversational image creation and editing assistant.
 
 LATEST REQUEST:
 ${clean(message)}
@@ -78,34 +91,29 @@ REFERENCE IMAGE: ${hasImage ? "YES" : "NO"}
 EDIT MODE: ${mode}
 EXACT REQUESTED TEXT: ${requestedText || "none"}
 
-CRITICAL REFERENCE-IMAGE RULES:
-- When a reference image is supplied, it is the PRIMARY SOURCE. Do not create a new character or replace the person.
-- Preserve the SAME character/person: face shape, eyes, nose, mouth, hairstyle, hair color, body proportions, pose, clothing, accessories, distinctive marks, camera angle and overall composition unless the user explicitly asks to change that exact element.
-- The user saying "イラストタッチを変えて", "絵柄を変えて", "画風を変えて" or similar means STYLE ONLY. It does NOT mean to redesign the character, change the person, change the pose, change the hairstyle, or create a different composition.
-- STYLE_ONLY: keep the exact same subject and recognizable identity. Apply only a visual rendering/style transformation: line quality, brushwork, shading method, coloring method, texture, lighting treatment and overall illustration finish. The output should look like the SAME IMAGE redrawn in a different illustration style.
-- STYLE_ONLY must retain the original framing, pose, facial expression, hairstyle, clothing, accessories and distinctive features as closely as possible. Do not substitute a different face or person.
-- If the requested style is not specified, choose a tasteful, polished anime/game illustration treatment while keeping the source character unmistakably the same.
-- TARGETED_EDIT: change only what the user asks for and preserve everything else.
-- FAITHFUL: preserve the source as closely as possible and change only requested parts.
-- TEXT_ONLY: do not regenerate the reference; the application will overlay the exact requested text after generation.
-- AI_DESIGN: redesign requested visual elements creatively, but still preserve character identity unless the user explicitly asks for a full transformation.
-- Never invent text, watermarks, signatures, usernames or logos.
-- If exact text is requested, do not render it yourself; the application adds it after generation when TEXT_ONLY is active.
+REFERENCE PRIORITY:
+- A supplied reference image is the PRIMARY SOURCE.
+- Never replace the subject unless the user explicitly requests a replacement or full transformation.
+- Preserve identity, face, hair, body proportions, pose, clothing, accessories, distinctive marks, camera angle and composition unless that specific element is requested to change.
+${styleOnly}
 
-STYLE TRANSFORMATION SAFETY:
-- Think of STYLE_ONLY as changing the medium/rendering pipeline, not changing the subject.
-- Keep facial landmarks and identity stable.
-- Keep the same hair silhouette and color.
-- Keep the same clothing and accessories.
-- Keep the same pose and camera crop.
-- Keep the same major background/composition unless the user explicitly requests a background change.
-- Do not turn an anime character into a realistic unrelated woman/man.
-- Do not replace the character with a generic beauty portrait.
-- Do not introduce a new character.
+OTHER EDIT MODES:
+- TEXT_ONLY: do not regenerate the reference; the application overlays the exact requested text.
+- FAITHFUL: preserve the source as closely as possible and change only requested parts.
+- TARGETED_EDIT: change only what the user asks for and preserve everything else.
+- AI_DESIGN: creatively redesign requested visual elements, but preserve character identity unless the user explicitly asks for a full transformation.
+- BACKGROUND_ONLY: change only the background.
+- POSE_ONLY: change only the pose while preserving identity and appearance.
+- HAIR_ONLY: change only hair while preserving identity and everything else.
+- CLOTHING_ONLY: change only clothing while preserving identity and everything else.
+
+TEXT:
+- Never invent text, watermarks, signatures, usernames or logos.
+- If exact text is requested in TEXT_ONLY mode, do not render it yourself; the application adds it afterward.
 
 QUALITY:
-- Professional game/SNS artwork, clean anatomy, coherent lighting, readable silhouette and detailed materials.
-- Respect requested aspect ratio and composition.`;
+- Professional game/SNS artwork, clean anatomy, coherent lighting and detailed materials.
+- Respect the requested aspect ratio and composition.`;
 }
 
 export default async function handler(req, res) {
@@ -123,24 +131,19 @@ export default async function handler(req, res) {
 
     const requestedText = clean(body.requestedText || extractRequestedText(message), 80) || null;
     const size = detectSize(message);
-    const quality = wantsHighQuality(message) ? "high" : "low";
     const mode = editMode(message, Boolean(image), forceAiDesign);
+    const quality = (mode === "STYLE_ONLY" || wantsHighQuality(message)) ? "high" : "low";
     const prompt = buildPrompt({ message, history, hasImage:Boolean(image), mode, requestedText });
 
     if (image && mode === "TEXT_ONLY" && requestedText) {
-      return res.status(200).json({
-        success:true,
-        image,
-        overlay:{text:requestedText,message},
-        reply:`できました。「${requestedText}」を正確に追加します。元画像は変更していません。`
-      });
+      return res.status(200).json({ success:true, image, overlay:{text:requestedText,message}, reply:`できました。「${requestedText}」を正確に追加します。元画像は変更していません。` });
     }
 
     let outputBuffer;
     if (image) {
       const sourceBuffer = imageBuffer(image);
       const file = await toFile(sourceBuffer, "reference.jpg", { type:"image/jpeg" });
-      const response = await client.images.edit({
+      const editParams = {
         model:MODEL,
         image:file,
         prompt,
@@ -149,20 +152,16 @@ export default async function handler(req, res) {
         output_format:"jpeg",
         output_compression:72,
         n:1
-      });
+      };
+      // High input fidelity is especially important for style-only edits so facial
+      // features and other source-image details are matched as closely as possible.
+      if (mode === "STYLE_ONLY" || mode === "FAITHFUL") editParams.input_fidelity = "high";
+      const response = await client.images.edit(editParams);
       const base64 = response?.data?.[0]?.b64_json;
       if (!base64) throw new Error("画像データがOpenAIから返されませんでした。");
       outputBuffer = Buffer.from(base64, "base64");
     } else {
-      const response = await client.images.generate({
-        model:MODEL,
-        prompt,
-        size,
-        quality,
-        output_format:"jpeg",
-        output_compression:72,
-        n:1
-      });
+      const response = await client.images.generate({ model:MODEL, prompt, size, quality, output_format:"jpeg", output_compression:72, n:1 });
       const base64 = response?.data?.[0]?.b64_json;
       if (!base64) throw new Error("画像データがOpenAIから返されませんでした。");
       outputBuffer = Buffer.from(base64, "base64");
@@ -176,11 +175,6 @@ export default async function handler(req, res) {
     });
   } catch (error) {
     console.error("ICONIA API ERROR", error);
-    return res.status(Number(error?.status)||500).json({
-      success:false,
-      error:error?.error?.message||error?.message||"不明なエラーが発生しました。",
-      code:error?.error?.code||error?.code||null,
-      type:error?.error?.type||error?.type||null
-    });
+    return res.status(Number(error?.status)||500).json({ success:false, error:error?.error?.message||error?.message||"不明なエラーが発生しました。", code:error?.error?.code||error?.code||null, type:error?.error?.type||error?.type||null });
   }
 }
