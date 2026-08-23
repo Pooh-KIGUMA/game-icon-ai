@@ -24,14 +24,20 @@ function wantsHighQuality(text) {
 }
 
 function extractRequestedText(message) {
-  const t = String(message || "");
-  const quoted = t.match(/[「『“”](.{1,40})[」』“”]/);
+  const t = String(message || "").trim();
+
+  // Quoted text: 「AxLF」 / 『AxLF』 / “AxLF”
+  const quoted = t.match(/[「『“](.{1,60})[」』”]/);
   if (quoted?.[1]) return quoted[1].trim();
+
+  // Common Japanese patterns used in the UI/user requests.
   const patterns = [
-    /([A-Za-z][A-Za-z0-9._-]{0,30})\s*(?:の文字|という文字)/,
-    /([A-Za-z][A-Za-z0-9._-]{0,30})\s*(?:だけ(?:を|に)|のみ(?:を|に))/,
-    /([A-Za-z][A-Za-z0-9._-]{0,30})\s*を(?:入れて|追加して|入れたい|入れてください)/,
+    /(?:文字|テキスト|ロゴ|名前|チーム名|クラン名|同盟名)\s*(?:は|：|:|=)\s*[「『“]?([A-Za-z0-9._-]{1,40})[」』”]?/i,
+    /[「『“]?([A-Za-z][A-Za-z0-9._-]{0,39})[」』”]?\s*(?:の文字|という文字)/i,
+    /[「『“]?([A-Za-z][A-Za-z0-9._-]{0,39})[」』”]?\s*(?:だけ(?:を|に)?|のみ(?:を|に)?)/i,
+    /[「『“]?([A-Za-z][A-Za-z0-9._-]{0,39})[」』”]?\s*を\s*(?:入れて|追加して|入れたい|入れてください)/i,
   ];
+
   for (const re of patterns) {
     const m = t.match(re);
     if (m?.[1]) return m[1].trim();
@@ -45,8 +51,7 @@ function isTextOnlyRequest(message, hasImage) {
   const text = extractRequestedText(t);
   if (!text) return false;
   const hasOtherEdit = /背景(?:だけ|のみ|を変更|を変え)|ポーズ(?:だけ|のみ|を変更|を変え)|髪(?:だけ|型だけ|のみ|を変更|を変え)|服(?:だけ|装だけ|のみ|を変更|を変え)/.test(t);
-  if (hasOtherEdit) return false;
-  return /文字|テキスト|ロゴ|クラン|チーム|そのまま|原画|だけ|のみ|追加|入れ/.test(t);
+  return !hasOtherEdit && /文字|テキスト|ロゴ|名前|クラン|チーム|同盟|そのまま|原画|だけ|のみ|追加|入れ|入れて/.test(t);
 }
 
 function editMode(message, hasImage) {
