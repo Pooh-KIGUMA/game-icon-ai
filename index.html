@@ -1,1550 +1,1983 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta name="theme-color" content="#090b12">
-  <meta name="description" content="Game Icon AI — ゲーム用オリジナルアイコンをAIで作成">
-  <title>Game Icon AI</title>
-  <style>
-    :root{
-      --bg:#080a10;--panel:#111522;--line:#272d3c;
-      --text:#f7f8fc;--muted:#9aa3b6;--accent:#7c5cff;
-      --radius:22px;
-    }
-    *{box-sizing:border-box}
-    html{scroll-behavior:smooth}
-    body{
-      margin:0;
-      background:
-        radial-gradient(circle at 80% -10%,rgba(124,92,255,.22),transparent 35%),
-        radial-gradient(circle at 0% 30%,rgba(0,212,255,.10),transparent 30%),
-        var(--bg);
-      color:var(--text);
-      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans JP",sans-serif;
-      min-height:100vh;
-    }
-    button,input,select,textarea{font:inherit}
-    button{cursor:pointer}
-    .wrap{width:min(1120px,calc(100% - 28px));margin:auto}
-
-    header{
-      padding:22px 0 12px;
-      position:sticky;
-      top:0;
-      z-index:20;
-      background:rgba(8,10,16,.82);
-      backdrop-filter:blur(18px);
-      border-bottom:1px solid rgba(255,255,255,.05)
-    }
-
-    .nav{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:12px
-    }
-
-    .brand{
-      display:flex;
-      align-items:center;
-      gap:11px;
-      font-weight:900;
-      font-size:20px
-    }
-
-    .logo{
-      width:42px;
-      height:42px;
-      border-radius:13px;
-      display:grid;
-      place-items:center;
-      background:linear-gradient(135deg,#7c5cff,#00d4ff);
-      box-shadow:0 8px 28px rgba(124,92,255,.25)
-    }
-
-    .logo span{font-size:21px}
-
-    .ghost{
-      border:1px solid var(--line);
-      background:#121622;
-      color:var(--text);
-      padding:10px 14px;
-      border-radius:14px
-    }
-
-    .hero{
-      padding:46px 0 28px;
-      text-align:center
-    }
-
-    .badge{
-      display:inline-flex;
-      padding:8px 12px;
-      border:1px solid #343b50;
-      border-radius:999px;
-      color:#bfc7d9;
-      background:#111522;
-      font-size:13px;
-      font-weight:800
-    }
-
-    h1{
-      font-size:clamp(38px,8vw,76px);
-      line-height:.98;
-      margin:18px 0 12px;
-      letter-spacing:-.055em
-    }
-
-    .gradient{
-      background:linear-gradient(90deg,#fff,#a995ff,#68e8ff);
-      -webkit-background-clip:text;
-      background-clip:text;
-      color:transparent
-    }
-
-    .lead{
-      max-width:680px;
-      margin:auto;
-      color:var(--muted);
-      font-size:16px;
-      line-height:1.7
-    }
-
-    .layout{
-      display:grid;
-      grid-template-columns:1.05fr .95fr;
-      gap:18px;
-      align-items:start;
-      padding-bottom:50px
-    }
-
-    .card{
-      background:linear-gradient(180deg,rgba(22,26,39,.96),rgba(15,18,28,.96));
-      border:1px solid var(--line);
-      border-radius:var(--radius);
-      padding:18px;
-      box-shadow:0 20px 70px rgba(0,0,0,.22)
-    }
-
-    .card h2{
-      margin:0 0 15px;
-      font-size:18px
-    }
-
-    .section{
-      padding:15px 0;
-      border-top:1px solid rgba(255,255,255,.06)
-    }
-
-    .section:first-of-type{
-      border-top:0;
-      padding-top:0
-    }
-
-    label{
-      display:block;
-      color:#c8cede;
-      font-size:13px;
-      font-weight:800;
-      margin-bottom:7px
-    }
-
-    input,select,textarea{
-      width:100%;
-      border:1px solid #303749;
-      background:#0d111b;
-      color:var(--text);
-      outline:none;
-      border-radius:13px;
-      padding:12px 13px
-    }
-
-    input:focus,select:focus,textarea:focus{
-      border-color:#6654d9;
-      box-shadow:0 0 0 3px rgba(124,92,255,.12)
-    }
-
-    textarea{
-      min-height:78px;
-      resize:vertical
-    }
-
-    .grid2{
-      display:grid;
-      grid-template-columns:1fr 1fr;
-      gap:11px
-    }
-
-    .chips{
-      display:flex;
-      flex-wrap:wrap;
-      gap:8px
-    }
-
-    .chip{
-      border:1px solid #31384a;
-      background:#0e121c;
-      color:#dbe0ec;
-      border-radius:999px;
-      padding:8px 11px;
-      font-size:13px
-    }
-
-    .chip.active{
-      border-color:var(--accent);
-      background:rgba(124,92,255,.15);
-      box-shadow:0 0 0 2px rgba(124,92,255,.12)
-    }
-
-    .colors{
-      display:grid;
-      grid-template-columns:repeat(9,1fr);
-      gap:8px
-    }
-
-    .color{
-      aspect-ratio:1;
-      border-radius:11px;
-      border:2px solid transparent;
-      position:relative;
-      box-shadow:inset 0 0 0 1px rgba(255,255,255,.14)
-    }
-
-    .color.active{
-      border-color:#fff;
-      transform:scale(1.06)
-    }
-
-    .color.active:after{
-      content:"✓";
-      position:absolute;
-      inset:0;
-      display:grid;
-      place-items:center;
-      font-weight:900;
-      text-shadow:0 1px 5px #000
-    }
-
-    .range{
-      display:grid;
-      grid-template-columns:1fr auto;
-      gap:10px;
-      align-items:center
-    }
-
-    input[type=range]{
-      padding:0;
-      accent-color:var(--accent)
-    }
-
-    .generate{
-      width:100%;
-      padding:15px 18px;
-      border:0;
-      border-radius:15px;
-      color:white;
-      font-weight:900;
-      font-size:16px;
-      background:linear-gradient(100deg,#6f4cff,#a14dff,#00bfe9);
-      box-shadow:0 12px 30px rgba(112,76,255,.28)
-    }
-
-    .generate:disabled{
-      opacity:.55;
-      cursor:wait
-    }
-
-    .subnote{
-      font-size:12px;
-      color:#818a9d;
-      line-height:1.55;
-      margin-top:9px
-    }
-
-    .preview-wrap{
-      position:sticky;
-      top:96px
-    }
-
-    .preview{
-      position:relative;
-      overflow:hidden;
-      aspect-ratio:1;
-      border-radius:24px;
-      background:
-        radial-gradient(circle at 30% 20%,rgba(124,92,255,.35),transparent 30%),
-        linear-gradient(145deg,#161a27,#080a10);
-      border:1px solid #31374a;
-      display:grid;
-      place-items:center
-    }
-
-    .preview.empty:before{
-      content:"AI GAME ICON";
-      font-weight:900;
-      letter-spacing:.16em;
-      color:#384054;
-      font-size:12px
-    }
-
-    .preview img{
-      width:100%;
-      height:100%;
-      object-fit:cover;
-      display:block
-    }
-
-    .overlay{
-      position:absolute;
-      left:5%;
-      right:5%;
-      bottom:5%;
-      text-align:center;
-      pointer-events:none;
-      text-shadow:0 4px 14px #000,0 1px 2px #000
-    }
-
-    .name{
-      font-size:clamp(22px,5vw,42px);
-      font-weight:1000;
-      line-height:1
-    }
-
-    .alliance{
-      font-size:clamp(12px,2.4vw,18px);
-      font-weight:800;
-      opacity:.92;
-      margin-top:7px
-    }
-
-    .clan{
-      font-size:clamp(10px,2vw,14px);
-      opacity:.75;
-      margin-top:4px
-    }
-
-    .preview-top{
-      position:absolute;
-      top:12px;
-      left:12px;
-      right:12px;
-      display:flex;
-      justify-content:space-between;
-      z-index:2
-    }
-
-    .status{
-      background:rgba(5,7,12,.72);
-      backdrop-filter:blur(10px);
-      border:1px solid rgba(255,255,255,.1);
-      padding:7px 10px;
-      border-radius:999px;
-      font-size:11px;
-      font-weight:800
-    }
-
-    .result-actions{
-      display:grid;
-      grid-template-columns:1fr 1fr;
-      gap:9px;
-      margin-top:10px
-    }
-
-    .secondary{
-      border:1px solid var(--line);
-      background:#121622;
-      color:var(--text);
-      padding:12px;
-      border-radius:13px;
-      font-weight:800
-    }
-
-    .history{
-      margin-top:18px
-    }
-
-    .history-list{
-      display:grid;
-      grid-template-columns:repeat(3,1fr);
-      gap:8px
-    }
-
-    .history-item{
-      border:1px solid var(--line);
-      border-radius:13px;
-      overflow:hidden;
-      background:#0d111a
-    }
-
-    .history-item img{
-      width:100%;
-      aspect-ratio:1;
-      object-fit:cover;
-      display:block
-    }
-
-    .history-item div{
-      padding:8px;
-      font-size:11px;
-      white-space:nowrap;
-      overflow:hidden;
-      text-overflow:ellipsis
-    }
-
-    .toast{
-      position:fixed;
-      left:50%;
-      bottom:25px;
-      transform:translate(-50%,20px);
-      opacity:0;
-      pointer-events:none;
-      background:#f5f7ff;
-      color:#10131b;
-      padding:12px 16px;
-      border-radius:999px;
-      font-size:13px;
-      font-weight:900;
-      z-index:100;
-      transition:.25s
-    }
-
-    .toast.show{
-      opacity:1;
-      transform:translate(-50%,0)
-    }
-
-    .loading{
-      display:flex;
-      align-items:center;
-      gap:8px;
-      justify-content:center
-    }
-
-    .dot{
-      width:8px;
-      height:8px;
-      border-radius:50%;
-      background:#fff;
-      animation:b .8s infinite alternate
-    }
-
-    .dot:nth-child(2){animation-delay:.15s}
-    .dot:nth-child(3){animation-delay:.3s}
-
-    @keyframes b{
-      to{
-        opacity:.25;
-        transform:translateY(-3px)
-      }
-    }
-
-    footer{
-      padding:30px 0 60px;
-      color:#6f7789;
-      text-align:center;
-      font-size:12px
-    }
-
-    @media(max-width:820px){
-      .layout{
-        grid-template-columns:1fr
-      }
-
-      .preview-wrap{
-        position:relative;
-        top:auto;
-        order:-1
-      }
-
-      .preview{
-        max-width:620px;
-        margin:auto
-      }
-    }
-
-    @media(max-width:480px){
-      .wrap{
-        width:min(100% - 18px,1120px)
-      }
-
-      .hero{
-        padding-top:32px
-      }
-
-      .grid2{
-        grid-template-columns:1fr
-      }
-
-      .colors{
-        grid-template-columns:repeat(9,1fr);
-        gap:6px
-      }
-
-      .card{
-        padding:14px;
-        border-radius:19px
-      }
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#080a10">
+<title>Game Icon AI</title>
+
+<style>
+:root{
+  --bg:#080a10;
+  --card:#121622;
+  --line:#2b3142;
+  --text:#f7f8fc;
+  --muted:#9aa3b6;
+  --accent:#8b5cf6;
+}
+
+*{
+  box-sizing:border-box;
+}
+
+body{
+  margin:0;
+  background:
+    radial-gradient(
+      circle at 80% -10%,
+      #5132a333,
+      transparent 35%
+    ),
+    var(--bg);
+  color:var(--text);
+  font-family:
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    "Noto Sans JP",
+    sans-serif;
+}
+
+button,
+input,
+textarea,
+select{
+  font:inherit;
+}
+
+button{
+  touch-action:manipulation;
+  -webkit-tap-highlight-color:transparent;
+}
+
+.wrap{
+  width:min(1100px,calc(100% - 20px));
+  margin:auto;
+}
+
+header{
+  position:sticky;
+  top:0;
+  z-index:20;
+  background:#080a10e8;
+  backdrop-filter:blur(16px);
+  border-bottom:1px solid #ffffff0d;
+  padding:13px 0;
+}
+
+.nav{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+}
+
+.brand{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  font-weight:900;
+  font-size:19px;
+}
+
+.logo{
+  width:40px;
+  height:40px;
+  border-radius:12px;
+  display:grid;
+  place-items:center;
+  background:linear-gradient(135deg,#7c5cff,#00d4ff);
+}
+
+.hero{
+  text-align:center;
+  padding:34px 0 25px;
+}
+
+.badge{
+  display:inline-block;
+  border:1px solid #383f53;
+  background:#111522;
+  border-radius:999px;
+  padding:7px 11px;
+  font-size:12px;
+  font-weight:800;
+  color:#c5cce0;
+}
+
+h1{
+  font-size:clamp(38px,8vw,72px);
+  line-height:1;
+  margin:16px 0 12px;
+  letter-spacing:-.05em;
+}
+
+.gradient{
+  background:linear-gradient(90deg,#fff,#aa96ff,#67e5ff);
+  color:transparent;
+  background-clip:text;
+  -webkit-background-clip:text;
+}
+
+.lead{
+  max-width:700px;
+  margin:auto;
+  color:var(--muted);
+  line-height:1.7;
+}
+
+.layout{
+  display:grid;
+  grid-template-columns:1.05fr .95fr;
+  gap:16px;
+  padding-bottom:50px;
+}
+
+.card{
+  background:linear-gradient(
+    180deg,
+    #161a27f5,
+    #0f121cf5
+  );
+  border:1px solid var(--line);
+  border-radius:20px;
+  padding:17px;
+}
+
+h2{
+  font-size:18px;
+  margin:0 0 14px;
+}
+
+.section{
+  border-top:1px solid #ffffff0c;
+  padding:15px 0;
+}
+
+.section:first-of-type{
+  border-top:0;
+  padding-top:0;
+}
+
+label{
+  display:block;
+  font-size:13px;
+  font-weight:800;
+  color:#cbd1df;
+  margin-bottom:7px;
+}
+
+input,
+select,
+textarea{
+  width:100%;
+  background:#0c1019;
+  border:1px solid #32394b;
+  color:var(--text);
+  border-radius:12px;
+  padding:12px;
+  outline:0;
+}
+
+textarea{
+  min-height:105px;
+  resize:vertical;
+}
+
+.grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+}
+
+.hint{
+  font-size:11px;
+  color:#7e879a;
+  line-height:1.5;
+  margin-top:7px;
+}
+
+.colors{
+  display:grid;
+  grid-template-columns:repeat(9,1fr);
+  gap:8px;
+}
+
+.color-btn{
+  display:block;
+  width:100%;
+  aspect-ratio:1;
+  border-radius:11px;
+  border:3px solid transparent;
+  padding:0;
+  box-shadow:
+    inset 0 0 0 1px #ffffff33;
+}
+
+.color-btn.selected{
+  border-color:#fff;
+  box-shadow:
+    0 0 0 2px #8b5cf655;
+}
+
+.option-grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:8px;
+}
+
+.option-btn,
+.example-btn{
+  width:100%;
+  min-height:44px;
+  border:1px solid #333a4c;
+  border-radius:12px;
+  background:#0d111b;
+  color:#dce1ec;
+  padding:9px 8px;
+  font-size:12px;
+  font-weight:700;
+}
+
+.option-btn.selected{
+  border-color:#8b5cf6;
+  background:#8b5cf620;
+  box-shadow:0 0 0 2px #8b5cf622;
+}
+
+.example-list{
+  display:flex;
+  flex-wrap:wrap;
+  gap:7px;
+}
+
+.example-btn{
+  width:auto;
+  min-height:38px;
+}
+
+.generate{
+  width:100%;
+  border:0;
+  border-radius:14px;
+  padding:15px;
+  color:#fff;
+  font-weight:900;
+  background:
+    linear-gradient(
+      100deg,
+      #704cff,
+      #a14dff,
+      #00bfe9
+    );
+  font-size:16px;
+}
+
+.preview-wrap{
+  position:sticky;
+  top:82px;
+}
+
+.preview{
+  position:relative;
+  aspect-ratio:1;
+  border-radius:21px;
+  overflow:hidden;
+  background:
+    radial-gradient(
+      circle at 30% 20%,
+      #7c5cff55,
+      transparent 30%
+    ),
+    linear-gradient(145deg,#171b29,#080a10);
+  border:1px solid #343a4c;
+  display:grid;
+  place-items:center;
+}
+
+.preview.empty:after{
+  content:"AI GAME ICON";
+  font-size:12px;
+  letter-spacing:.15em;
+  color:#3b4356;
+  font-weight:900;
+}
+
+.preview img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  display:block;
+}
+
+.statusbar{
+  position:absolute;
+  top:10px;
+  left:10px;
+  right:10px;
+  display:flex;
+  justify-content:space-between;
+  z-index:4;
+}
+
+.status{
+  background:#05070cb8;
+  border:1px solid #ffffff18;
+  border-radius:999px;
+  padding:6px 9px;
+  font-size:10px;
+  font-weight:800;
+}
+
+.overlay{
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  text-shadow:
+    0 4px 14px #000,
+    0 1px 2px #000;
+}
+
+.overlay-line{
+  position:absolute;
+  white-space:nowrap;
+  font-weight:900;
+}
+
+.actions{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:8px;
+  margin-top:9px;
+}
+
+.secondary{
+  border:1px solid var(--line);
+  background:#121622;
+  color:#fff;
+  padding:12px;
+  border-radius:12px;
+  font-weight:800;
+}
+
+.secondary:disabled{
+  opacity:.4;
+}
+
+.history{
+  margin-top:16px;
+}
+
+.history-grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:7px;
+}
+
+.history-item{
+  border:1px solid var(--line);
+  background:#0d111a;
+  color:#fff;
+  padding:0;
+  border-radius:11px;
+  overflow:hidden;
+  text-align:left;
+}
+
+.history-item img{
+  width:100%;
+  aspect-ratio:1;
+  object-fit:cover;
+  display:block;
+}
+
+.history-item span{
+  display:block;
+  padding:7px;
+  font-size:10px;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+.toast{
+  position:fixed;
+  z-index:100;
+  left:50%;
+  bottom:22px;
+  transform:translate(-50%,20px);
+  opacity:0;
+  background:#fff;
+  color:#111;
+  padding:11px 15px;
+  border-radius:999px;
+  font-size:12px;
+  font-weight:900;
+  transition:.2s;
+}
+
+.toast.show{
+  opacity:1;
+  transform:translate(-50%,0);
+}
+
+@media(max-width:820px){
+
+  .layout{
+    grid-template-columns:1fr;
+  }
+
+  .preview-wrap{
+    position:relative;
+    top:0;
+    order:-1;
+  }
+
+  .preview{
+    max-width:600px;
+    margin:auto;
+  }
+}
+
+@media(max-width:520px){
+
+  .grid{
+    grid-template-columns:1fr;
+  }
+
+  .option-grid{
+    grid-template-columns:repeat(2,1fr);
+  }
+
+  .colors{
+    gap:6px;
+  }
+
+  .card{
+    padding:14px;
+  }
+}
+</style>
 </head>
 
 <body>
 
 <header>
-  <div class="wrap nav">
-    <div class="brand">
-      <div class="logo"><span>✦</span></div>
-      Game Icon AI
-    </div>
 
-    <div class="nav-actions">
-      <button class="ghost" id="resetBtn">リセット</button>
-    </div>
-  </div>
+<div class="wrap nav">
+
+<div class="brand">
+<div class="logo">✦</div>
+Game Icon AI
+</div>
+
+<button
+type="button"
+class="secondary"
+id="reset"
+>
+リセット
+</button>
+
+</div>
+
 </header>
+
 
 <main class="wrap">
 
-  <section class="hero">
-    <span class="badge">AI GAME ICON GENERATOR</span>
+<section class="hero">
 
-    <h1>
-      ゲーム用アイコンを<br>
-      <span class="gradient">自分だけのデザインに。</span>
-    </h1>
+<span class="badge">
+AI GAME ICON GENERATOR
+</span>
 
-    <p class="lead">
-      名前・同盟名・クラン名・カラー・キャラクター・雰囲気を選んで、
-      1:1のゲームアイコンをAIで生成。
-    </p>
-  </section>
+<h1>
+ゲーム用アイコンを<br>
+<span class="gradient">
+自由にデザイン。
+</span>
+</h1>
 
-  <section class="layout">
+<p class="lead">
+選択項目だけでなく、
+ChatGPTに話しかけるように
+背景・服装・髪・表情・ポーズ・光・構図まで
+自由に指示できます。
+</p>
 
-    <div class="card">
+</section>
 
-      <h2>🎮 アイコン設定</h2>
 
-      <div class="section">
+<section class="layout">
 
-        <div class="grid2">
 
-          <div>
-            <label for="playerName">プレイヤー名</label>
-            <input
-              id="playerName"
-              maxlength="24"
-              placeholder="例：Pooh"
-            >
-          </div>
+<div class="card">
 
-          <div>
-            <label for="allianceName">同盟名</label>
-            <input
-              id="allianceName"
-              maxlength="24"
-              placeholder="例：AxLF"
-            >
-          </div>
+<h2>🎮 アイコン設定</h2>
 
-        </div>
 
-        <div style="margin-top:11px">
+<div class="section">
 
-          <label for="clanName">
-            クラン名 / チーム名
-          </label>
+<div class="grid">
 
-          <input
-            id="clanName"
-            maxlength="24"
-            placeholder="例：LEGENDS"
-          >
+<div>
 
-        </div>
+<label>
+プレイヤー名
+</label>
 
-      </div>
+<input
+id="player"
+maxlength="24"
+placeholder="例：Shadow"
+>
 
+</div>
 
-      <div class="section">
 
-        <label>イメージカラー</label>
+<div>
 
-        <div class="colors" id="colors"></div>
+<label>
+同盟名
+</label>
 
-      </div>
+<input
+id="alliance"
+maxlength="24"
+placeholder="例：NOVA"
+>
 
+</div>
 
-      <div class="section">
+</div>
 
-        <label>キャラクタータイプ</label>
 
-        <div class="chips" id="characterChips"></div>
+<div style="margin-top:10px">
 
-      </div>
+<label>
+クラン名 / チーム名
+</label>
 
+<input
+id="team"
+maxlength="24"
+placeholder="例：TEAM01"
+>
 
-      <div class="section">
+</div>
 
-        <label>雰囲気</label>
+<div class="hint">
+名前はAIに描かせません。
+生成後にサイト側で正確に合成します。
+</div>
 
-        <div class="chips" id="moodChips"></div>
+</div>
 
-      </div>
 
+<div class="section">
 
-      <div class="section">
+<label>
+🎨 イメージカラー
+</label>
 
-        <div class="grid2">
+<div
+class="colors"
+id="colors"
+></div>
 
-          <div>
+</div>
 
-            <label for="background">
-              背景
-            </label>
 
-            <select id="background">
+<div class="section">
 
-              <option>ネオン都市</option>
-              <option>ダークファンタジー</option>
-              <option>炎と煙</option>
-              <option>氷とオーロラ</option>
-              <option>宇宙・銀河</option>
-              <option>桜と夜空</option>
-              <option>雷と嵐</option>
-              <option>戦場・SF</option>
-              <option>高級・ブラックゴールド</option>
+<label>
+🧙 キャラクタータイプ
+</label>
 
-            </select>
+<div
+class="option-grid"
+id="characters"
+></div>
 
-          </div>
+</div>
 
 
-          <div>
+<div class="section">
 
-            <label for="textPosition">
-              文字位置
-            </label>
+<label>
+✨ 雰囲気
+</label>
 
-            <select id="textPosition">
+<div
+class="option-grid"
+id="moods"
+></div>
 
-              <option>下部中央</option>
-              <option>上部中央</option>
-              <option>左側</option>
-              <option>右側</option>
-              <option>キャラクターの横</option>
+</div>
 
-            </select>
 
-          </div>
+<div class="section">
 
-        </div>
+<label>
+🌃 背景・シーン
+</label>
 
-      </div>
+<select id="bgPreset">
 
+<option value="">
+プリセットを使わない
+</option>
 
-      <div class="section">
+<option>ネオン都市</option>
+<option>ダークファンタジー</option>
+<option>炎と煙</option>
+<option>氷とオーロラ</option>
+<option>宇宙・銀河</option>
+<option>桜と夜空</option>
+<option>雷と嵐</option>
+<option>戦場・SF</option>
+<option>ブラックゴールドの高級空間</option>
 
-        <label>文字の存在感</label>
+</select>
 
-        <div class="range">
 
-          <input
-            id="textSize"
-            type="range"
-            min="1"
-            max="5"
-            value="4"
-          >
+<div style="margin-top:10px">
 
-          <strong id="textSizeValue">4</strong>
+<textarea
+id="background"
+maxlength="1000"
+placeholder="例：雨の降る夜の東京。青と紫のネオンが濡れた道路に反射し、遠くに巨大な高層ビル。薄い霧を入れて、キャラクターを目立たせてください。"
+></textarea>
 
-        </div>
+</div>
 
-      </div>
+</div>
 
 
-      <div class="section">
+<div class="section">
 
-        <label for="extraPrompt">
-          追加イメージ（任意）
-        </label>
+<label>
+🔤 生成後の文字
+</label>
 
-        <textarea
-          id="extraPrompt"
-          maxlength="300"
-          placeholder="例：青い光の剣を持たせたい、鎧を黒と銀にしたい、人物を大きくしたい"
-        ></textarea>
+<div class="grid">
 
-      </div>
+<div>
 
+<label>
+位置
+</label>
 
-      <button
-        class="generate"
-        id="generateBtn"
-      >
-        ✨ AIでアイコンを生成
-      </button>
+<select id="textPos">
 
-      <div class="subnote">
-        生成画像は1:1・1024×1024を想定。
-        APIキーはブラウザには置かず、
-        Vercelのサーバー側環境変数を使用します。
-      </div>
+<option>
+下部中央
+</option>
 
-    </div>
+<option>
+上部中央
+</option>
 
+<option>
+左側
+</option>
 
-    <div class="preview-wrap">
+<option>
+右側
+</option>
 
-      <div class="card">
+<option>
+キャラクターの横
+</option>
 
-        <h2>🖼️ プレビュー</h2>
+</select>
 
-        <div
-          class="preview empty"
-          id="preview"
-        >
+</div>
 
-          <div class="preview-top">
 
-            <span
-              class="status"
-              id="status"
-            >
-              準備完了
-            </span>
+<div>
 
-            <span class="status">
-              1 : 1
-            </span>
+<label>
+サイズ
+</label>
 
-          </div>
+<input
+id="textSize"
+type="range"
+min="1"
+max="5"
+value="4"
+>
 
+</div>
 
-          <div
-            class="overlay"
-            id="overlay"
-          >
+</div>
 
-            <div
-              class="name"
-              id="previewName"
-            >
-              YOUR NAME
-            </div>
+</div>
 
-            <div
-              class="alliance"
-              id="previewAlliance"
-            ></div>
 
-            <div
-              class="clan"
-              id="previewClan"
-            ></div>
+<div class="section">
 
-          </div>
+<label>
+💬 AIへの追加指示
+</label>
 
-        </div>
+<textarea
+id="prompt"
+maxlength="2000"
+placeholder="例：キャラクターをもっと大きくしてください。銀髪、青い瞳、黒い高級な服。顔は少し左を向け、右手に青い光の剣。冷たい表情。全体は暗めですが顔は明るく、映画のようなライティングにしてください。"
+></textarea>
 
+<div class="hint">
 
-        <div class="result-actions">
+普通の文章で細かく指示できます。
 
-          <button
-            class="secondary"
-            id="downloadBtn"
-            disabled
-          >
-            ⬇ 保存
-          </button>
+選択項目より、
+この欄の具体的な指示を優先して解釈します。
 
-          <button
-            class="secondary"
-            id="copyBtn"
-          >
-            📋 設定をコピー
-          </button>
+</div>
 
-        </div>
+</div>
 
 
-        <div class="history">
+<div class="section">
 
-          <h2 style="font-size:15px">
-            最近の生成
-          </h2>
+<label>
+💡 選択中キャラクターの指示例
+</label>
 
-          <div
-            class="history-list"
-            id="historyList"
-          ></div>
+<div
+class="example-list"
+id="examples"
+></div>
 
-        </div>
+</div>
 
-      </div>
 
-    </div>
+<button
+type="button"
+class="generate"
+id="generate"
+>
+✨ AIでアイコンを生成
+</button>
 
-  </section>
+<div class="hint">
+1:1・1024×1024。
+APIキーはブラウザに置かず
+サーバー側で管理します。
+</div>
+
+</div>
+
+
+<div class="preview-wrap">
+
+<div class="card">
+
+<h2>
+🖼️ プレビュー
+</h2>
+
+
+<div
+class="preview empty"
+id="preview"
+>
+
+<div class="statusbar">
+
+<span
+class="status"
+id="status"
+>
+準備完了
+</span>
+
+<span class="status">
+1 : 1
+</span>
+
+</div>
+
+</div>
+
+
+<div class="actions">
+
+<button
+type="button"
+class="secondary"
+id="download"
+disabled
+>
+⬇ 保存
+</button>
+
+
+<button
+type="button"
+class="secondary"
+id="copy"
+>
+📋 設定をコピー
+</button>
+
+</div>
+
+
+<div class="history">
+
+<h2 style="font-size:14px">
+最近の生成
+</h2>
+
+<div
+class="history-grid"
+id="history"
+></div>
+
+</div>
+
+</div>
+
+</div>
+
+</section>
 
 </main>
 
 
-<footer>
-  Game Icon AI · Create your game identity
+<footer
+style="
+text-align:center;
+color:#6f7789;
+font-size:11px;
+padding:20px 0 50px
+"
+>
+Game Icon AI · Create your game identity
 </footer>
 
 
 <div
-  class="toast"
-  id="toast"
+class="toast"
+id="toast"
 ></div>
 
 
 <script>
 
-const $ = id => document.getElementById(id);
+const $ =
+id => document.getElementById(id);
 
 
-const palette = [
+const colors = [
 
-  ["ピンク","#ff4fa3"],
-  ["マゼンタ","#d946ef"],
-  ["紫","#8b5cf6"],
-  ["青紫","#6366f1"],
-  ["ブルー","#2196f3"],
-  ["シアン","#06b6d4"],
-  ["水色","#38bdf8"],
-  ["緑","#22c55e"],
-  ["エメラルド","#10b981"],
-  ["ライム","#84cc16"],
-  ["黄色","#facc15"],
-  ["ゴールド","#f59e0b"],
-  ["オレンジ","#f97316"],
-  ["赤","#ef4444"],
-  ["ワイン","#be123c"],
-  ["白銀","#e5e7eb"],
-  ["ブラック","#111827"],
-  ["ネオン","#00ffcc"]
+["ピンク","#ff4fa3"],
+["マゼンタ","#d946ef"],
+["紫","#8b5cf6"],
+["青紫","#6366f1"],
+["青","#2196f3"],
+["シアン","#06b6d4"],
+["水色","#38bdf8"],
+["緑","#22c55e"],
+["エメラルド","#10b981"],
+["ライム","#84cc16"],
+["黄色","#facc15"],
+["ゴールド","#f59e0b"],
+["オレンジ","#f97316"],
+["赤","#ef4444"],
+["ワイン","#be123c"],
+["白銀","#e5e7eb"],
+["ブラック","#111827"],
+["ネオン","#00ffcc"]
 
 ];
 
 
-const characters = [
+const chars = [
 
-  "クールな戦士",
-  "ダークヒーロー",
-  "天才ハッカー",
-  "侍・武将",
-  "魔法使い",
-  "騎士",
-  "サイボーグ",
-  "ドラゴン使い",
-  "狼・獣系",
-  "可愛いキャラ",
-  "女性キャラクター",
-  "男性キャラクター"
+"クールな戦士",
+"ダークヒーロー",
+"天才ハッカー",
+"侍・武将",
+"魔法使い",
+"騎士",
+"サイボーグ",
+"ドラゴン使い",
+"狼・獣系",
+"可愛いキャラ",
+"女性キャラクター",
+"男性キャラクター"
 
 ];
 
 
 const moods = [
 
-  "超クール",
-  "冷酷・ダーク",
-  "高級感",
-  "可愛い",
-  "美しい",
-  "迫力重視",
-  "知的",
-  "神秘的",
-  "未来的",
-  "王者・最強"
+"超クール",
+"冷酷・ダーク",
+"高級感",
+"可愛い",
+"美しい",
+"迫力重視",
+"知的",
+"神秘的",
+"未来的",
+"王者・最強"
 
 ];
 
 
-let state = {
+const examples = {
 
-  color: palette[2][1],
+"クールな戦士":[
+"黒い鎧と銀色の装備",
+"青い炎をまとわせる",
+"巨大な剣を持たせる",
+"キャラクターを大きくする"
+],
 
-  colorName: palette[2][0],
+"ダークヒーロー":[
+"黒いロングコート",
+"赤い瞳と冷たい表情",
+"煙と赤い光",
+"下から見上げる構図"
+],
 
-  character: characters[0],
+"天才ハッカー":[
+"ホログラム画面",
+"青いネオン",
+"未来都市",
+"知的で余裕のある表情"
+],
 
-  mood: moods[0],
+"侍・武将":[
+"黒い甲冑",
+"美しい日本刀",
+"桜の花びら",
+"威厳のある立ち姿"
+],
 
-  image: null
+"魔法使い":[
+"紫の魔法陣",
+"光る杖",
+"魔力の粒子",
+"神秘的な光"
+],
+
+"騎士":[
+"黒銀の重装鎧",
+"巨大な盾と剣",
+"王城",
+"英雄のようなポーズ"
+],
+
+"サイボーグ":[
+"青い発光ライン",
+"機械の片腕",
+"未来都市",
+"黒銀の高級金属"
+],
+
+"ドラゴン使い":[
+"巨大な美しいドラゴン",
+"赤い炎",
+"主人公を大きく",
+"ドラゴンと視線を合わせる"
+],
+
+"狼・獣系":[
+"巨大な狼",
+"月明かり",
+"青い目",
+"美しい毛並み"
+],
+
+"可愛いキャラ":[
+"大きく可愛い瞳",
+"パステルカラー",
+"小さな動物",
+"柔らかい光"
+],
+
+"女性キャラクター":[
+"長い銀髪",
+"青い瞳",
+"黒い高級ドレス",
+"優雅なポーズ"
+],
+
+"男性キャラクター":[
+"短い黒髪",
+"鋭い目つき",
+"黒い高級ジャケット",
+"力強い立ち姿"
+]
 
 };
 
 
-function renderButtons(){
+let selected = {
 
-  $("colors").innerHTML =
-    palette.map((p,i)=>`
+color:colors[2],
+character:chars[0],
+mood:moods[0],
+image:null
 
-      <button
-        class="color ${i===2?"active":""}"
-        title="${p[0]}"
-        aria-label="${p[0]}"
-        style="background:${p[1]}"
-        data-color="${p[1]}"
-        data-name="${p[0]}"
-      ></button>
-
-    `).join("");
+};
 
 
-  $("characterChips").innerHTML =
-    characters.map((x,i)=>`
+function render(){
 
-      <button
-        class="chip ${i===0?"active":""}"
-        data-character="${x}"
-      >
-        ${x}
-      </button>
+$("colors").innerHTML =
+colors.map(
+(c,i)=>`
 
-    `).join("");
+<button
+type="button"
+class="color-btn ${i===2?"selected":""}"
+style="background:${c[1]}"
+data-color-index="${i}"
+aria-label="${c[0]}"
+></button>
 
-
-  $("moodChips").innerHTML =
-    moods.map((x,i)=>`
-
-      <button
-        class="chip ${i===0?"active":""}"
-        data-mood="${x}"
-      >
-        ${x}
-      </button>
-
-    `).join("");
+`
+).join("");
 
 
-  document
-    .querySelectorAll("[data-color]")
-    .forEach(b=>{
+$("characters").innerHTML =
+chars.map(
+(x,i)=>`
 
-      b.onclick=()=>{
+<button
+type="button"
+class="option-btn ${i===0?"selected":""}"
+data-char-index="${i}"
+>
+${x}
+</button>
 
-        document
-          .querySelectorAll("[data-color]")
-          .forEach(x=>x.classList.remove("active"));
-
-        b.classList.add("active");
-
-        state.color=b.dataset.color;
-        state.colorName=b.dataset.name;
-
-        updatePreview();
-
-      };
-
-    });
+`
+).join("");
 
 
-  document
-    .querySelectorAll("[data-character]")
-    .forEach(b=>{
+$("moods").innerHTML =
+moods.map(
+(x,i)=>`
 
-      b.onclick=()=>{
+<button
+type="button"
+class="option-btn ${i===0?"selected":""}"
+data-mood-index="${i}"
+>
+${x}
+</button>
 
-        document
-          .querySelectorAll("[data-character]")
-          .forEach(x=>x.classList.remove("active"));
-
-        b.classList.add("active");
-
-        state.character=b.dataset.character;
-
-      };
-
-    });
+`
+).join("");
 
 
-  document
-    .querySelectorAll("[data-mood]")
-    .forEach(b=>{
-
-      b.onclick=()=>{
-
-        document
-          .querySelectorAll("[data-mood]")
-          .forEach(x=>x.classList.remove("active"));
-
-        b.classList.add("active");
-
-        state.mood=b.dataset.mood;
-
-      };
-
-    });
+renderExamples();
 
 }
 
 
-function updatePreview(){
+function renderExamples(){
 
-  $("previewName").textContent =
-    $("playerName").value.trim() || "YOUR NAME";
+$("examples").innerHTML =
+(examples[selected.character] || [])
+.map(
+x=>`
 
-  $("previewAlliance").textContent =
-    $("allianceName").value.trim();
+<button
+type="button"
+class="example-btn"
+data-example="${encodeURIComponent(x)}"
+>
+${x}
+</button>
 
-  $("previewClan").textContent =
-    $("clanName").value.trim();
-
-  $("overlay").style.color =
-    state.color;
+`
+).join("");
 
 }
 
 
-[
-  "playerName",
-  "allianceName",
-  "clanName"
-].forEach(id=>{
+document.addEventListener(
+"click",
+function(e){
 
-  $(id).addEventListener(
-    "input",
-    updatePreview
-  );
+const color =
+e.target.closest(
+"[data-color-index]"
+);
+
+if(color){
+
+document
+.querySelectorAll(
+"[data-color-index]"
+)
+.forEach(
+x=>x.classList.remove(
+"selected"
+)
+);
+
+color.classList.add(
+"selected"
+);
+
+selected.color =
+colors[
+Number(
+color.dataset.colorIndex
+)
+];
+
+toast(
+"カラー："+selected.color[0]
+);
+
+return;
+
+}
+
+
+const character =
+e.target.closest(
+"[data-char-index]"
+);
+
+if(character){
+
+document
+.querySelectorAll(
+"[data-char-index]"
+)
+.forEach(
+x=>x.classList.remove(
+"selected"
+)
+);
+
+character.classList.add(
+"selected"
+);
+
+selected.character =
+chars[
+Number(
+character.dataset.charIndex
+)
+];
+
+renderExamples();
+
+toast(
+"キャラクター："+selected.character
+);
+
+return;
+
+}
+
+
+const mood =
+e.target.closest(
+"[data-mood-index]"
+);
+
+if(mood){
+
+document
+.querySelectorAll(
+"[data-mood-index]"
+)
+.forEach(
+x=>x.classList.remove(
+"selected"
+)
+);
+
+mood.classList.add(
+"selected"
+);
+
+selected.mood =
+moods[
+Number(
+mood.dataset.moodIndex
+)
+];
+
+toast(
+"雰囲気："+selected.mood
+);
+
+return;
+
+}
+
+
+const example =
+e.target.closest(
+"[data-example]"
+);
+
+if(example){
+
+const text =
+decodeURIComponent(
+example.dataset.example
+);
+
+const box =
+$("prompt");
+
+box.value =
+box.value.trim()
+?
+box.value.trim()+"、"+text
+:
+text;
+
+box.focus();
+
+return;
+
+}
 
 });
 
 
-$("textSize").addEventListener(
-  "input",
-  e=>{
-    $("textSizeValue").textContent =
-      e.target.value;
-  }
-);
+function payload(){
 
+return{
 
-function toast(msg){
+playerName:
+$("player").value.trim(),
 
-  $("toast").textContent=msg;
+allianceName:
+$("alliance").value.trim(),
 
-  $("toast").classList.add("show");
+teamName:
+$("team").value.trim(),
 
-  clearTimeout(window.__toast);
+color:
+selected.color[0],
 
-  window.__toast=setTimeout(
-    ()=>$("toast").classList.remove("show"),
-    2200
-  );
+colorHex:
+selected.color[1],
 
-}
+character:
+selected.character,
 
+mood:
+selected.mood,
 
-function getPayload(){
+backgroundPreset:
+$("bgPreset").value,
 
-  return {
+background:
+$("background").value.trim(),
 
-    playerName:
-      $("playerName").value.trim(),
+textPosition:
+$("textPos").value,
 
-    allianceName:
-      $("allianceName").value.trim(),
+textSize:
+Number(
+$("textSize").value
+),
 
-    clanName:
-      $("clanName").value.trim(),
+extraPrompt:
+$("prompt").value.trim()
 
-    color:
-      state.colorName,
-
-    colorHex:
-      state.color,
-
-    character:
-      state.character,
-
-    mood:
-      state.mood,
-
-    background:
-      $("background").value,
-
-    textPosition:
-      $("textPosition").value,
-
-    textSize:
-      Number($("textSize").value),
-
-    extraPrompt:
-      $("extraPrompt").value.trim()
-
-  };
+};
 
 }
 
 
 async function generate(){
 
-  const btn=$("generateBtn");
-
-  const payload=getPayload();
-
-
-  if(
-    !payload.playerName &&
-    !payload.allianceName &&
-    !payload.clanName
-  ){
-
-    toast(
-      "名前・同盟名・クラン名のどれかを入力してね"
-    );
-
-    return;
-
-  }
+const p =
+payload();
 
 
-  btn.disabled=true;
+if(
+!p.playerName &&
+!p.allianceName &&
+!p.teamName
+){
 
-  btn.innerHTML=`
-    <span class="loading">
-      <span class="dot"></span>
-      <span class="dot"></span>
-      <span class="dot"></span>
-      生成中…
-    </span>
-  `;
+toast(
+"名前・同盟名・クラン名のどれかを入力してね"
+);
 
-
-  $("status").textContent="AI生成中";
-
-
-  try{
-
-    const res=await fetch(
-      "/api/generate",
-      {
-        method:"POST",
-        headers:{
-          "Content-Type":
-            "application/json"
-        },
-        body:
-          JSON.stringify(payload)
-      }
-    );
-
-
-    const data=await res.json();
-
-
-    if(!res.ok){
-
-      throw new Error(
-        data.error ||
-        "生成に失敗しました"
-      );
-
-    }
-
-
-    const src =
-      data.image?.startsWith("data:")
-        ? data.image
-        : "data:image/png;base64," +
-          data.image;
-
-
-    state.image=src;
-
-
-    $("preview")
-      .classList
-      .remove("empty");
-
-
-    $("preview").innerHTML=`
-
-      <div class="preview-top">
-
-        <span class="status">
-          生成完了
-        </span>
-
-        <span class="status">
-          1 : 1
-        </span>
-
-      </div>
-
-      <img
-        id="resultImage"
-        src="${src}"
-        alt="Generated game icon"
-      >
-
-      <div
-        class="overlay"
-        id="overlay"
-      >
-
-        <div class="name">
-          ${escapeHtml(
-            payload.playerName || ""
-          )}
-        </div>
-
-        <div class="alliance">
-          ${escapeHtml(
-            payload.allianceName || ""
-          )}
-        </div>
-
-        <div class="clan">
-          ${escapeHtml(
-            payload.clanName || ""
-          )}
-        </div>
-
-      </div>
-
-    `;
-
-
-    $("overlay").style.color =
-      state.color;
-
-
-    $("downloadBtn").disabled=false;
-
-
-    saveHistory(
-      src,
-      payload.playerName ||
-      payload.allianceName ||
-      "Game Icon"
-    );
-
-
-    $("status").textContent =
-      "生成完了";
-
-
-    toast(
-      "アイコンを生成しました！"
-    );
-
-
-  }catch(err){
-
-    console.error(err);
-
-    $("status").textContent =
-      "エラー";
-
-    toast(
-      err.message ||
-      "生成に失敗しました"
-    );
-
-  }finally{
-
-    btn.disabled=false;
-
-    btn.textContent =
-      "✨ AIでアイコンを生成";
-
-  }
+return;
 
 }
 
 
-function escapeHtml(s){
+$("generate").disabled =
+true;
 
-  return s.replace(
-    /[&<>"']/g,
-    m=>({
+$("generate").textContent =
+"生成中…";
 
-      "&":"&amp;",
-      "<":"&lt;",
-      ">":"&gt;",
-      '"':"&quot;",
-      "'":"&#039;"
+$("status").textContent =
+"AI生成中";
 
-    }[m])
-  );
+
+try{
+
+const response =
+await fetch(
+"/api/generate",
+{
+
+method:"POST",
+
+headers:{
+"Content-Type":
+"application/json"
+},
+
+body:
+JSON.stringify(p)
+
+}
+);
+
+
+const data =
+await response.json();
+
+
+if(!response.ok){
+
+throw new Error(
+data.error ||
+"生成に失敗しました"
+);
 
 }
 
 
-function saveHistory(src,title){
-
-  let h=
-    JSON.parse(
-      localStorage.getItem(
-        "gameIconHistory"
-      ) || "[]"
-    );
-
-
-  h.unshift({
-
-    src,
-    title,
-    at:Date.now()
-
-  });
+const src =
+data.image.startsWith(
+"data:"
+)
+?
+data.image
+:
+"data:image/png;base64,"+
+data.image;
 
 
-  h=h.slice(0,6);
+selected.image =
+src;
 
 
-  localStorage.setItem(
-    "gameIconHistory",
-    JSON.stringify(h)
-  );
+$("preview")
+.classList
+.remove("empty");
 
 
-  renderHistory();
+$("preview").innerHTML = `
+
+<div class="statusbar">
+
+<span
+class="status"
+id="status"
+>
+生成完了
+</span>
+
+<span class="status">
+1 : 1
+</span>
+
+</div>
+
+`;
+
+
+const img =
+document.createElement(
+"img"
+);
+
+img.src = src;
+
+img.alt =
+"AI generated game icon";
+
+
+$("preview")
+.appendChild(img);
+
+
+$("preview")
+.appendChild(
+makeOverlay()
+);
+
+
+$("download")
+.disabled =
+false;
+
+
+saveHistory(
+src,
+p.playerName ||
+p.allianceName ||
+p.teamName ||
+"Game Icon"
+);
+
+
+toast(
+"生成しました！"
+);
+
+
+}catch(error){
+
+$("status").textContent =
+"エラー";
+
+toast(
+error.message
+);
+
+}finally{
+
+$("generate").disabled =
+false;
+
+$("generate").textContent =
+"✨ AIでアイコンを生成";
+
+}
+
+}
+
+
+function makeOverlay(){
+
+const overlay =
+document.createElement(
+"div"
+);
+
+overlay.className =
+"overlay";
+
+overlay.style.color =
+selected.color[1];
+
+
+const p =
+payload();
+
+
+let base;
+
+
+if(
+p.textPosition ===
+"上部中央"
+){
+
+base={
+top:"8%",
+left:"50%",
+transform:
+"translateX(-50%)",
+textAlign:"center"
+};
+
+}
+
+else if(
+p.textPosition ===
+"左側"
+){
+
+base={
+top:"50%",
+left:"6%",
+transform:
+"translateY(-50%)",
+textAlign:"left"
+};
+
+}
+
+else if(
+p.textPosition ===
+"右側"
+){
+
+base={
+top:"50%",
+right:"6%",
+transform:
+"translateY(-50%)",
+textAlign:"right"
+};
+
+}
+
+else if(
+p.textPosition ===
+"キャラクターの横"
+){
+
+base={
+top:"58%",
+right:"6%",
+transform:
+"translateY(-50%)",
+textAlign:"right"
+};
+
+}
+
+else{
+
+base={
+bottom:"7%",
+left:"50%",
+transform:
+"translateX(-50%)",
+textAlign:"center"
+};
+
+}
+
+
+const multiplier =
+.8 +
+p.textSize*.25;
+
+
+function add(
+text,
+fontSize,
+margin
+){
+
+if(!text)return;
+
+
+const line =
+document.createElement(
+"div"
+);
+
+line.className =
+"overlay-line";
+
+line.textContent =
+text;
+
+Object.assign(
+line.style,
+base
+);
+
+line.style.fontSize =
+fontSize+"px";
+
+if(margin){
+
+line.style.marginTop =
+margin+"px";
+
+}
+
+overlay.appendChild(
+line
+);
+
+}
+
+
+add(
+p.playerName,
+34*multiplier,
+0
+);
+
+
+add(
+p.allianceName,
+16*multiplier,
+45
+);
+
+
+add(
+p.teamName,
+12*multiplier,
+75
+);
+
+
+return overlay;
+
+}
+
+
+function saveHistory(
+src,
+title
+){
+
+let history =
+JSON.parse(
+localStorage.getItem(
+"giaHistory"
+) ||
+"[]"
+);
+
+
+history.unshift({
+src,
+title
+});
+
+
+localStorage.setItem(
+"giaHistory",
+JSON.stringify(
+history.slice(0,6)
+)
+);
+
+
+renderHistory();
 
 }
 
 
 function renderHistory(){
 
-  const h=
-    JSON.parse(
-      localStorage.getItem(
-        "gameIconHistory"
-      ) || "[]"
-    );
+const history =
+JSON.parse(
+localStorage.getItem(
+"giaHistory"
+) ||
+"[]"
+);
 
 
-  $("historyList").innerHTML =
-    h.length
+$("history").innerHTML =
+history.length
 
-      ? h.map((x,i)=>`
+?
+history.map(
+(x,i)=>`
 
-          <button
-            class="history-item"
-            data-history="${i}"
-            title="${escapeHtml(x.title)}"
-          >
+<button
+type="button"
+class="history-item"
+data-history-index="${i}"
+>
 
-            <img
-              src="${x.src}"
-              alt=""
-            >
+<img
+src="${x.src}"
+>
 
-            <div>
-              ${escapeHtml(x.title)}
-            </div>
+<span>
+${escapeHtml(x.title)}
+</span>
 
-          </button>
+</button>
 
-        `).join("")
+`
+).join("")
 
-      :
+:
 
-        `<div style="color:#6f7789;font-size:12px">
-          まだ生成履歴はありません
-        </div>`;
-
-
-  document
-    .querySelectorAll("[data-history]")
-    .forEach(b=>{
-
-      b.onclick=()=>{
-
-        const x=
-          h[
-            Number(
-              b.dataset.history
-            )
-          ];
-
-
-        state.image=x.src;
-
-
-        $("preview")
-          .classList
-          .remove("empty");
-
-
-        $("preview").innerHTML=`
-
-          <div class="preview-top">
-
-            <span class="status">
-              履歴
-            </span>
-
-            <span class="status">
-              1 : 1
-            </span>
-
-          </div>
-
-
-          <img
-            id="resultImage"
-            src="${x.src}"
-            alt=""
-          >
-
-
-          <div
-            class="overlay"
-            id="overlay"
-          >
-
-            <div class="name">
-              ${escapeHtml(
-                $("playerName")
-                  .value
-                  .trim() || ""
-              )}
-            </div>
-
-            <div class="alliance">
-              ${escapeHtml(
-                $("allianceName")
-                  .value
-                  .trim() || ""
-              )}
-            </div>
-
-            <div class="clan">
-              ${escapeHtml(
-                $("clanName")
-                  .value
-                  .trim() || ""
-              )}
-            </div>
-
-          </div>
-
-        `;
-
-
-        $("overlay").style.color =
-          state.color;
-
-
-        $("downloadBtn")
-          .disabled=false;
-
-      };
-
-    });
+`
+<span
+style="
+color:#70798b;
+font-size:11px
+"
+>
+まだ生成履歴はありません
+</span>
+`;
 
 }
 
 
-$("downloadBtn").onclick=()=>{
+function escapeHtml(s){
 
-  if(!state.image)return;
+return String(s)
+.replace(
+/[&<>"']/g,
+m=>({
 
+"&":"&amp;",
+"<":"&lt;",
+">":"&gt;",
+'"':"&quot;",
+"'":"&#039;"
 
-  const a=
-    document.createElement("a");
+}[m])
+);
 
-
-  a.href=state.image;
-
-  a.download=
-    "game-icon-ai.png";
-
-
-  a.click();
-
-};
-
-
-$("copyBtn").onclick=async()=>{
-
-  try{
-
-    await navigator.clipboard.writeText(
-      JSON.stringify(
-        getPayload(),
-        null,
-        2
-      )
-    );
-
-    toast(
-      "設定をコピーしました"
-    );
-
-  }catch{
-
-    toast(
-      "コピーできませんでした"
-    );
-
-  }
-
-};
+}
 
 
-$("generateBtn").onclick=
-  generate;
+$("generate").onclick =
+generate;
 
 
-$("resetBtn").onclick=()=>{
+$("copy").onclick =
+async()=>{
 
-  [
-    "playerName",
-    "allianceName",
-    "clanName",
-    "extraPrompt"
-  ].forEach(
-    id=>$(id).value=""
-  );
+try{
 
+await navigator.clipboard.writeText(
+JSON.stringify(
+payload(),
+null,
+2
+)
+);
 
-  $("background").selectedIndex=0;
+toast(
+"設定をコピーしました"
+);
 
-  $("textPosition").selectedIndex=0;
+}catch{
 
-  $("textSize").value=4;
+toast(
+"コピーできませんでした"
+);
 
-  $("textSizeValue")
-    .textContent="4";
-
-
-  state.color=
-    palette[2][1];
-
-  state.colorName=
-    palette[2][0];
-
-  state.character=
-    characters[0];
-
-  state.mood=
-    moods[0];
-
-
-  renderButtons();
-
-  updatePreview();
-
-  toast(
-    "リセットしました"
-  );
+}
 
 };
 
 
-renderButtons();
+$("download").onclick =
+()=>{
 
-updatePreview();
+if(!selected.image)return;
+
+
+const image =
+new Image();
+
+
+image.onload =
+()=>{
+
+const canvas =
+document.createElement(
+"canvas"
+);
+
+canvas.width =
+1024;
+
+canvas.height =
+1024;
+
+
+const ctx =
+canvas.getContext(
+"2d"
+);
+
+
+ctx.drawImage(
+image,
+0,
+0,
+1024,
+1024
+);
+
+
+const p =
+payload();
+
+
+ctx.fillStyle =
+selected.color[1];
+
+ctx.shadowColor =
+"#000";
+
+ctx.shadowBlur =
+18;
+
+ctx.shadowOffsetY =
+4;
+
+ctx.textBaseline =
+"middle";
+
+let x=512;
+let y=930;
+
+ctx.textAlign =
+"center";
+
+
+if(
+p.textPosition ===
+"上部中央"
+){
+
+y=90;
+
+}
+
+
+if(
+p.textPosition ===
+"左側"
+){
+
+x=65;
+y=510;
+
+ctx.textAlign =
+"left";
+
+}
+
+
+if(
+p.textPosition ===
+"右側"
+){
+
+x=959;
+y=510;
+
+ctx.textAlign =
+"right";
+
+}
+
+
+if(
+p.textPosition ===
+"キャラクターの横"
+){
+
+x=950;
+y=570;
+
+ctx.textAlign =
+"right";
+
+}
+
+
+const s =
+.8+
+p.textSize*.25;
+
+
+ctx.font =
+`900 ${42*s}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+
+
+if(p.playerName){
+
+ctx.fillText(
+p.playerName,
+x,
+y
+);
+
+}
+
+
+ctx.font =
+`800 ${20*s}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+
+
+if(p.allianceName){
+
+ctx.fillText(
+p.allianceName,
+x,
+y+48
+);
+
+}
+
+
+ctx.font =
+`700 ${14*s}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
+
+
+if(p.teamName){
+
+ctx.fillText(
+p.teamName,
+x,
+y+78
+);
+
+}
+
+
+const link =
+document.createElement(
+"a"
+);
+
+
+link.download =
+`game-icon-${p.playerName||"icon"}.png`;
+
+link.href =
+canvas.toDataURL(
+"image/png"
+);
+
+link.click();
+
+};
+
+
+image.src =
+selected.image;
+
+};
+
+
+$("reset").onclick =
+()=>{
+
+localStorage.removeItem(
+"giaHistory"
+);
+
+location.reload();
+
+};
+
+
+render();
 
 renderHistory();
 
