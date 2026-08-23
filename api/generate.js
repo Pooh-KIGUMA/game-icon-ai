@@ -1,4 +1,5 @@
 import OpenAI, { toFile } from "openai";
+import sharp from "sharp";
 
 const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 const MODEL = "gpt-image-2";
@@ -25,13 +26,59 @@ function wantsHighQuality(text) {
 function editMode(message, hasImage) {
   if (!hasImage) return "ORIGINAL";
   const t = String(message || "");
-  if (/文字だけ|文字を入れ|テキストだけ|ロゴだけ|文字のみ/.test(t)) return "TEXT_ONLY";
+  if (/文字だけ|文字を入れ|文字を追加|テキストだけ|テキストを入れ|ロゴだけ|ロゴを入れ|文字のみ/.test(t)) return "TEXT_ONLY";
   if (/背景だけ|背景のみ|背景を変更|背景を変え/.test(t)) return "BACKGROUND_ONLY";
   if (/ポーズだけ|ポーズのみ|ポーズを変更|ポーズを変え/.test(t)) return "POSE_ONLY";
   if (/髪だけ|髪型だけ|髪のみ|髪を変更|髪を変え/.test(t)) return "HAIR_ONLY";
   if (/服だけ|衣装だけ|服装だけ|衣装を変更|服を変更/.test(t)) return "CLOTHING_ONLY";
   if (/ほぼそのまま|ほとんどそのまま|原画のまま|原画をそのまま|できるだけそのまま|極力そのまま|原型を残|原画維持|原画を維持/.test(t)) return "FAITHFUL";
   return "TARGETED_EDIT";
+}
+
+function extractRequestedText(message) {
+  const t = String(message || "");
+  const quoted = t.match(/[「『“”](.{1,40})[」』“”]/);
+  if (quoted?.[1]) return quoted[1].trim();
+  const patterns = [
+    /([A-Za-z0-9][A-Za-z0-9._-]{0,30})\s*の文字/,
+    /([A-Za-z0-9][A-Za-z0-9._-]{0,30})\s*という文字/,
+    /([A-Za-z0-9][A-Za-z0-9._-]{0,30})\s*を(?:入れて|追加して|入れたい)/,
+  ];
+  for (const re of patterns) {
+    const m = t.match(re);
+    if (m?.[1]) return m[1].trim();
+  }
+  return null;
+}
+
+function svgEscape(s) {
+  return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&apos;");
+}
+
+function textStyle(message, width, height) {
+  const t = String(message || "");
+  const color = /金|ゴールド|gold/i.test(t) ? "#FFD86A" : /紫|パープル|purple/i.test(t) ? "#B889FF" : /青|ブルー|blue/i.test(t) ? "#66B7FF" : /赤|レッド|red/i.test(t) ? "#FF667A" : /黒|ブラック|black/i.test(t) ? "#111111" : "#FFFFFF";
+  const sizeBase = Math.max(44, Math.round(Math.min(width, height) * (/かなり大き|とても大き|超大き/.test(t) ? 0.13 : /大きく|大きめ/.test(t) ? 0.095 : 0.065)));
+  const size = Math.min(sizeBase, Math.max(42, Math.floor(width / 3)));
+  let anchor = "middle", x = width / 2, y = height - Math.round(height * 0.08);
+  if (/右下|右下側/.test(t)) { anchor = "end"; x = width - Math.round(width * 0.06); y = height - Math.round(height * 0.07); }
+  else if (/左下|左下側/.test(t)) { anchor = "start"; x = Math.round(width * 0.06); y = height - Math.round(height * 0.07); }
+  else if (/右上|右上側/.test(t)) { anchor = "end"; x = width - Math.round(width * 0.06); y = Math.round(height * 0.10); }
+  else if (/左上|左上側/.test(t)) { anchor = "start"; x = Math.round(width * 0.06); y = Math.round(height * 0.10); }
+  else if (/中央|真ん中|センター/.test(t)) { y = height / 2; }
+  return { color, size, anchor, x, y };
+}
+
+async function addExactText(buffer, message) {
+  const text = extractRequestedText(message);
+  if (!text) return buffer;
+  const meta = await sharp(buffer).metadata();
+  const width = meta.width || 1024, height = meta.height || 1024;
+  const s = textStyle(message, width, height);
+  const safe = svgEscape(text);
+  const stroke = s.color === "#111111" ? "#FFFFFF" : "#111111";
+  const svg = `<svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg"><text x="${s.x}" y="${s.y}" text-anchor="${s.anchor}" font-family="Arial, Helvetica, sans-serif" font-size="${s.size}px" font-weight="800" fill="${s.color}" stroke="${stroke}" stroke-width="${Math.max(2, Math.round(s.size * .055))}" stroke-linejoin="round" paint-order="stroke" opacity="0.98">${safe}</text></svg>`;
+  return sharp(buffer).composite([{ input: Buffer.from(svg), top: 0, left: 0 }]).jpeg({ quality: 92 }).toBuffer();
 }
 
 function buildPrompt({ message, history, hasImage }) {
@@ -60,9 +107,9 @@ CORE BEHAVIOR:
 
 REFERENCE IMAGE FIDELITY:
 - When a reference image exists, treat it as the primary visual source, not merely inspiration.
-- Preserve identity, face, hairstyle, body proportions, clothing, accessories, distinctive marks and overall art direction unless the user explicitly asks to change them.
-- FAITHFUL mode: preserve the source as closely as the image model allows. Make only the requested modifications and avoid redesigning the character.
-- TEXT_ONLY mode: preserve the source image and composition as closely as possible. Add or modify only the requested text. Do not redesign the character or background.
+- Preserve identity, face, hairstyle, body proportions, clothing, accessories, distinctive marks, text and overall art direction unless the user explicitly asks to change them.
+- FAITHFUL mode: preserve the source as closely as the image model allows. Make only the requested modifications and avoid redesigning the character, scene or composition.
+- TEXT_ONLY mode: preserve the source image and composition as closely as possible. The application will place the exact requested text after generation, so do NOT create, redraw, duplicate or invent any text in the image. Do not redesign the character or background.
 - BACKGROUND_ONLY mode: keep the character/subject and its important details essentially unchanged; change only the environment/background and related lighting when necessary.
 - POSE_ONLY mode: keep the character's identity, face, hair, outfit, colors and style stable; change the pose/camera framing as requested.
 - HAIR_ONLY mode: keep everything else stable and modify only hair-related details.
@@ -73,9 +120,9 @@ REFERENCE IMAGE FIDELITY:
 TEXT RULES:
 - Never invent, hallucinate or add text that the user did not explicitly request.
 - Never add player names, alliance names, clan names, usernames, logos, watermarks, signatures, "Pooh", "AxLF", "Player name", "Iconia AI", or "Game Icon AI" unless the user explicitly requests that exact text.
-- When text is requested, reproduce the requested wording exactly. Do not silently correct, translate, abbreviate, duplicate or add extra words.
+- For TEXT_ONLY requests, do not render any text yourself. The application will add the exact requested wording as a clean overlay after the image is returned.
+- When text is requested outside TEXT_ONLY mode, reproduce the requested wording exactly. Do not silently correct, translate, abbreviate, duplicate or add extra words.
 - If the user asks for a single text item, do not create a second decorative copy of it.
-- Integrate requested text naturally into the composition and obey requested position, size and color.
 
 ORIGINAL CREATION:
 - If there is no reference image, create a completely original character/artwork from the user's natural-language description.
@@ -108,12 +155,15 @@ export default async function handler(req, res) {
 
     const size = detectSize(message);
     const quality = wantsHighQuality(message) ? "high" : "low";
+    const mode = editMode(message, Boolean(image));
     const prompt = buildPrompt({ message, history, hasImage: Boolean(image) });
 
     let response;
+    let outputBuffer;
 
     if (image) {
-      const file = await toFile(imageBuffer(image), "reference.jpg", { type: "image/jpeg" });
+      const sourceBuffer = imageBuffer(image);
+      const file = await toFile(sourceBuffer, "reference.jpg", { type: "image/jpeg" });
       response = await client.images.edit({
         model: MODEL,
         image: file,
@@ -124,6 +174,15 @@ export default async function handler(req, res) {
         output_compression: 72,
         n: 1,
       });
+      const base64 = response?.data?.[0]?.b64_json;
+      if (!base64) throw new Error("画像データがOpenAIから返されませんでした。");
+      outputBuffer = Buffer.from(base64, "base64");
+
+      // TEXT_ONLY is deliberately handled as a real pixel-level overlay.
+      // This prevents the image model from redrawing the source just to add text.
+      if (mode === "TEXT_ONLY") {
+        outputBuffer = await addExactText(sourceBuffer, message);
+      }
     } else {
       response = await client.images.generate({
         model: MODEL,
@@ -134,11 +193,12 @@ export default async function handler(req, res) {
         output_compression: 72,
         n: 1,
       });
+      const base64 = response?.data?.[0]?.b64_json;
+      if (!base64) throw new Error("画像データがOpenAIから返されませんでした。");
+      outputBuffer = Buffer.from(base64, "base64");
     }
 
-    const base64 = response?.data?.[0]?.b64_json;
-    if (!base64) throw new Error("画像データがOpenAIから返されませんでした。");
-
+    const base64 = outputBuffer.toString("base64");
     return res.status(200).json({
       success: true,
       image: `data:image/jpeg;base64,${base64}`,
