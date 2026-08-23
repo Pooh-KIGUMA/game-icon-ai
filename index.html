@@ -23,25 +23,13 @@
 body{
   margin:0;
   background:
-    radial-gradient(
-      circle at 80% -10%,
-      #5132a333,
-      transparent 35%
-    ),
+    radial-gradient(circle at 80% -10%,#5132a333,transparent 35%),
     var(--bg);
   color:var(--text);
-  font-family:
-    -apple-system,
-    BlinkMacSystemFont,
-    "Segoe UI",
-    "Noto Sans JP",
-    sans-serif;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans JP",sans-serif;
 }
 
-button,
-input,
-textarea,
-select{
+button,input,textarea,select{
   font:inherit;
 }
 
@@ -133,11 +121,7 @@ h1{
 }
 
 .card{
-  background:linear-gradient(
-    180deg,
-    #161a27f5,
-    #0f121cf5
-  );
+  background:linear-gradient(180deg,#161a27f5,#0f121cf5);
   border:1px solid var(--line);
   border-radius:20px;
   padding:17px;
@@ -166,9 +150,7 @@ label{
   margin-bottom:7px;
 }
 
-input,
-select,
-textarea{
+input,select,textarea{
   width:100%;
   background:#0c1019;
   border:1px solid #32394b;
@@ -209,14 +191,12 @@ textarea{
   border-radius:11px;
   border:3px solid transparent;
   padding:0;
-  box-shadow:
-    inset 0 0 0 1px #ffffff33;
+  box-shadow:inset 0 0 0 1px #ffffff33;
 }
 
 .color-btn.selected{
   border-color:#fff;
-  box-shadow:
-    0 0 0 2px #8b5cf655;
+  box-shadow:0 0 0 2px #8b5cf655;
 }
 
 .option-grid{
@@ -255,6 +235,67 @@ textarea{
   min-height:38px;
 }
 
+.mode-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:8px;
+}
+
+.mode-btn{
+  border:1px solid #333a4c;
+  border-radius:13px;
+  padding:13px 8px;
+  background:#0d111b;
+  color:#fff;
+  font-weight:900;
+}
+
+.mode-btn.selected{
+  border-color:#8b5cf6;
+  background:#8b5cf622;
+}
+
+.upload-box{
+  border:1px dashed #454d62;
+  border-radius:14px;
+  padding:15px;
+  text-align:center;
+  background:#0c1019;
+}
+
+.upload-box input{
+  border:0;
+  padding:0;
+  background:transparent;
+}
+
+.source-preview{
+  display:none;
+  margin-top:10px;
+  position:relative;
+}
+
+.source-preview img{
+  width:100%;
+  max-height:260px;
+  object-fit:contain;
+  border-radius:12px;
+  background:#05070b;
+}
+
+.remove-image{
+  position:absolute;
+  right:8px;
+  top:8px;
+  border:0;
+  border-radius:999px;
+  width:34px;
+  height:34px;
+  background:#000b;
+  color:#fff;
+  font-weight:900;
+}
+
 .generate{
   width:100%;
   border:0;
@@ -262,14 +303,12 @@ textarea{
   padding:15px;
   color:#fff;
   font-weight:900;
-  background:
-    linear-gradient(
-      100deg,
-      #704cff,
-      #a14dff,
-      #00bfe9
-    );
+  background:linear-gradient(100deg,#704cff,#a14dff,#00bfe9);
   font-size:16px;
+}
+
+.generate:disabled{
+  opacity:.55;
 }
 
 .preview-wrap{
@@ -282,13 +321,7 @@ textarea{
   aspect-ratio:1;
   border-radius:21px;
   overflow:hidden;
-  background:
-    radial-gradient(
-      circle at 30% 20%,
-      #7c5cff55,
-      transparent 30%
-    ),
-    linear-gradient(145deg,#171b29,#080a10);
+  background:radial-gradient(circle at 30% 20%,#7c5cff55,transparent 30%),linear-gradient(145deg,#171b29,#080a10);
   border:1px solid #343a4c;
   display:grid;
   place-items:center;
@@ -332,9 +365,7 @@ textarea{
   position:absolute;
   inset:0;
   pointer-events:none;
-  text-shadow:
-    0 4px 14px #000,
-    0 1px 2px #000;
+  text-shadow:0 4px 14px #000,0 1px 2px #000;
 }
 
 .overlay-line{
@@ -421,7 +452,6 @@ textarea{
 }
 
 @media(max-width:820px){
-
   .layout{
     grid-template-columns:1fr;
   }
@@ -431,15 +461,9 @@ textarea{
     top:0;
     order:-1;
   }
-
-  .preview{
-    max-width:600px;
-    margin:auto;
-  }
 }
 
 @media(max-width:520px){
-
   .grid{
     grid-template-columns:1fr;
   }
@@ -462,7 +486,6 @@ textarea{
 <body>
 
 <header>
-
 <div class="wrap nav">
 
 <div class="brand">
@@ -470,16 +493,11 @@ textarea{
 Game Icon AI
 </div>
 
-<button
-type="button"
-class="secondary"
-id="reset"
->
+<button type="button" class="secondary" id="reset">
 リセット
 </button>
 
 </div>
-
 </header>
 
 
@@ -492,17 +510,14 @@ AI GAME ICON GENERATOR
 </span>
 
 <h1>
-ゲーム用アイコンを<br>
-<span class="gradient">
-自由にデザイン。
-</span>
+ゲームアイコンを<br>
+<span class="gradient">自由にデザイン。</span>
 </h1>
 
 <p class="lead">
-選択項目だけでなく、
-ChatGPTに話しかけるように
-背景・服装・髪・表情・ポーズ・光・構図まで
-自由に指示できます。
+新規生成だけでなく、自分の画像をアップロードして
+AIで編集できます。
+背景・髪・服・表情・ポーズ・光などを自由に指示できます。
 </p>
 
 </section>
@@ -518,13 +533,80 @@ ChatGPTに話しかけるように
 
 <div class="section">
 
+<label>生成モード</label>
+
+<div class="mode-grid">
+
+<button
+type="button"
+class="mode-btn selected"
+data-mode="create"
+>
+✨ 新しく生成
+</button>
+
+<button
+type="button"
+class="mode-btn"
+data-mode="edit"
+>
+🖼️ 画像を編集
+</button>
+
+</div>
+
+</div>
+
+
+<div class="section">
+
+<label>🖼️ 参照・編集する画像</label>
+
+<div class="upload-box">
+
+<input
+type="file"
+id="imageInput"
+accept="image/png,image/jpeg,image/webp"
+>
+
+<div class="hint">
+自分のキャラクター画像などを選択してください。
+AIが画像を元に編集します。
+</div>
+
+<div
+class="source-preview"
+id="sourcePreview"
+>
+
+<img
+id="sourceImage"
+alt="参照画像"
+>
+
+<button
+type="button"
+class="remove-image"
+id="removeImage"
+>
+×
+</button>
+
+</div>
+
+</div>
+
+</div>
+
+
+<div class="section">
+
 <div class="grid">
 
 <div>
 
-<label>
-プレイヤー名
-</label>
+<label>プレイヤー名</label>
 
 <input
 id="player"
@@ -537,9 +619,7 @@ placeholder="例：Shadow"
 
 <div>
 
-<label>
-同盟名
-</label>
+<label>同盟名</label>
 
 <input
 id="alliance"
@@ -554,9 +634,7 @@ placeholder="例：NOVA"
 
 <div style="margin-top:10px">
 
-<label>
-クラン名 / チーム名
-</label>
+<label>クラン名 / チーム名</label>
 
 <input
 id="team"
@@ -568,7 +646,7 @@ placeholder="例：TEAM01"
 
 <div class="hint">
 名前はAIに描かせません。
-生成後にサイト側で正確に合成します。
+画像生成後にサイト側で正確に合成します。
 </div>
 
 </div>
@@ -576,58 +654,38 @@ placeholder="例：TEAM01"
 
 <div class="section">
 
-<label>
-🎨 イメージカラー
-</label>
+<label>🎨 イメージカラー</label>
 
-<div
-class="colors"
-id="colors"
-></div>
+<div class="colors" id="colors"></div>
 
 </div>
 
 
 <div class="section">
 
-<label>
-🧙 キャラクタータイプ
-</label>
+<label>🧙 キャラクタータイプ</label>
 
-<div
-class="option-grid"
-id="characters"
-></div>
+<div class="option-grid" id="characters"></div>
 
 </div>
 
 
 <div class="section">
 
-<label>
-✨ 雰囲気
-</label>
+<label>✨ 雰囲気</label>
 
-<div
-class="option-grid"
-id="moods"
-></div>
+<div class="option-grid" id="moods"></div>
 
 </div>
 
 
 <div class="section">
 
-<label>
-🌃 背景・シーン
-</label>
+<label>🌃 背景・シーン</label>
 
 <select id="bgPreset">
 
-<option value="">
-プリセットを使わない
-</option>
-
+<option value="">プリセットを使わない</option>
 <option>ネオン都市</option>
 <option>ダークファンタジー</option>
 <option>炎と煙</option>
@@ -640,13 +698,12 @@ id="moods"
 
 </select>
 
-
 <div style="margin-top:10px">
 
 <textarea
 id="background"
 maxlength="1000"
-placeholder="例：雨の降る夜の東京。青と紫のネオンが濡れた道路に反射し、遠くに巨大な高層ビル。薄い霧を入れて、キャラクターを目立たせてください。"
+placeholder="背景を自由に細かく指定できます。例：雨の降る夜の東京。青と紫のネオンが濡れた道路に反射。遠くに巨大な高層ビル。薄い霧。"
 ></textarea>
 
 </div>
@@ -656,85 +713,17 @@ placeholder="例：雨の降る夜の東京。青と紫のネオンが濡れた�
 
 <div class="section">
 
-<label>
-🔤 生成後の文字
-</label>
-
-<div class="grid">
-
-<div>
-
-<label>
-位置
-</label>
-
-<select id="textPos">
-
-<option>
-下部中央
-</option>
-
-<option>
-上部中央
-</option>
-
-<option>
-左側
-</option>
-
-<option>
-右側
-</option>
-
-<option>
-キャラクターの横
-</option>
-
-</select>
-
-</div>
-
-
-<div>
-
-<label>
-サイズ
-</label>
-
-<input
-id="textSize"
-type="range"
-min="1"
-max="5"
-value="4"
->
-
-</div>
-
-</div>
-
-</div>
-
-
-<div class="section">
-
-<label>
-💬 AIへの追加指示
-</label>
+<label>💬 AIへの追加指示</label>
 
 <textarea
 id="prompt"
-maxlength="2000"
-placeholder="例：キャラクターをもっと大きくしてください。銀髪、青い瞳、黒い高級な服。顔は少し左を向け、右手に青い光の剣。冷たい表情。全体は暗めですが顔は明るく、映画のようなライティングにしてください。"
+maxlength="3000"
+placeholder="例：キャラクターを大きくしてください。銀髪、青い瞳、黒い高級な服。顔は少し左を向ける。右手に青い光の剣。冷たい表情。顔は明るく、背景は暗め。"
 ></textarea>
 
 <div class="hint">
-
-普通の文章で細かく指示できます。
-
-選択項目より、
-この欄の具体的な指示を優先して解釈します。
-
+ChatGPTに話しかけるように自由に指示できます。
+画像編集モードでは、アップロードした画像を基準に編集します。
 </div>
 
 </div>
@@ -742,14 +731,9 @@ placeholder="例：キャラクターをもっと大きくしてください。�
 
 <div class="section">
 
-<label>
-💡 選択中キャラクターの指示例
-</label>
+<label>💡 指示例</label>
 
-<div
-class="example-list"
-id="examples"
-></div>
+<div class="example-list" id="examples"></div>
 
 </div>
 
@@ -762,12 +746,6 @@ id="generate"
 ✨ AIでアイコンを生成
 </button>
 
-<div class="hint">
-1:1・1024×1024。
-APIキーはブラウザに置かず
-サーバー側で管理します。
-</div>
-
 </div>
 
 
@@ -775,22 +753,13 @@ APIキーはブラウザに置かず
 
 <div class="card">
 
-<h2>
-🖼️ プレビュー
-</h2>
+<h2>🖼️ プレビュー</h2>
 
-
-<div
-class="preview empty"
-id="preview"
->
+<div class="preview empty" id="preview">
 
 <div class="statusbar">
 
-<span
-class="status"
-id="status"
->
+<span class="status" id="status">
 準備完了
 </span>
 
@@ -813,7 +782,6 @@ disabled
 >
 ⬇ 保存
 </button>
-
 
 <button
 type="button"
@@ -848,32 +816,20 @@ id="history"
 </main>
 
 
-<footer
-style="
-text-align:center;
-color:#6f7789;
-font-size:11px;
-padding:20px 0 50px
-"
->
+<footer style="text-align:center;color:#6f7789;font-size:11px;padding:20px 0 50px">
 Game Icon AI · Create your game identity
 </footer>
 
 
-<div
-class="toast"
-id="toast"
-></div>
+<div class="toast" id="toast"></div>
 
 
 <script>
 
-const $ =
-id => document.getElementById(id);
+const $ = id => document.getElementById(id);
 
 
 const colors = [
-
 ["ピンク","#ff4fa3"],
 ["マゼンタ","#d946ef"],
 ["紫","#8b5cf6"],
@@ -892,12 +848,10 @@ const colors = [
 ["白銀","#e5e7eb"],
 ["ブラック","#111827"],
 ["ネオン","#00ffcc"]
-
 ];
 
 
 const chars = [
-
 "クールな戦士",
 "ダークヒーロー",
 "天才ハッカー",
@@ -910,12 +864,10 @@ const chars = [
 "可愛いキャラ",
 "女性キャラクター",
 "男性キャラクター"
-
 ];
 
 
 const moods = [
-
 "超クール",
 "冷酷・ダーク",
 "高級感",
@@ -926,24 +878,23 @@ const moods = [
 "神秘的",
 "未来的",
 "王者・最強"
-
 ];
 
 
 const examples = {
 
 "クールな戦士":[
+"キャラクターを大きく",
 "黒い鎧と銀色の装備",
 "青い炎をまとわせる",
-"巨大な剣を持たせる",
-"キャラクターを大きくする"
+"巨大な剣を持たせる"
 ],
 
 "ダークヒーロー":[
 "黒いロングコート",
 "赤い瞳と冷たい表情",
 "煙と赤い光",
-"下から見上げる構図"
+"映画のような暗いライティング"
 ],
 
 "天才ハッカー":[
@@ -1020,19 +971,33 @@ const examples = {
 
 
 let selected = {
-
 color:colors[2],
 character:chars[0],
 mood:moods[0],
-image:null
-
+image:null,
+mode:"create"
 };
+
+
+function toast(message){
+
+const el=$("toast");
+
+el.textContent=message;
+
+el.classList.add("show");
+
+setTimeout(
+()=>el.classList.remove("show"),
+2200
+);
+
+}
 
 
 function render(){
 
-$("colors").innerHTML =
-colors.map(
+$("colors").innerHTML=colors.map(
 (c,i)=>`
 
 <button
@@ -1047,8 +1012,7 @@ aria-label="${c[0]}"
 ).join("");
 
 
-$("characters").innerHTML =
-chars.map(
+$("characters").innerHTML=chars.map(
 (x,i)=>`
 
 <button
@@ -1063,8 +1027,7 @@ ${x}
 ).join("");
 
 
-$("moods").innerHTML =
-moods.map(
+$("moods").innerHTML=moods.map(
 (x,i)=>`
 
 <button
@@ -1086,10 +1049,9 @@ renderExamples();
 
 function renderExamples(){
 
-$("examples").innerHTML =
-(examples[selected.character] || [])
-.map(
-x=>`
+$("examples").innerHTML=
+(examples[selected.character]||[])
+.map(x=>`
 
 <button
 type="button"
@@ -1099,145 +1061,79 @@ data-example="${encodeURIComponent(x)}"
 ${x}
 </button>
 
-`
-).join("");
+`).join("");
 
 }
 
 
-document.addEventListener(
-"click",
-function(e){
+document.addEventListener("click",function(e){
 
-const color =
-e.target.closest(
-"[data-color-index]"
-);
+const color=e.target.closest("[data-color-index]");
 
 if(color){
 
-document
-.querySelectorAll(
-"[data-color-index]"
-)
-.forEach(
-x=>x.classList.remove(
-"selected"
-)
-);
+document.querySelectorAll("[data-color-index]")
+.forEach(x=>x.classList.remove("selected"));
 
-color.classList.add(
-"selected"
-);
+color.classList.add("selected");
 
-selected.color =
-colors[
-Number(
-color.dataset.colorIndex
-)
-];
+selected.color=
+colors[Number(color.dataset.colorIndex)];
 
-toast(
-"カラー："+selected.color[0]
-);
+toast("カラー："+selected.color[0]);
 
 return;
-
 }
 
 
-const character =
-e.target.closest(
-"[data-char-index]"
-);
+const character=e.target.closest("[data-char-index]");
 
 if(character){
 
-document
-.querySelectorAll(
-"[data-char-index]"
-)
-.forEach(
-x=>x.classList.remove(
-"selected"
-)
-);
+document.querySelectorAll("[data-char-index]")
+.forEach(x=>x.classList.remove("selected"));
 
-character.classList.add(
-"selected"
-);
+character.classList.add("selected");
 
-selected.character =
-chars[
-Number(
-character.dataset.charIndex
-)
-];
+selected.character=
+chars[Number(character.dataset.charIndex)];
 
 renderExamples();
 
-toast(
-"キャラクター："+selected.character
-);
+toast("キャラクター："+selected.character);
 
 return;
-
 }
 
 
-const mood =
-e.target.closest(
-"[data-mood-index]"
-);
+const mood=e.target.closest("[data-mood-index]");
 
 if(mood){
 
-document
-.querySelectorAll(
-"[data-mood-index]"
-)
-.forEach(
-x=>x.classList.remove(
-"selected"
-)
-);
+document.querySelectorAll("[data-mood-index]")
+.forEach(x=>x.classList.remove("selected"));
 
-mood.classList.add(
-"selected"
-);
+mood.classList.add("selected");
 
-selected.mood =
-moods[
-Number(
-mood.dataset.moodIndex
-)
-];
+selected.mood=
+moods[Number(mood.dataset.moodIndex)];
 
-toast(
-"雰囲気："+selected.mood
-);
+toast("雰囲気："+selected.mood);
 
 return;
-
 }
 
 
-const example =
-e.target.closest(
-"[data-example]"
-);
+const example=e.target.closest("[data-example]");
 
 if(example){
 
-const text =
-decodeURIComponent(
-example.dataset.example
-);
+const text=
+decodeURIComponent(example.dataset.example);
 
-const box =
-$("prompt");
+const box=$("prompt");
 
-box.value =
+box.value=
 box.value.trim()
 ?
 box.value.trim()+"、"+text
@@ -1247,7 +1143,31 @@ text;
 box.focus();
 
 return;
+}
 
+
+const mode=e.target.closest("[data-mode]");
+
+if(mode){
+
+document.querySelectorAll("[data-mode]")
+.forEach(x=>x.classList.remove("selected"));
+
+mode.classList.add("selected");
+
+selected.mode=mode.dataset.mode;
+
+if(selected.mode==="edit"){
+
+toast("画像編集モード");
+
+}else{
+
+toast("新規生成モード");
+
+}
+
+return;
 }
 
 });
@@ -1257,102 +1177,201 @@ function payload(){
 
 return{
 
-playerName:
-$("player").value.trim(),
+playerName:$("player").value.trim(),
 
-allianceName:
-$("alliance").value.trim(),
+allianceName:$("alliance").value.trim(),
 
-teamName:
-$("team").value.trim(),
+teamName:$("team").value.trim(),
 
-color:
-selected.color[0],
+color:selected.color[0],
 
-colorHex:
-selected.color[1],
+colorHex:selected.color[1],
 
-character:
-selected.character,
+character:selected.character,
 
-mood:
-selected.mood,
+mood:selected.mood,
 
-backgroundPreset:
-$("bgPreset").value,
+backgroundPreset:$("bgPreset").value,
 
-background:
-$("background").value.trim(),
+background:$("background").value.trim(),
 
-textPosition:
-$("textPos").value,
+extraPrompt:$("prompt").value.trim(),
 
-textSize:
-Number(
-$("textSize").value
-),
+mode:selected.mode,
 
-extraPrompt:
-$("prompt").value.trim()
+imageBase64:selected.image
 
 };
 
 }
 
 
-async function generate(){
+function resizeImage(file){
 
-const p =
-payload();
+return new Promise((resolve,reject)=>{
 
+const reader=new FileReader();
 
-if(
-!p.playerName &&
-!p.allianceName &&
-!p.teamName
-){
+reader.onload=()=>{
 
-toast(
-"名前・同盟名・クラン名のどれかを入力してね"
+const img=new Image();
+
+img.onload=()=>{
+
+const canvas=document.createElement("canvas");
+
+const max=1024;
+
+let w=img.width;
+let h=img.height;
+
+if(w>h){
+
+if(w>max){
+
+h=Math.round(h*max/w);
+w=max;
+}
+
+}else{
+
+if(h>max){
+
+w=Math.round(w*max/h);
+h=max;
+}
+
+}
+
+canvas.width=w;
+canvas.height=h;
+
+const ctx=canvas.getContext("2d");
+
+ctx.drawImage(img,0,0,w,h);
+
+resolve(
+canvas.toDataURL(
+"image/jpeg",
+0.85
+)
 );
 
-return;
+};
+
+img.onerror=reject;
+
+img.src=reader.result;
+
+};
+
+reader.onerror=reject;
+
+reader.readAsDataURL(file);
+
+});
 
 }
 
 
-$("generate").disabled =
-true;
+$("imageInput").addEventListener(
+"change",
+async function(){
 
-$("generate").textContent =
-"生成中…";
+const file=this.files?.[0];
 
-$("status").textContent =
-"AI生成中";
+if(!file)return;
+
+try{
+
+const base64=
+await resizeImage(file);
+
+selected.image=base64;
+
+$("sourceImage").src=base64;
+
+$("sourcePreview").style.display="block";
+
+selected.mode="edit";
+
+document.querySelectorAll("[data-mode]")
+.forEach(x=>x.classList.remove("selected"));
+
+document.querySelector('[data-mode="edit"]')
+.classList.add("selected");
+
+toast("画像を読み込みました");
+
+}catch{
+
+toast("画像を読み込めませんでした");
+
+}
+
+});
+
+
+$("removeImage").onclick=()=>{
+
+selected.image=null;
+
+$("imageInput").value="";
+
+$("sourcePreview").style.display="none";
+
+selected.mode="create";
+
+document.querySelectorAll("[data-mode]")
+.forEach(x=>x.classList.remove("selected"));
+
+document.querySelector('[data-mode="create"]')
+.classList.add("selected");
+
+toast("参照画像を削除しました");
+
+};
+
+
+async function generate(){
+
+const p=payload();
+
+if(
+p.mode==="edit" &&
+!p.imageBase64
+){
+
+toast("先に編集する画像を選んでください");
+
+return;
+}
+
+
+$("generate").disabled=true;
+
+$("generate").textContent="生成中…";
+
+$("status").textContent="AI生成中";
 
 
 try{
 
-const response =
-await fetch(
-"/api/generate",
-{
+const response=
+await fetch("/api/generate",{
 
 method:"POST",
 
 headers:{
-"Content-Type":
-"application/json"
+"Content-Type":"application/json"
 },
 
-body:
-JSON.stringify(p)
+body:JSON.stringify(p)
 
-}
-);
+});
 
 
-const data =
+const data=
 await response.json();
 
 
@@ -1360,40 +1379,40 @@ if(!response.ok){
 
 throw new Error(
 data.error ||
-"生成に失敗しました"
+"画像生成に失敗しました"
 );
 
 }
 
 
-const src =
-data.image.startsWith(
-"data:"
-)
+if(!data.image){
+
+throw new Error(
+"画像データがありません"
+);
+
+}
+
+
+const src=
+data.image.startsWith("data:")
 ?
 data.image
 :
-"data:image/png;base64,"+
-data.image;
+"data:image/png;base64,"+data.image;
 
 
-selected.image =
-src;
+selected.imageResult=src;
 
 
-$("preview")
-.classList
-.remove("empty");
+$("preview").classList.remove("empty");
 
 
-$("preview").innerHTML = `
+$("preview").innerHTML=`
 
 <div class="statusbar">
 
-<span
-class="status"
-id="status"
->
+<span class="status" id="status">
 生成完了
 </span>
 
@@ -1403,33 +1422,20 @@ id="status"
 
 </div>
 
+<img
+src="${src}"
+alt="AI generated game icon"
+>
+
 `;
 
 
-const img =
-document.createElement(
-"img"
-);
-
-img.src = src;
-
-img.alt =
-"AI generated game icon";
-
-
-$("preview")
-.appendChild(img);
-
-
-$("preview")
-.appendChild(
+$("preview").appendChild(
 makeOverlay()
 );
 
 
-$("download")
-.disabled =
-false;
+$("download").disabled=false;
 
 
 saveHistory(
@@ -1441,26 +1447,22 @@ p.teamName ||
 );
 
 
-toast(
-"生成しました！"
-);
+toast("生成しました！");
 
 
 }catch(error){
 
-$("status").textContent =
-"エラー";
+console.error(error);
 
-toast(
-error.message
-);
+$("status").textContent="生成エラー";
+
+toast(error.message);
 
 }finally{
 
-$("generate").disabled =
-false;
+$("generate").disabled=false;
 
-$("generate").textContent =
+$("generate").textContent=
 "✨ AIでアイコンを生成";
 
 }
@@ -1470,164 +1472,89 @@ $("generate").textContent =
 
 function makeOverlay(){
 
-const overlay =
-document.createElement(
-"div"
-);
+const overlay=document.createElement("div");
 
-overlay.className =
-"overlay";
+overlay.className="overlay";
 
-overlay.style.color =
+overlay.style.color=
 selected.color[1];
 
-
-const p =
-payload();
-
+const p=payload();
 
 let base;
 
-
-if(
-p.textPosition ===
-"上部中央"
-){
+if(p.textPosition==="上部中央"){
 
 base={
 top:"8%",
 left:"50%",
-transform:
-"translateX(-50%)",
+transform:"translateX(-50%)",
 textAlign:"center"
 };
 
-}
-
-else if(
-p.textPosition ===
-"左側"
-){
+}else if(p.textPosition==="左側"){
 
 base={
 top:"50%",
 left:"6%",
-transform:
-"translateY(-50%)",
+transform:"translateY(-50%)",
 textAlign:"left"
 };
 
-}
-
-else if(
-p.textPosition ===
-"右側"
-){
+}else if(p.textPosition==="右側"){
 
 base={
 top:"50%",
 right:"6%",
-transform:
-"translateY(-50%)",
+transform:"translateY(-50%)",
 textAlign:"right"
 };
 
-}
-
-else if(
-p.textPosition ===
-"キャラクターの横"
-){
-
-base={
-top:"58%",
-right:"6%",
-transform:
-"translateY(-50%)",
-textAlign:"right"
-};
-
-}
-
-else{
+}else{
 
 base={
 bottom:"7%",
 left:"50%",
-transform:
-"translateX(-50%)",
+transform:"translateX(-50%)",
 textAlign:"center"
 };
 
 }
 
 
-const multiplier =
-.8 +
-p.textSize*.25;
+const multiplier=.8+Number($("textSize").value||4)*.25;
 
 
-function add(
-text,
-fontSize,
-margin
-){
+function add(text,size,margin){
 
 if(!text)return;
 
+const line=document.createElement("div");
 
-const line =
-document.createElement(
-"div"
-);
+line.className="overlay-line";
 
-line.className =
-"overlay-line";
+line.textContent=text;
 
-line.textContent =
-text;
+Object.assign(line.style,base);
 
-Object.assign(
-line.style,
-base
-);
-
-line.style.fontSize =
-fontSize+"px";
+line.style.fontSize=size+"px";
 
 if(margin){
 
-line.style.marginTop =
-margin+"px";
+line.style.marginTop=margin+"px";
 
 }
 
-overlay.appendChild(
-line
-);
+overlay.appendChild(line);
 
 }
 
 
-add(
-p.playerName,
-34*multiplier,
-0
-);
+add(p.playerName,34*multiplier,0);
 
+add(p.allianceName,16*multiplier,45);
 
-add(
-p.allianceName,
-16*multiplier,
-45
-);
-
-
-add(
-p.teamName,
-12*multiplier,
-75
-);
+add(p.teamName,12*multiplier,75);
 
 
 return overlay;
@@ -1635,33 +1562,22 @@ return overlay;
 }
 
 
-function saveHistory(
-src,
-title
-){
+function saveHistory(src,title){
 
-let history =
+let history=
 JSON.parse(
-localStorage.getItem(
-"giaHistory"
-) ||
-"[]"
+localStorage.getItem("giaHistory")||"[]"
 );
-
 
 history.unshift({
 src,
 title
 });
 
-
 localStorage.setItem(
 "giaHistory",
-JSON.stringify(
-history.slice(0,6)
-)
+JSON.stringify(history.slice(0,6))
 );
-
 
 renderHistory();
 
@@ -1670,18 +1586,14 @@ renderHistory();
 
 function renderHistory(){
 
-const history =
+const history=
 JSON.parse(
-localStorage.getItem(
-"giaHistory"
-) ||
-"[]"
+localStorage.getItem("giaHistory")||"[]"
 );
 
 
-$("history").innerHTML =
+$("history").innerHTML=
 history.length
-
 ?
 history.map(
 (x,i)=>`
@@ -1692,28 +1604,17 @@ class="history-item"
 data-history-index="${i}"
 >
 
-<img
-src="${x.src}"
->
+<img src="${x.src}">
 
-<span>
-${escapeHtml(x.title)}
-</span>
+<span>${escapeHtml(x.title)}</span>
 
 </button>
 
 `
 ).join("")
-
 :
-
 `
-<span
-style="
-color:#70798b;
-font-size:11px
-"
->
+<span style="color:#70798b;font-size:11px">
 まだ生成履歴はありません
 </span>
 `;
@@ -1723,29 +1624,24 @@ font-size:11px
 
 function escapeHtml(s){
 
-return String(s)
-.replace(
+return String(s).replace(
 /[&<>"']/g,
 m=>({
-
 "&":"&amp;",
 "<":"&lt;",
 ">":"&gt;",
 '"':"&quot;",
 "'":"&#039;"
-
 }[m])
 );
 
 }
 
 
-$("generate").onclick =
-generate;
+$("generate").onclick=generate;
 
 
-$("copy").onclick =
-async()=>{
+$("copy").onclick=async()=>{
 
 try{
 
@@ -1757,149 +1653,84 @@ null,
 )
 );
 
-toast(
-"設定をコピーしました"
-);
+toast("設定をコピーしました");
 
 }catch{
 
-toast(
-"コピーできませんでした"
-);
+toast("コピーできませんでした");
 
 }
 
 };
 
 
-$("download").onclick =
-()=>{
+$("download").onclick=()=>{
 
-if(!selected.image)return;
-
-
-const image =
-new Image();
+if(!selected.imageResult)return;
 
 
-image.onload =
-()=>{
+const image=new Image();
 
-const canvas =
-document.createElement(
-"canvas"
-);
+image.onload=()=>{
 
-canvas.width =
-1024;
+const canvas=document.createElement("canvas");
 
-canvas.height =
-1024;
+canvas.width=1024;
+canvas.height=1024;
 
+const ctx=canvas.getContext("2d");
 
-const ctx =
-canvas.getContext(
-"2d"
-);
+ctx.drawImage(image,0,0,1024,1024);
 
 
-ctx.drawImage(
-image,
-0,
-0,
-1024,
-1024
-);
+const p=payload();
 
+const multiplier=.8+Number($("textSize").value||4)*.25;
 
-const p =
-payload();
+ctx.fillStyle=selected.color[1];
 
+ctx.shadowColor="#000";
 
-ctx.fillStyle =
-selected.color[1];
+ctx.shadowBlur=18;
 
-ctx.shadowColor =
-"#000";
+ctx.shadowOffsetY=4;
 
-ctx.shadowBlur =
-18;
+ctx.textBaseline="middle";
 
-ctx.shadowOffsetY =
-4;
-
-ctx.textBaseline =
-"middle";
 
 let x=512;
 let y=930;
 
-ctx.textAlign =
-"center";
+ctx.textAlign="center";
 
 
-if(
-p.textPosition ===
-"上部中央"
-){
+if(p.textPosition==="上部中央"){
 
 y=90;
 
 }
 
-
-if(
-p.textPosition ===
-"左側"
-){
+if(p.textPosition==="左側"){
 
 x=65;
 y=510;
-
-ctx.textAlign =
-"left";
+ctx.textAlign="left";
 
 }
 
-
-if(
-p.textPosition ===
-"右側"
-){
+if(p.textPosition==="右側"){
 
 x=959;
 y=510;
-
-ctx.textAlign =
-"right";
+ctx.textAlign="right";
 
 }
-
-
-if(
-p.textPosition ===
-"キャラクターの横"
-){
-
-x=950;
-y=570;
-
-ctx.textAlign =
-"right";
-
-}
-
-
-const s =
-.8+
-p.textSize*.25;
-
-
-ctx.font =
-`900 ${42*s}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
 
 
 if(p.playerName){
+
+ctx.font=
+`900 ${42*multiplier}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
 
 ctx.fillText(
 p.playerName,
@@ -1910,11 +1741,10 @@ y
 }
 
 
-ctx.font =
-`800 ${20*s}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
-
-
 if(p.allianceName){
+
+ctx.font=
+`800 ${20*multiplier}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
 
 ctx.fillText(
 p.allianceName,
@@ -1925,11 +1755,10 @@ y+48
 }
 
 
-ctx.font =
-`700 ${14*s}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
-
-
 if(p.teamName){
+
+ctx.font=
+`700 ${14*multiplier}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;
 
 ctx.fillText(
 p.teamName,
@@ -1940,37 +1769,26 @@ y+78
 }
 
 
-const link =
-document.createElement(
-"a"
-);
+const link=document.createElement("a");
 
-
-link.download =
+link.download=
 `game-icon-${p.playerName||"icon"}.png`;
 
-link.href =
-canvas.toDataURL(
-"image/png"
-);
+link.href=
+canvas.toDataURL("image/png");
 
 link.click();
 
 };
 
-
-image.src =
-selected.image;
+image.src=selected.imageResult;
 
 };
 
 
-$("reset").onclick =
-()=>{
+$("reset").onclick=()=>{
 
-localStorage.removeItem(
-"giaHistory"
-);
+localStorage.removeItem("giaHistory");
 
 location.reload();
 
