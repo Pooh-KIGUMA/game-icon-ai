@@ -25,8 +25,25 @@ function exactText(text) {
   if (!t) return null;
   const quoted = [...t.matchAll(/[「『“"]([^」』”"]{1,120})[」』”"]/gu)].map(m => m[1].trim()).filter(Boolean);
   if (quoted.length) return quoted.join("\n");
+  const possessive = t.match(/(?:^|\s|[「『])([A-Za-z0-9][A-Za-z0-9 _+\-.]{0,39})の(?:文字|テキスト|ロゴ)(?=\s*(?:を|は|に))/u);
+  if (possessive?.[1]) return possessive[1].trim();
+  const englishLead = t.match(/(?:^|\s)([A-Za-z0-9][A-Za-z0-9 _+\-.]{0,39})\s*(?:という)?(?:文字|テキスト|ロゴ)(?=\s*(?:を|は|に))/u);
+  if (englishLead?.[1]) return englishLead[1].trim();
   const m = t.match(/(?:文字|テキスト|ロゴ|名前|チーム名|クラン名|同盟名|ギルド名)\s*(?:は|を|：|:)\s*[「『“"]?([^」』”"\n]{1,100})/u);
   return m?.[1]?.trim() || null;
+}
+function textPosition(text) {
+  const t = String(text || "").toLowerCase();
+  if (/右|right/.test(t)) return "right";
+  if (/左|left/.test(t)) return "left";
+  if (/上|top/.test(t)) return "top";
+  if (/下|bottom/.test(t)) return "bottom";
+  return "bottom center";
+}
+function isDirectTextAdd(message, hasImage) {
+  if (!hasImage) return false;
+  const t = String(message || "");
+  return !!exactText(t) && /(文字|テキスト|ロゴ|名前).*(入れ|追加|書いて|載せ|付け|配置)|(?:入れ|追加|書いて|載せ|付け).*(文字|テキスト|ロゴ)/.test(t);
 }
 function parseJson(text) {
   try { return JSON.parse(text); } catch {}
@@ -60,7 +77,6 @@ Return JSON only with this schema:
   });
   return parseJson(response.output_text);
 }
-
 function normalize(plan, message, hasImage) {
   let mode = String(plan?.mode || (hasImage ? "TARGETED_EDIT" : "ORIGINAL")).toUpperCase();
   const allowed = new Set(["ORIGINAL","FAITHFUL","STYLE_ONLY","TARGETED_EDIT","AI_DESIGN","BACKGROUND_ONLY","POSE_ONLY","HAIR_ONLY","CLOTHING_ONLY","TEXT_ONLY"]);
@@ -75,15 +91,7 @@ function normalize(plan, message, hasImage) {
   if (mode === "POSE_ONLY") change.push("ONLY pose/body position");
   if (mode === "HAIR_ONLY") change.push("ONLY hairstyle/hair color");
   if (mode === "CLOTHING_ONLY") change.push("ONLY clothing/outfit");
-  return {
-    mode, requestedText,
-    textPosition: clean(plan?.text_position, 120) || "bottom center",
-    keep: uniq(keep), change: uniq(change),
-    style: clean(plan?.style || "premium polished game illustration", 1800),
-    composition: clean(plan?.composition || "Preserve the reference composition unless explicitly changed.", 1800),
-    imagePrompt: clean(plan?.image_prompt || message, 9000),
-    reply: clean(plan?.reply || "できました。続けて修正を指示できます。", 600)
-  };
+  return { mode, requestedText, textPosition: clean(plan?.text_position, 120) || textPosition(message), keep: uniq(keep), change: uniq(change), style: clean(plan?.style || "premium polished game illustration", 1800), composition: clean(plan?.composition || "Preserve the reference composition unless explicitly changed.", 1800), imagePrompt: clean(plan?.image_prompt || message, 9000), reply: clean(plan?.reply || "できました。続けて修正を指示できます。", 600) };
 }
 function buildPrompt(plan, message) {
   const locks = plan.keep.length ? `\nKEEP EXACTLY:\n- ${plan.keep.join("\n- ")}` : "";
@@ -114,7 +122,7 @@ async function exactTextOverlay(imageData, text, position) {
   if (/right|右/.test(p)) { x = w * .92; anchor = "end"; }
   if (/top|上/.test(p)) y = Math.max(fontSize * 1.2, h * .12);
   const tspans = lines.map((line, i) => `<tspan x="${x}" dy="${i ? fontSize * 1.18 : 0}">${xml(line)}</tspan>`).join("");
-  const svg = `<svg width="${w}" height="${h}" xmlns="http://www.w3.org/2000/svg"><text x="${x}" y="${y}" text-anchor="${anchor}" dominant-baseline="middle" font-family="Arial, Helvetica, sans-serif" font-weight="800" font-size="${fontSize}" fill="#ffffff" stroke="#05060a" stroke-width="${Math.max(5, fontSize*.16)}" stroke-linejoin="round" paint-order="stroke">${tspans}</text></svg>`;
+  const svg = `<svg width="${w}" height="${h}" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset="0.48" stop-color="#d8e8ff"/><stop offset="0.55" stop-color="#79c7ff"/><stop offset="1" stop-color="#ffffff"/></linearGradient><filter id="s"><feDropShadow dx="0" dy="7" stdDeviation="6" flood-color="#001a33" flood-opacity=".9"/></filter></defs><text x="${x}" y="${y}" text-anchor="${anchor}" dominant-baseline="middle" font-family="Arial, Helvetica, sans-serif" font-weight="900" font-style="italic" font-size="${fontSize}" fill="url(#g)" stroke="#06101c" stroke-width="${Math.max(5, fontSize*.16)}" stroke-linejoin="round" paint-order="stroke" filter="url(#s)">${tspans}</text></svg>`;
   const out = await sharp(buffer).composite([{ input: Buffer.from(svg), top: 0, left: 0 }]).jpeg({ quality: 94 }).toBuffer();
   return `data:image/jpeg;base64,${out.toString("base64")}`;
 }
@@ -129,6 +137,14 @@ export default async function handler(req, res) {
     const history = Array.isArray(body.history) ? body.history : [];
     if (!message && !image) return res.status(400).json({ success:false, error:"画像またはメッセージを入力してください。" });
     if (image && image.length > 8_000_000) return res.status(413).json({ success:false, error:"参考画像が大きすぎます。もう少し小さい画像を使ってください。" });
+
+    // 文字追加は画像生成モデルに再描画させない。元画像をそのまま残して文字だけ合成する。
+    if (image && isDirectTextAdd(message)) {
+      const requestedText = exactText(message);
+      const position = textPosition(message);
+      const edited = await exactTextOverlay(image, requestedText, position);
+      return res.status(200).json({ success:true, image:edited, reply:`できました。「${requestedText.replace(/\n/g," / ")}」を元画像に追加しました。人物・背景・構図は変更していません。`, plan:{mode:"TEXT_ONLY", requestedText, textPosition:position, keep:["元画像の全ピクセル、人物、背景、構図、服装、ポーズ"], change:["文字だけ"]} });
+    }
 
     const plan = normalize(await makePlan(message, image, history), message, Boolean(image));
     if (image && plan.mode === "TEXT_ONLY" && plan.requestedText) {
