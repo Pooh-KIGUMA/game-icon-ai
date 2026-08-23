@@ -4,78 +4,101 @@ const client = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
 });
 
+const TEXT_MODEL = "gpt-5.6-sol";
 const IMAGE_MODEL = "gpt-image-2";
 
-function clean(value, max = 7000) {
-  return String(value ?? "")
-    .trim()
-    .slice(0, max);
+const SYSTEM = `
+あなたは「Iconia AI」という画像制作サービスの会話AIです。
+
+ユーザーがChatGPTに話しかけるように、自然な文章だけで画像を作れるようにしてください。
+
+重要ルール:
+
+1. 細かい設定項目をユーザーに要求しない。
+2. ユーザーの文章から画像の目的を理解する。
+3. 画像なしならオリジナル画像を作る。
+4. 画像ありなら、その画像をベースに編集する。
+5. 「この画像をほぼそのまま」「顔は変えない」「人物はそのまま」などの指定を最優先する。
+6. 指定されていない文字は絶対に追加しない。
+7. Pooh、AxLFなどの文字を勝手に追加しない。
+8. プレイヤーネーム、同盟名、クラン名、ロゴ、透かしなどを勝手に追加しない。
+9. ユーザーが文字を指定した場合だけ、その文字を入れる。
+10. 指定された文字は大文字・小文字・記号をできる限り正確にする。
+11. SNSプロフィール画像、Xヘッダー、Instagram、LINE、YouTubeなど用途に合わせて構図を調整する。
+12. ユーザーが「いい感じに」と言った場合は、専門的な判断で完成度を高める。
+13. 前の会話を踏まえて「もっと」「少し変えて」「背景だけ変えて」などを理解する。
+14. 画像編集では、ユーザーが変更を求めていない部分をなるべく保持する。
+15. 特定作品の完全コピーではなく、オリジナルとして成立するデザインにする。
+
+返答は必ずJSONのみ。
+
+{
+  "action": "GENERATE" | "EDIT" | "CHAT",
+  "image_prompt": "",
+  "reply": "",
+  "examples": []
 }
 
+GENERATE:
+新しい画像を作る場合。
+
+EDIT:
+ユーザーが送った画像を編集する場合。
+
+CHAT:
+画像をまだ作らず相談する場合。
+
+examples:
+ユーザーが次に使えそうな具体的な指示を最大3つ。
+必要ない場合は空配列。
+
+image_prompt:
+画像生成AIに直接渡す英語のプロンプト。
+ユーザーの希望をできるだけ詳しく反映する。
+指定されていない文字を追加しない。
+`;
+
+const schema = {
+  type: "object",
+  additionalProperties: false,
+  properties: {
+    action: {
+      type: "string",
+      enum: ["GENERATE", "EDIT", "CHAT"]
+    },
+    image_prompt: {
+      type: "string"
+    },
+    reply: {
+      type: "string"
+    },
+    examples: {
+      type: "array",
+      items: {
+        type: "string"
+      }
+    }
+  },
+  required: [
+    "action",
+    "image_prompt",
+    "reply",
+    "examples"
+  ]
+};
+
 function decodeDataUrl(dataUrl) {
-  const match = String(dataUrl || "").match(
-    /^data:image\/[a-zA-Z0-9.+-]+;base64,(.+)$/
-  );
+
+  const match =
+    String(dataUrl || "").match(
+      /^data:image\/[a-zA-Z0-9.+-]+;base64,(.+)$/
+    );
 
   if (!match) {
     throw new Error("画像データの形式が正しくありません。");
   }
 
   return Buffer.from(match[1], "base64");
-}
-
-function buildPrompt(message, history, hasImage) {
-
-  const previous = Array.isArray(history)
-    ? history
-        .slice(-8)
-        .map(item => {
-          const role =
-            item.role === "user"
-              ? "USER"
-              : "ASSISTANT";
-
-          return `${role}: ${clean(item.text, 1200)}`;
-        })
-        .join("\n")
-    : "";
-
-  return `
-You are the image creation engine for Iconia AI.
-
-The user wants to create or edit an image through a natural conversation.
-
-IMPORTANT:
-- Follow the user's latest instruction.
-- Use previous conversation only when it helps understand references such as "this", "that", "the previous image", "make it bigger", "change only the background", etc.
-- Do NOT invent names.
-- Do NOT add player names, alliance names, clan names, logos, watermarks, signatures or UI unless the user explicitly requests them.
-- Never automatically add "Pooh", "AxLF", "GAME ICON", "Player name", or any other sample text.
-- If the user requests text, preserve spelling, capitalization, symbols and numbers as accurately as possible.
-- If the user says to keep the original image/person/face/clothes/etc., preserve those parts as much as possible.
-- If the user says "原画をほぼそのまま", preserve the composition and identity of the source image and make only the requested changes.
-- If the user asks for only a background change, do not redesign the character.
-- If the user asks for only text, do not redesign the image.
-- If the user asks for a new original character and no image is supplied, create an original character.
-- If the user asks for an SNS icon/header, optimize composition for the requested platform.
-- Do not ask the user to fill out complicated settings.
-- The user's natural-language instruction is the primary control.
-
-Previous conversation:
-${previous || "(none)"}
-
-Latest user instruction:
-${message}
-
-Image supplied:
-${hasImage ? "YES - edit the supplied image according to the instruction." : "NO - create a new image."}
-
-Create a detailed image-generation/editing instruction from the user's request.
-
-The result should be visually polished, professional and suitable for a high-quality AI image service.
-
-Do not add anything the user did not request.
-`;
 }
 
 export default async function handler(req, res) {
@@ -97,31 +120,139 @@ export default async function handler(req, res) {
 
     const body = req.body || {};
 
-    const message = clean(
-      body.message,
-      7000
-    );
+    const message =
+      String(body.message || "")
+        .trim()
+        .slice(0, 7000);
 
     const image =
       body.image || null;
 
-    const history =
-      Array.isArray(body.history)
-        ? body.history
-        : [];
+    const previousResponseId =
+      String(body.previousResponseId || "")
+        .trim()
+        .slice(0, 200);
 
     if (!message && !image) {
       return res.status(400).json({
-        error:
-          "画像または指示を送ってください。"
+        error: "指示または画像を送ってください。"
       });
     }
 
-    const prompt = buildPrompt(
-      message,
-      history,
-      Boolean(image)
-    );
+    const content = [];
+
+    if (message) {
+      content.push({
+        type: "input_text",
+        text: message
+      });
+    }
+
+    if (image) {
+      content.push({
+        type: "input_image",
+        image_url: image,
+        detail: "high"
+      });
+    }
+
+    const responseParams = {
+
+      model: TEXT_MODEL,
+
+      instructions: SYSTEM,
+
+      input: [
+        {
+          role: "user",
+          content
+        }
+      ],
+
+      max_output_tokens: 1500,
+
+      store: true,
+
+      text: {
+        format: {
+          type: "json_schema",
+          name: "iconia_plan",
+          strict: true,
+          schema
+        }
+      }
+    };
+
+    if (previousResponseId) {
+      responseParams.previous_response_id =
+        previousResponseId;
+    }
+
+    const planResponse =
+      await client.responses.create(
+        responseParams
+      );
+
+    let plan;
+
+    try {
+
+      plan =
+        JSON.parse(
+          planResponse.output_text || "{}"
+        );
+
+    } catch {
+
+      plan = {
+        action: image ? "EDIT" : "GENERATE",
+        image_prompt:
+          message ||
+          "Create a high quality original image.",
+        reply:
+          "内容を理解しました。画像を作ります。",
+        examples: []
+      };
+
+    }
+
+    const examples =
+      Array.isArray(plan.examples)
+        ? plan.examples
+            .filter(Boolean)
+            .slice(0, 3)
+        : [];
+
+    /*
+     * まだ画像を作る必要がない場合
+     */
+
+    if (plan.action === "CHAT") {
+
+      return res.status(200).json({
+
+        responseId:
+          planResponse.id,
+
+        action: "CHAT",
+
+        reply:
+          plan.reply ||
+          "もちろんです。",
+
+        examples
+
+      });
+
+    }
+
+    const prompt =
+      String(
+        plan.image_prompt ||
+        message ||
+        "Create a high quality original image."
+      )
+      .trim();
 
     let result;
 
@@ -131,15 +262,12 @@ export default async function handler(req, res) {
 
     if (image) {
 
-      const buffer =
-        decodeDataUrl(image);
-
       const file =
         await toFile(
-          buffer,
-          "reference.png",
+          decodeDataUrl(image),
+          "reference.jpg",
           {
-            type: "image/png"
+            type: "image/jpeg"
           }
         );
 
@@ -150,11 +278,14 @@ export default async function handler(req, res) {
 
           image: file,
 
-          prompt,
+          prompt: prompt,
 
+          /*
+           * Vercelのレスポンスサイズを抑える
+           */
           size: "1024x1024",
 
-          quality: "medium",
+          quality: "high",
 
           output_format: "jpeg",
 
@@ -167,7 +298,7 @@ export default async function handler(req, res) {
     }
 
     /*
-     * 新規画像
+     * 新規生成
      */
 
     else {
@@ -177,11 +308,11 @@ export default async function handler(req, res) {
 
           model: IMAGE_MODEL,
 
-          prompt,
+          prompt: prompt,
 
           size: "1024x1024",
 
-          quality: "medium",
+          quality: "high",
 
           output_format: "jpeg",
 
@@ -204,36 +335,40 @@ export default async function handler(req, res) {
 
     }
 
+    /*
+     * JPEGで返すことで、
+     * PNGより大幅にレスポンスを小さくする
+     */
+
     const imageData =
       `data:image/jpeg;base64,${base64}`;
 
     /*
-     * 念のためレスポンスサイズを確認
+     * 念のためサイズをチェック
      */
 
-    const responseSize =
+    const sizeMB =
       Buffer.byteLength(
         imageData,
         "utf8"
-      );
+      ) / 1024 / 1024;
 
     console.log(
-      "IMAGE RESPONSE:",
-      Math.round(
-        responseSize / 1024 / 1024 * 100
-      ) / 100,
+      "Image response size:",
+      sizeMB.toFixed(2),
       "MB"
     );
 
-    if (
-      responseSize >
-      4 * 1024 * 1024
-    ) {
+    /*
+     * 4MBを超えそうなら明確なエラーにする
+     */
+
+    if (sizeMB > 4.0) {
 
       return res.status(413).json({
 
         error:
-          "画像サイズが大きすぎました。もう一度生成してください。"
+          "生成画像のサイズが大きすぎました。もう一度生成してください。"
 
       });
 
@@ -241,20 +376,27 @@ export default async function handler(req, res) {
 
     return res.status(200).json({
 
-      success: true,
+      responseId:
+        planResponse.id,
+
+      action:
+        plan.action,
 
       image:
         imageData,
 
       reply:
-        "できました。気になるところがあれば、そのまま続けて指示してください。"
+        plan.reply ||
+        "できました。さらに修正できます。",
+
+      examples
 
     });
 
   } catch (error) {
 
     console.error(
-      "ICONIA GENERATION ERROR:",
+      "ICONIA API ERROR:",
       error
     );
 
@@ -267,4 +409,5 @@ export default async function handler(req, res) {
     });
 
   }
+
 }
