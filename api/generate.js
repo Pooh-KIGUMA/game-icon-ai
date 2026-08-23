@@ -1,449 +1,260 @@
 import OpenAI, { toFile } from "openai";
 
-const client = new OpenAI({
+const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
 });
 
-const IMAGE_MODEL = "gpt-image-2";
+const MODEL = "gpt-image-2";
 
-function clean(value, max = 7000) {
-  return String(value ?? "")
-    .trim()
-    .slice(0, max);
+function text(value, max = 6000) {
+  return String(value || "").trim().slice(0, max);
 }
 
-function decodeDataUrl(dataUrl) {
+function decodeImage(dataUrl) {
   const match = String(dataUrl || "").match(
-    /^data:image\/[a-zA-Z0-9.+-]+;base64,(.+)$/
+    /^data:image\/[^;]+;base64,(.+)$/
   );
 
   if (!match) {
-    throw new Error(
-      "画像データの形式が正しくありません。"
-    );
+    throw new Error("画像データを読み込めませんでした。");
   }
 
-  return Buffer.from(
-    match[1],
-    "base64"
-  );
+  return Buffer.from(match[1], "base64");
 }
 
-function buildPrompt(
-  message,
-  history,
-  hasImage
-) {
+function makePrompt(message, history, hasImage) {
+  const previous = Array.isArray(history)
+    ? history
+        .slice(-8)
+        .map(x => {
+          const role =
+            x.role === "user"
+              ? "USER"
+              : "ASSISTANT";
 
-  const previous =
-    Array.isArray(history)
-      ? history
-          .slice(-8)
-          .map(item => {
-
-            const role =
-              item.role === "user"
-                ? "USER"
-                : "ASSISTANT";
-
-            return (
-              role +
-              ": " +
-              clean(
-                item.text,
-                1500
-              )
-            );
-
-          })
-          .join("\n")
-      : "";
+          return `${role}: ${text(x.text, 1200)}`;
+        })
+        .join("\n")
+    : "";
 
   return `
+You are Iconia AI, a professional conversational image creation assistant.
 
-You are the image generation and editing engine for Iconia AI.
-
-The user interacts with you naturally, like a conversational AI image assistant.
-
-Your job is to turn the user's request directly into a high-quality image.
-
-IMPORTANT RULES:
-
-1. Follow the latest user instruction precisely.
-
-2. Use the previous conversation to understand references such as:
-   - this character
-   - this image
-   - the previous image
-   - make it bigger
-   - change only the background
-   - keep the face
-   - use the same character
-   - make it more cool
-   - make it brighter
-   - change the pose
-
-3. NEVER invent player names.
-
-4. NEVER invent alliance names.
-
-5. NEVER invent clan names.
-
-6. NEVER add watermarks.
-
-7. NEVER add signatures.
-
-8. NEVER add logos unless the user specifically asks for them.
-
-9. NEVER add:
-   Pooh
-   AxLF
-   Player name
-   Game Icon AI
-   Iconia AI
-   SAMPLE
-   watermark
-
-   unless explicitly requested by the user.
-
-10. If the user asks for text, reproduce the requested text as accurately as possible.
-
-11. If the user asks for only text to be added to an image, preserve the original image.
-
-12. If the user asks for only a background change, preserve the subject.
-
-13. If the user asks to preserve the original image, preserve:
-    - face
-    - hairstyle
-    - clothing
-    - body
-    - identity
-    - composition
-
-    as much as possible.
-
-14. If the user says:
-    "原画をほぼそのまま"
-    prioritize preservation over redesign.
-
-15. If the user supplies an image, treat it as the primary visual reference.
-
-16. Do not redesign the supplied image unless the user asks you to.
-
-17. If no image is supplied, create an original character or scene according to the request.
-
-18. The user does NOT need to choose complicated settings.
-
-19. Natural language is the primary control.
-
-20. Make the final result polished and suitable for:
-    - game icons
-    - X profile images
-    - Instagram profile images
-    - LINE profile images
-    - SNS headers
-    - banners
-    - thumbnails
-    - other social media graphics
-
-21. When the user specifies an aspect ratio or platform, compose accordingly.
-
-22. If the user does not specify an aspect ratio, use a square 1:1 composition suitable for an icon.
-
-23. Do not add text simply because the image is intended for a game icon.
-
-24. Do not add decorative elements that the user did not request when preserving an original image.
-
-25. Prioritize the user's latest request over old preferences.
-
-PREVIOUS CONVERSATION:
-
-${previous || "(none)"}
+The user wants to create images by talking naturally, similar to a conversational AI.
 
 LATEST USER REQUEST:
+${text(message)}
 
-${message || "(image editing request)"}
+PREVIOUS CONVERSATION:
+${previous || "No previous conversation."}
 
-IMAGE SUPPLIED:
+IMAGE PROVIDED:
+${hasImage ? "YES" : "NO"}
 
-${
-  hasImage
-    ? "YES. The supplied image is the primary reference and should be edited according to the user's request."
-    : "NO. Create a new original image."
-}
+IMPORTANT:
 
-Create the final image according to the request.
+- Follow the latest user request exactly.
+- Use previous conversation when the user says "this character", "this image", "make it bigger", "change only the background", etc.
+- If an image is provided, use it as the primary reference.
+- Preserve the original image as much as possible when the user asks to preserve it.
+- If the user asks to change only one thing, do not unnecessarily change other things.
+- If the user asks for an original character and no image is provided, create an original character.
+- Do not invent names.
+- Do not invent player names.
+- Do not invent alliance names.
+- Do not invent clan names.
+- Do not add Pooh.
+- Do not add AxLF.
+- Do not add Player name.
+- Do not add Iconia AI.
+- Do not add Game Icon AI.
+- Do not add watermarks.
+- Do not add signatures.
+- Do not add logos unless explicitly requested.
+- Do not add text unless explicitly requested.
+- If text is requested, use exactly the requested text.
+- If the user wants an icon, prioritize the character and keep the composition clean.
+- If the user wants an SNS header, use an appropriate wide composition.
+- If the user does not specify a ratio, use a square composition.
+- Prioritize visual quality and the user's actual request over generic image-generation conventions.
 
-Do not explain the process.
-Do not invent missing names.
-Do not add sample text.
-Do not add watermarks.
-
+Create the image directly.
+Do not explain your reasoning.
 `;
-
 }
 
+export default async function handler(req, res) {
 
-export default async function handler(
-  req,
-  res
-) {
-
-  if (
-    req.method !== "POST"
-  ) {
-
-    return res
-      .status(405)
-      .json({
-        error:
-          "POST only"
-      });
-
+  if (req.method !== "POST") {
+    return res.status(405).json({
+      error: "POST only"
+    });
   }
-
-
-  if (
-    !process.env.OPENAI_API_KEY
-  ) {
-
-    return res
-      .status(500)
-      .json({
-
-        error:
-          "OPENAI_API_KEY が設定されていません。"
-
-      });
-
-  }
-
 
   try {
 
-    const body =
-      req.body || {};
+    if (!process.env.OPENAI_API_KEY) {
+      return res.status(500).json({
+        error:
+          "OPENAI_API_KEY がVercelに設定されていません。"
+      });
+    }
+
+    const body = req.body || {};
 
     const message =
-      clean(
-        body.message,
-        7000
-      );
+      text(body.message);
 
     const image =
       body.image || null;
 
     const history =
-      Array.isArray(
-        body.history
-      )
+      Array.isArray(body.history)
         ? body.history
         : [];
 
-
-    if (
-      !message &&
-      !image
-    ) {
-
-      return res
-        .status(400)
-        .json({
-
-          error:
-            "画像または指示を入力してください。"
-
-        });
-
+    if (!message && !image) {
+      return res.status(400).json({
+        error:
+          "画像またはメッセージが必要です。"
+      });
     }
 
-
     const prompt =
-      buildPrompt(
+      makePrompt(
         message,
         history,
         Boolean(image)
       );
 
-
     let result;
 
-
     /*
-     * ========================
-     * IMAGE EDIT
-     * ========================
+     * =========================
+     * 新規画像
+     * =========================
      */
 
-    if (image) {
+    if (!image) {
+
+      console.log(
+        "ICONIA: generating new image"
+      );
+
+      result =
+        await openai.images.generate({
+          model: MODEL,
+          prompt,
+          size: "1024x1024",
+          quality: "medium",
+          output_format: "jpeg",
+          output_compression: 70,
+          n: 1
+        });
+
+    }
+
+    /*
+     * =========================
+     * 画像編集
+     * =========================
+     */
+
+    else {
+
+      console.log(
+        "ICONIA: editing image"
+      );
 
       const buffer =
-        decodeDataUrl(
-          image
-        );
-
+        decodeImage(image);
 
       const file =
         await toFile(
           buffer,
           "reference.jpg",
           {
-            type:
-              "image/jpeg"
+            type: "image/jpeg"
           }
         );
 
-
       result =
-        await client.images.edit({
-
-          model:
-            IMAGE_MODEL,
-
-          image:
-            file,
-
+        await openai.images.edit({
+          model: MODEL,
+          image: file,
           prompt,
-
-          size:
-            "1024x1024",
-
-          quality:
-            "medium",
-
-          output_format:
-            "jpeg",
-
-          output_compression:
-            60,
-
-          n:
-            1
-
+          size: "1024x1024",
+          quality: "medium",
+          output_format: "jpeg",
+          output_compression: 70,
+          n: 1
         });
 
     }
-
-
-    /*
-     * ========================
-     * NEW IMAGE
-     * ========================
-     */
-
-    else {
-
-      result =
-        await client.images.generate({
-
-          model:
-            IMAGE_MODEL,
-
-          prompt,
-
-          size:
-            "1024x1024",
-
-          quality:
-            "medium",
-
-          output_format:
-            "jpeg",
-
-          output_compression:
-            60,
-
-          n:
-            1
-
-        });
-
-    }
-
 
     const base64 =
       result?.data?.[0]?.b64_json;
 
-
     if (!base64) {
-
       throw new Error(
-        "画像データが返されませんでした。"
+        "OpenAIから画像データが返されませんでした。"
       );
-
     }
-
 
     const imageData =
-      "data:image/jpeg;base64," +
-      base64;
+      `data:image/jpeg;base64,${base64}`;
 
+    return res.status(200).json({
 
-    /*
-     * 大きすぎるレスポンスを
-     * ブラウザに返さない
-     */
+      success: true,
 
-    const sizeMB =
-      Buffer.byteLength(
-        imageData,
-        "utf8"
-      ) /
-      1024 /
-      1024;
+      image: imageData,
 
+      reply:
+        "できました。気になるところがあれば、そのまま続けて指示してください。"
 
-    console.log(
-      "Image response:",
-      sizeMB.toFixed(2),
-      "MB"
-    );
-
-
-    if (
-      sizeMB > 4
-    ) {
-
-      throw new Error(
-        "生成画像のサイズが大きすぎました。もう一度生成してください。"
-      );
-
-    }
-
-
-    return res
-      .status(200)
-      .json({
-
-        success:
-          true,
-
-        image:
-          imageData,
-
-        reply:
-          "できました。気になるところがあれば、そのまま続けて指示してください。"
-
-      });
-
+    });
 
   } catch (error) {
 
     console.error(
-      "ICONIA ERROR:",
-      error
+      "========== ICONIA ERROR =========="
     );
 
+    console.error(error);
 
-    return res
-      .status(500)
-      .json({
+    console.error(
+      "==================================="
+    );
 
-        error:
-          error?.message ||
-          "画像生成中にエラーが発生しました。"
+    /*
+     * OpenAIの本当のエラーを
+     * フロント側へ返す
+     */
 
-      });
+    const apiMessage =
+      error?.error?.message ||
+      error?.message ||
+      "不明なエラー";
+
+    const status =
+      Number(error?.status) || 500;
+
+    return res.status(status).json({
+
+      success: false,
+
+      error: apiMessage,
+
+      type:
+        error?.error?.type ||
+        null,
+
+      code:
+        error?.error?.code ||
+        null
+
+    });
 
   }
 
