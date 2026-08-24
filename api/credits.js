@@ -1,4 +1,4 @@
-import { sql } from '@vercel/postgres';
+import { supabaseAdmin, requireUser } from './_lib/supabase.js';
 
 const PLANS = {
   free: { monthlyCredits: 10, priceJPY: 0, ads: true, videoAds: true },
@@ -6,57 +6,40 @@ const PLANS = {
   pro: { monthlyCredits: 180, priceJPY: 1620, ads: false, videoAds: false }
 };
 
-function json(res, status, body) {
-  res.status(status).setHeader('Content-Type', 'application/json; charset=utf-8').send(JSON.stringify(body));
-}
-
-function userId(req) {
-  return String(req.headers['x-iconia-user-id'] || '').trim();
-}
-
 export default async function handler(req, res) {
-  if (req.method !== 'GET' && req.method !== 'POST') return json(res, 405, { error: 'Method not allowed' });
-  const id = userId(req);
-  if (!id || id.length > 128) return json(res, 401, { error: 'Authentication required' });
-
+  if (req.method !== 'GET' && req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
   try {
-    await sql`CREATE TABLE IF NOT EXISTS iconia_accounts (
-      user_id TEXT PRIMARY KEY,
-      plan TEXT NOT NULL DEFAULT 'free',
-      credits INTEGER NOT NULL DEFAULT 10,
-      period_start TIMESTAMPTZ NOT NULL DEFAULT date_trunc('month', now()),
-      updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
-    )`;
-
-    const existing = await sql`SELECT user_id, plan, credits, period_start FROM iconia_accounts WHERE user_id=${id}`;
-    let account = existing.rows[0];
+    const user = await requireUser(req);
+    const admin = supabaseAdmin();
+    let { data: account, error } = await admin.from('iconia_accounts').select('user_id,plan,credits,period_start').eq('user_id', user.id).maybeSingle();
+    if (error) throw error;
     if (!account) {
-      await sql`INSERT INTO iconia_accounts(user_id, plan, credits) VALUES(${id}, 'free', 10)`;
-      account = { user_id: id, plan: 'free', credits: 10 };
+      const created = await admin.from('iconia_accounts').insert({ user_id: user.id, plan: 'free', credits: 10 }).select('user_id,plan,credits,period_start').single();
+      if (created.error) throw created.error;
+      account = created.data;
     }
-
-    if (req.method === 'GET') {
-      const plan = PLANS[account.plan] || PLANS.free;
-      return json(res, 200, { plan: account.plan, credits: account.credits, ...plan });
-    }
+    if (req.method === 'GET') return res.status(200).json({ plan: account.plan, credits: account.credits, ...(PLANS[account.plan] || PLANS.free) });
 
     const action = String(req.body?.action || 'consume');
     if (action === 'consume') {
-      const updated = await sql`UPDATE iconia_accounts SET credits=credits-1, updated_at=now() WHERE user_id=${id} AND credits > 0 RETURNING plan, credits`;
-      if (!updated.rows[0]) return json(res, 402, { error: 'NO_CREDITS', message: 'No credits remaining.' });
-      const plan = PLANS[updated.rows[0].plan] || PLANS.free;
-      return json(res, 200, { plan: updated.rows[0].plan, credits: updated.rows[0].credits, ...plan });
+      const { data, error: rpcError } = await admin.rpc('consume_iconia_credit_for_user', { p_user_id: user.id });
+      if (rpcError) throw rpcError;
+      if (!data?.[0]) return res.status(402).json({ error: 'NO_CREDITS', message: 'No credits remaining.' });
+      return res.status(200).json({ plan: data[0].plan, credits: data[0].credits, ...(PLANS[data[0].plan] || PLANS.free) });
     }
-
+    if (action === 'refund') {
+      const { data, error: rpcError } = await admin.rpc('refund_iconia_credit_for_user', { p_user_id: user.id });
+      if (rpcError) throw rpcError;
+      return res.status(200).json({ credits: data });
+    }
     if (action === 'grant_ad') {
-      const updated = await sql`UPDATE iconia_accounts SET credits=credits+3, updated_at=now() WHERE user_id=${id} AND plan='free' RETURNING plan, credits`;
-      if (!updated.rows[0]) return json(res, 403, { error: 'AD_REWARD_UNAVAILABLE' });
-      return json(res, 200, { plan: 'free', credits: updated.rows[0].credits, reward: 3 });
+      const { data, error: rpcError } = await admin.rpc('grant_iconia_ad_reward_for_user', { p_user_id: user.id });
+      if (rpcError) throw rpcError;
+      if (data === null || data === undefined) return res.status(403).json({ error: 'AD_REWARD_UNAVAILABLE' });
+      return res.status(200).json({ plan: 'free', credits: data, reward: 3 });
     }
-
-    return json(res, 400, { error: 'Unknown action' });
-  } catch (error) {
-    console.error('credits error', error);
-    return json(res, 503, { error: 'CREDITS_SERVICE_UNAVAILABLE' });
+    return res.status(400).json({ error: 'Unknown action' });
+  } catch (e) {
+    return res.status(e.status || 503).json({ error: e.message || 'CREDITS_SERVICE_UNAVAILABLE' });
   }
 }
