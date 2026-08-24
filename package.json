@@ -3,13 +3,14 @@
   "version": "2.1.0",
   "private": true,
   "type": "module",
+  "description": "Iconia AI game icon generator",
   "dependencies": {
     "openai": "^6.34.0",
     "sharp": "^0.34.3",
     "@vercel/postgres": "^0.10.0"
   },
   "allowScripts": {
-    "bufferutil@4.1.0": true,
-    "sharp@0.34.5": true
+    "bufferutil": true,
+    "sharp": true
   }
 }
