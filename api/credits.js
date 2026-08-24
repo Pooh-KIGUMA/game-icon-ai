@@ -1,7 +1,7 @@
 import crypto from 'node:crypto';
 
 const PLANS = {
-  free: { monthlyCredits: 10, priceJPY: 0 },
+  free: { monthlyCredits: 3, priceJPY: 0 },
   standard: { monthlyCredits: 30, priceJPY: 540 },
   pro: { monthlyCredits: 120, priceJPY: 1620 }
 };
@@ -35,8 +35,7 @@ async function auth(req) {
 async function createAnonymousUser() {
   const url = process.env.SUPABASE_URL, key = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!url || !key) throw new Error('SUPABASE_NOT_CONFIGURED');
-  const id = crypto.randomUUID();
-  const email = `anonymous-${id}@iconia-ai.local`;
+  const email = `anonymous-${crypto.randomUUID()}@iconia-ai.local`;
   const password = crypto.randomBytes(32).toString('hex');
   const r = await fetch(`${url}/auth/v1/admin/users`, {
     method: 'POST',
@@ -44,8 +43,7 @@ async function createAnonymousUser() {
     body: JSON.stringify({ email, password, email_confirm: true, user_metadata: { anonymous: true } })
   });
   if (!r.ok) throw new Error(await r.text());
-  const user = await r.json();
-  return user.id;
+  return (await r.json()).id;
 }
 async function resolveUser(req, res) {
   const loggedIn = await auth(req);
@@ -71,7 +69,6 @@ export default async function handler(req, res) {
   if (!['GET','POST'].includes(req.method)) return json(res,405,{error:'METHOD_NOT_ALLOWED'});
   try {
     const userId = await resolveUser(req, res);
-    if (!userId) return json(res,401,{error:'AUTHENTICATION_REQUIRED'});
     if (req.method === 'GET') {
       const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
       if (!serviceKey) throw new Error('SUPABASE_NOT_CONFIGURED');
@@ -79,9 +76,9 @@ export default async function handler(req, res) {
         headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` }
       });
       if (!r.ok) throw new Error(await r.text());
-      const row = (await r.json())[0] || { plan:'free', credits:10, purchased_credits:0 };
+      const row = (await r.json())[0] || { plan:'free', credits:3, purchased_credits:0 };
       const plan = PLANS[row.plan] || PLANS.free;
-      return json(res,200,{plan:row.plan,credits:Number(row.credits ?? 10),purchasedCredits:Number(row.purchased_credits ?? 0),packs:PACKS,...plan});
+      return json(res,200,{plan:row.plan,credits:Number(row.credits ?? 3),purchasedCredits:Number(row.purchased_credits ?? 0),packs:PACKS,...plan});
     }
     const action = String(req.body?.action || 'consume');
     if (action === 'consume') {
