@@ -9,7 +9,7 @@
     "@vercel/postgres": "^0.10.0"
   },
   "allowScripts": {
-    "sharp": true,
-    "bufferutil": true
+    "bufferutil@4.1.0": true,
+    "sharp@0.34.5": true
   }
 }
