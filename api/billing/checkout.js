@@ -2,6 +2,7 @@ import Stripe from 'stripe';
 import { supabaseAdmin, requireUser } from '../_lib/supabase.js';
 
 const PRICE_ENV = { standard: 'STRIPE_STANDARD_PRICE_ID', pro: 'STRIPE_PRO_PRICE_ID' };
+const APP_URL = process.env.APP_URL || 'https://game-icon-ai.vercel.app';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
@@ -24,8 +25,8 @@ export default async function handler(req, res) {
       client_reference_id: user.id,
       metadata: { iconia_user_id: user.id, plan },
       subscription_data: { metadata: { iconia_user_id: user.id, plan } },
-      success_url: `${process.env.APP_URL || 'https://example.com'}?billing=success`,
-      cancel_url: `${process.env.APP_URL || 'https://example.com'}?billing=cancelled`,
+      success_url: `${APP_URL}?billing=success`,
+      cancel_url: `${APP_URL}?billing=cancelled`,
       allow_promotion_codes: true
     });
     return res.status(200).json({ url: session.url });
