@@ -5,6 +5,7 @@
   "type": "module",
   "dependencies": {
     "openai": "^6.34.0",
-    "sharp": "^0.34.3"
+    "sharp": "^0.34.3",
+    "@vercel/postgres": "^0.10.0"
   }
 }
