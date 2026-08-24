@@ -4,6 +4,8 @@ const W={ja:{h:'自分だけのゲームアイコンを、話すだけで。',p:
 function syncWelcome(){try{const d=frame.contentDocument,t=frame.contentWindow.iconiaLocale?frame.contentWindow.iconiaLocale():'ja',x=W[t]||W.ja;const h=d.querySelector('.welcome h1'),p=d.querySelector('.welcome p');if(h)h.textContent=x.h;if(p)p.textContent=x.p;d.documentElement.lang=t;lang.value=t}catch(e){}}
 function setLocale(t){try{localStorage.setItem('iconia_locale',t)}catch(e){};lang.value=t;try{if(typeof frame.contentWindow.setIconiaLocale==='function'){frame.contentWindow.setIconiaLocale(t);syncWelcome();return}}catch(e){}try{frame.contentWindow.postMessage({type:'iconia-set-locale',locale:t},'*')}catch(e){}}
 lang.addEventListener('change',()=>setLocale(lang.value));
-frame.addEventListener('load',()=>{const d=frame.contentDocument,s=d.createElement('script');s.src='/i18n.js?v=instant4';s.onload=()=>{const e=d.createElement('script');e.src='/locale-enhancements.js?v=1';d.head.appendChild(e);syncWelcome();setTimeout(syncWelcome,50);};d.head.appendChild(s)});
-setInterval(syncWelcome,500);
+function installAuthBridge(){try{const w=frame.contentWindow;if(w.__iconiaAuthBridge)return;w.__iconiaAuthBridge=true;const native=w.fetch.bind(w);w.fetch=async(input,init={})=>{try{const token=await window.iconiaGetAccessToken?.();if(token){const headers=new Headers(init.headers||{});headers.set('Authorization',`Bearer ${token}`);init={...init,headers}}}catch{}return native(input,init)};}catch(e){}}
+frame.addEventListener('load',()=>{const d=frame.contentDocument,s=d.createElement('script');s.src='/i18n.js?v=account1';s.onload=()=>{const e=d.createElement('script');e.src='/locale-enhancements.js?v=account1';d.head.appendChild(e);installAuthBridge();syncWelcome();setTimeout(syncWelcome,50);};d.head.appendChild(s)});
+setInterval(()=>{installAuthBridge();syncWelcome()},500);
+const account=document.createElement('script');account.src='/account-ui.js?v=1';document.head.appendChild(account);
 </script></body></html>
