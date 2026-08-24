@@ -1,14 +1,18 @@
 import Stripe from 'stripe';
 import { supabaseAdmin } from '../_lib/supabase.js';
 
+export const config = { api: { bodyParser: false } };
+
 function planFromPrice(priceId) {
   if (priceId && priceId === process.env.STRIPE_PRO_PRICE_ID) return 'pro';
   if (priceId && priceId === process.env.STRIPE_STANDARD_PRICE_ID) return 'standard';
   return 'free';
 }
-
-function creditsFor(plan) {
-  return plan === 'pro' ? 180 : plan === 'standard' ? 60 : 10;
+function creditsFor(plan) { return plan === 'pro' ? 180 : plan === 'standard' ? 60 : 10; }
+async function rawBody(req) {
+  if (Buffer.isBuffer(req.body)) return req.body;
+  if (typeof req.body === 'string') return Buffer.from(req.body);
+  const chunks=[]; for await (const chunk of req) chunks.push(Buffer.isBuffer(chunk)?chunk:Buffer.from(chunk)); return Buffer.concat(chunks);
 }
 
 export default async function handler(req, res) {
@@ -16,9 +20,7 @@ export default async function handler(req, res) {
   if (!process.env.STRIPE_SECRET_KEY || !process.env.STRIPE_WEBHOOK_SECRET) return res.status(503).json({ error: 'STRIPE_WEBHOOK_NOT_CONFIGURED' });
   try {
     const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
-    const signature = req.headers['stripe-signature'];
-    const raw = req.body && typeof req.body === 'string' ? req.body : JSON.stringify(req.body || {});
-    const event = stripe.webhooks.constructEvent(raw, signature, process.env.STRIPE_WEBHOOK_SECRET);
+    const event = stripe.webhooks.constructEvent(await rawBody(req), req.headers['stripe-signature'], process.env.STRIPE_WEBHOOK_SECRET);
     const admin = supabaseAdmin();
 
     if (event.type === 'checkout.session.completed') {
@@ -26,27 +28,37 @@ export default async function handler(req, res) {
       const userId = s.metadata?.iconia_user_id || s.client_reference_id;
       if (userId) {
         const plan = s.metadata?.plan || 'standard';
-        await admin.from('iconia_accounts').upsert({ user_id: userId, plan, credits: creditsFor(plan), stripe_customer_id: String(s.customer || ''), stripe_subscription_id: String(s.subscription || ''), period_start: new Date().toISOString(), updated_at: new Date().toISOString() });
+        const r = await admin.from('iconia_accounts').upsert({ user_id:userId, plan, credits:creditsFor(plan), stripe_customer_id:String(s.customer||''), stripe_subscription_id:String(s.subscription||''), period_start:new Date().toISOString(), updated_at:new Date().toISOString() });
+        if (r.error) throw r.error;
       }
     }
 
-    if (event.type === 'customer.subscription.updated' || event.type === 'customer.subscription.created') {
-      const sub = event.data.object;
-      const userId = sub.metadata?.iconia_user_id;
+    if (event.type === 'customer.subscription.created' || event.type === 'customer.subscription.updated') {
+      const sub = event.data.object, userId = sub.metadata?.iconia_user_id;
       if (userId) {
-        const plan = sub.status === 'active' || sub.status === 'trialing' ? (sub.metadata?.plan || planFromPrice(sub.items?.data?.[0]?.price?.id)) : 'free';
-        await admin.from('iconia_accounts').update({ plan, credits: creditsFor(plan), stripe_customer_id: String(sub.customer || ''), stripe_subscription_id: String(sub.id), period_start: new Date((sub.current_period_start || Date.now()/1000)*1000).toISOString(), updated_at: new Date().toISOString() }).eq('user_id', userId);
+        const plan = (sub.status === 'active' || sub.status === 'trialing') ? (sub.metadata?.plan || planFromPrice(sub.items?.data?.[0]?.price?.id)) : 'free';
+        const r = await admin.from('iconia_accounts').update({ plan, credits:creditsFor(plan), stripe_customer_id:String(sub.customer||''), stripe_subscription_id:String(sub.id), period_start:new Date((sub.current_period_start||Date.now()/1000)*1000).toISOString(), updated_at:new Date().toISOString() }).eq('user_id',userId);
+        if (r.error) throw r.error;
+      }
+    }
+
+    if (event.type === 'invoice.paid') {
+      const invoice = event.data.object;
+      if (invoice.subscription) {
+        const sub = await stripe.subscriptions.retrieve(invoice.subscription);
+        const userId = sub.metadata?.iconia_user_id;
+        if (userId) {
+          const plan = sub.metadata?.plan || planFromPrice(sub.items?.data?.[0]?.price?.id);
+          const r = await admin.from('iconia_accounts').update({ plan, credits:creditsFor(plan), period_start:new Date((sub.current_period_start||Date.now()/1000)*1000).toISOString(), updated_at:new Date().toISOString() }).eq('user_id',userId);
+          if (r.error) throw r.error;
+        }
       }
     }
 
     if (event.type === 'customer.subscription.deleted') {
-      const sub = event.data.object;
-      const userId = sub.metadata?.iconia_user_id;
-      if (userId) await admin.from('iconia_accounts').update({ plan: 'free', credits: 10, stripe_subscription_id: null, updated_at: new Date().toISOString() }).eq('user_id', userId);
+      const sub = event.data.object, userId = sub.metadata?.iconia_user_id;
+      if (userId) { const r=await admin.from('iconia_accounts').update({ plan:'free', credits:10, stripe_subscription_id:null, updated_at:new Date().toISOString() }).eq('user_id',userId); if(r.error) throw r.error; }
     }
-    return res.status(200).json({ received: true });
-  } catch (e) {
-    console.error('stripe webhook', e);
-    return res.status(400).json({ error: 'INVALID_WEBHOOK' });
-  }
+    return res.status(200).json({ received:true });
+  } catch (e) { console.error('stripe webhook',e); return res.status(400).json({ error:'INVALID_WEBHOOK' }); }
 }
