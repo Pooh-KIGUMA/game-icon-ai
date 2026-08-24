@@ -26,6 +26,7 @@ function decodeCookie(value) {
 function setUserCookie(res, id) {
   res.setHeader('Set-Cookie', `${cookieName}=${encodeURIComponent(encodeCookie(id))}; Path=/; Max-Age=31536000; HttpOnly; Secure; SameSite=Lax`);
 }
+function supabaseHeaders(key) { return { apikey: key, Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' }; }
 async function auth(req) {
   const t = token(req), url = process.env.SUPABASE_URL, key = process.env.SUPABASE_ANON_KEY;
   if (!t || !url || !key) return null;
@@ -38,19 +39,29 @@ async function createAnonymousUser() {
   const email = `anonymous-${crypto.randomUUID()}@iconia-ai.local`;
   const password = crypto.randomBytes(32).toString('hex');
   const r = await fetch(`${url}/auth/v1/admin/users`, {
-    method: 'POST',
-    headers: { apikey: key, Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' },
+    method: 'POST', headers: supabaseHeaders(key),
     body: JSON.stringify({ email, password, email_confirm: true, user_metadata: { anonymous: true } })
   });
   if (!r.ok) throw new Error(await r.text());
   return (await r.json()).id;
 }
+async function ensureProfile(userId) {
+  const url = process.env.SUPABASE_URL, key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url || !key) throw new Error('SUPABASE_NOT_CONFIGURED');
+  const r = await fetch(`${url}/rest/v1/profiles?on_conflict=id`, {
+    method: 'POST',
+    headers: { ...supabaseHeaders(key), Prefer: 'resolution=ignore-duplicates,return=minimal' },
+    body: JSON.stringify({ id:userId, plan:'free', credits:3, monthly_credits:3, monthly_remaining:3, purchased_credits:0, bonus_credits:0 })
+  });
+  if (!r.ok && r.status !== 409) throw new Error(await r.text());
+}
 async function resolveUser(req, res) {
   const loggedIn = await auth(req);
-  if (loggedIn?.id) return loggedIn.id;
+  if (loggedIn?.id) { await ensureProfile(loggedIn.id); return loggedIn.id; }
   const existing = decodeCookie(cookie(req, cookieName));
-  if (existing) return existing;
+  if (existing) { await ensureProfile(existing); return existing; }
   const id = await createAnonymousUser();
+  await ensureProfile(id);
   setUserCookie(res, id);
   return id;
 }
@@ -58,9 +69,7 @@ async function callRpc(name, userId) {
   const url = process.env.SUPABASE_URL, key = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!url || !key) throw new Error('SUPABASE_NOT_CONFIGURED');
   const r = await fetch(`${url}/rest/v1/rpc/${name}`, {
-    method: 'POST',
-    headers: { apikey: key, Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ p_user_id: userId })
+    method: 'POST', headers: supabaseHeaders(key), body: JSON.stringify({ p_user_id: userId })
   });
   if (!r.ok) throw new Error(await r.text());
   return r.json();
@@ -71,7 +80,6 @@ export default async function handler(req, res) {
     const userId = await resolveUser(req, res);
     if (req.method === 'GET') {
       const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-      if (!serviceKey) throw new Error('SUPABASE_NOT_CONFIGURED');
       const r = await fetch(`${process.env.SUPABASE_URL}/rest/v1/profiles?id=eq.${encodeURIComponent(userId)}&select=plan,credits,purchased_credits`, {
         headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` }
       });
