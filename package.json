@@ -1,11 +1,13 @@
 {
   "name": "iconia-ai",
-  "version": "2.2.0",
+  "version": "2.3.0",
   "private": true,
   "type": "module",
   "dependencies": {
+    "@supabase/supabase-js": "^2.57.0",
     "@vercel/postgres": "^0.10.0",
     "openai": "^6.34.0",
-    "sharp": "^0.34.3"
+    "sharp": "^0.34.3",
+    "stripe": "^18.5.0"
   }
 }
