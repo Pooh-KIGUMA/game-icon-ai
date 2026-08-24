@@ -89,11 +89,19 @@ export default async function handler(req) {
     params.set('line_items[0][price_data][currency]', 'jpy');
     params.set('line_items[0][price_data][unit_amount]', String(product.amount));
     params.set('line_items[0][price_data][product_data][name]', type === 'subscription' ? `Iconia AI ${key}` : `Iconia AI ${product.credits} Credits`);
-    if (type === 'subscription') params.set('line_items[0][price_data][recurring][interval]', product.interval);
     params.set('metadata[user_id]', user.id);
     params.set('metadata[type]', type);
     params.set('metadata[product]', key);
     params.set('metadata[credits]', String(product.credits));
+    if (type === 'subscription') {
+      params.set('line_items[0][price_data][recurring][interval]', product.interval);
+      // Keep the purchaser identity on the Stripe Subscription so future
+      // recurring invoice events can be mapped back to the same Iconia user.
+      params.set('subscription_data[metadata][user_id]', user.id);
+      params.set('subscription_data[metadata][type]', type);
+      params.set('subscription_data[metadata][product]', key);
+      params.set('subscription_data[metadata][credits]', String(product.credits));
+    }
     const r = await fetch('https://api.stripe.com/v1/checkout/sessions', { method:'POST', headers:{Authorization:`Bearer ${secret}`,'Content-Type':'application/x-www-form-urlencoded'}, body:params });
     const data = await r.json();
     if (!r.ok) return json(r.status, { error:data.error?.message || 'Stripe checkout failed.' });
