@@ -11,15 +11,15 @@ export default async function handler(req, res) {
   try {
     const user = await requireUser(req);
     const admin = supabaseAdmin();
-    let { data: account, error } = await admin.from('iconia_accounts').select('user_id,plan,credits,period_start').eq('user_id', user.id).maybeSingle();
+    let { data: account, error } = await admin.from('profiles').select('id,plan,credits,monthly_credits,billing_period_start,billing_period_end,stripe_customer_id,stripe_subscription_id').eq('id', user.id).maybeSingle();
     if (error) throw error;
     if (!account) {
-      const created = await admin.from('iconia_accounts').insert({ user_id: user.id, plan: 'free', credits: 10 }).select('user_id,plan,credits,period_start').single();
+      const created = await admin.from('profiles').insert({ id: user.id }).select('id,plan,credits,monthly_credits,billing_period_start,billing_period_end,stripe_customer_id,stripe_subscription_id').single();
       if (created.error) throw created.error;
       account = created.data;
     }
     const plan = PLANS[account.plan] || PLANS.free;
-    return res.status(200).json({ user: { id: user.id, email: user.email }, account: { ...account, ...plan } });
+    return res.status(200).json({ user: { id: user.id, email: user.email }, account: { user_id: account.id, ...account, ...plan } });
   } catch (e) {
     return res.status(e.status || 503).json({ error: e.message || 'ACCOUNT_SERVICE_UNAVAILABLE' });
   }
