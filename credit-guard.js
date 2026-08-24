@@ -1,14 +1,4 @@
 (() => {
-  const KEY = 'iconia_credit_user_v1';
-  const getId = () => {
-    let id = localStorage.getItem(KEY);
-    if (!id) {
-      id = (crypto.randomUUID ? crypto.randomUUID() : `guest-${Date.now()}-${Math.random().toString(36).slice(2)}`);
-      localStorage.setItem(KEY, id);
-    }
-    return id;
-  };
-
   const nativeFetch = window.fetch.bind(window);
   let remaining = null;
   let plan = 'free';
@@ -27,69 +17,66 @@
     el.textContent = remaining == null ? 'クレジット確認中…' : `✦ ${remaining} クレジット`;
     el.title = plan;
   }
-
+  async function getSession() {
+    try {
+      if (window.supabase?.auth?.getSession) return (await window.supabase.auth.getSession()).data?.session || null;
+    } catch {}
+    try {
+      const keys = Object.keys(localStorage).filter(k => k.includes('auth-token'));
+      for (const key of keys) {
+        const raw = localStorage.getItem(key);
+        if (!raw) continue;
+        const parsed = JSON.parse(raw);
+        if (parsed?.access_token) return parsed;
+      }
+    } catch {}
+    return null;
+  }
   async function credit(action) {
+    const session = await getSession();
+    if (!session?.access_token) throw Object.assign(new Error('AUTHENTICATION_REQUIRED'), { code:'AUTHENTICATION_REQUIRED', status:401 });
     const r = await nativeFetch('/api/credits', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-Iconia-User-Id': getId() },
-      body: JSON.stringify({ action })
+      method:'POST',
+      headers:{'Content-Type':'application/json',Authorization:`Bearer ${session.access_token}`},
+      body:JSON.stringify({action})
     });
-    const data = await r.json().catch(() => ({}));
-    if (!r.ok) throw Object.assign(new Error(data.message || data.error || 'credits error'), { code: data.error, status: r.status });
-    remaining = data.credits;
+    const data = await r.json().catch(()=>({}));
+    if (!r.ok) throw Object.assign(new Error(data.message || data.error || 'credits error'), {code:data.error,status:r.status});
+    remaining = Number(data.credits ?? remaining);
     plan = data.plan || plan;
     render();
     return data;
   }
-
   async function refresh() {
     try {
-      const r = await nativeFetch('/api/credits', { headers: { 'X-Iconia-User-Id': getId() } });
-      if (!r.ok) return;
-      const data = await r.json();
-      remaining = data.credits;
-      plan = data.plan || 'free';
-      render();
-    } catch {}
+      const session = await getSession();
+      if (!session?.access_token) { remaining=null; render(); return; }
+      const r = await nativeFetch('/api/credits',{headers:{Authorization:`Bearer ${session.access_token}`}});
+      if (!r.ok) { remaining=null; render(); return; }
+      const data=await r.json();
+      remaining=Number(data.credits||0); plan=data.plan||'free'; render();
+    } catch { remaining=null; render(); }
   }
-
   const originalFetch = window.fetch;
-  window.fetch = async (input, init = {}) => {
-    const url = typeof input === 'string' ? input : input?.url || '';
-    const isGenerate = /\/api\/generate(?:\?|$)/.test(url);
-    if (!isGenerate || busy) return originalFetch(input, init);
-
-    if (remaining === 0) {
-      const err = new Error('NO_CREDITS');
-      err.code = 'NO_CREDITS';
-      throw err;
-    }
-
-    busy = true;
-    let consumed = false;
-    try {
-      await credit('consume');
-      consumed = true;
-      const headers = new Headers(init.headers || (typeof input !== 'string' ? input.headers : undefined));
-      headers.set('X-Iconia-User-Id', getId());
-      const next = { ...init, headers };
-      const response = await originalFetch(input, next);
-      if (!response.ok && consumed) {
-        try { await credit('refund'); } catch {}
-      }
+  window.fetch = async (input, init={}) => {
+    const url=typeof input==='string'?input:input?.url||'';
+    const isGenerate=/\/api\/generate(?:\?|$)/.test(url);
+    if(!isGenerate || busy) return originalFetch(input,init);
+    if(remaining===0){const err=new Error('NO_CREDITS');err.code='NO_CREDITS';throw err;}
+    busy=true; let consumed=false;
+    try{
+      await credit('consume'); consumed=true;
+      const session=await getSession();
+      const headers=new Headers(init.headers || (typeof input!=='string'?input.headers:undefined));
+      if(session?.access_token) headers.set('Authorization',`Bearer ${session.access_token}`);
+      const response=await originalFetch(input,{...init,headers});
+      if(!response.ok && consumed){try{await credit('refund')}catch{}}
       return response;
-    } catch (error) {
-      if (consumed && error?.code !== 'NO_CREDITS') {
-        try { await credit('refund'); } catch {}
-      }
+    }catch(error){
+      if(consumed && error?.code!=='NO_CREDITS'){try{await credit('refund')}catch{}}
       throw error;
-    } finally {
-      busy = false;
-      refresh();
-    }
+    }finally{busy=false;refresh();}
   };
-
-  window.iconiaCredits = { refresh, get: () => ({ credits: remaining, plan }) };
-  badge();
-  refresh();
+  window.iconiaCredits={refresh,get:()=>({credits:remaining,plan})};
+  badge(); refresh();
 })();
