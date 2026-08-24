@@ -6,5 +6,9 @@
     "api/*.js": {
       "maxDuration": 300
     }
-  }
+  },
+  "routes": [
+    { "src": "^/$", "dest": "/global.html" },
+    { "handle": "filesystem" }
+  ]
 }
