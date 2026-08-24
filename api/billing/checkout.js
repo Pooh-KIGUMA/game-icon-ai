@@ -15,7 +15,7 @@ export default async function handler(req, res) {
 
     const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
     const admin = supabaseAdmin();
-    const { data: account } = await admin.from('iconia_accounts').select('stripe_customer_id').eq('user_id', user.id).maybeSingle();
+    const { data: account } = await admin.from('profiles').select('stripe_customer_id').eq('id', user.id).maybeSingle();
     const session = await stripe.checkout.sessions.create({
       mode: 'subscription',
       line_items: [{ price, quantity: 1 }],
