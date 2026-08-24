@@ -28,7 +28,7 @@ export default async function handler(req, res) {
       const userId = s.metadata?.iconia_user_id || s.client_reference_id;
       if (userId) {
         const plan = s.metadata?.plan || 'standard';
-        const r = await admin.from('iconia_accounts').upsert({ user_id:userId, plan, credits:creditsFor(plan), stripe_customer_id:String(s.customer||''), stripe_subscription_id:String(s.subscription||''), period_start:new Date().toISOString(), updated_at:new Date().toISOString() });
+        const r = await admin.from('profiles').upsert({ id:userId, plan, credits:creditsFor(plan), monthly_credits:creditsFor(plan), stripe_customer_id:String(s.customer||''), stripe_subscription_id:String(s.subscription||''), billing_period_start:new Date().toISOString(), billing_period_end:new Date(Date.now()+31*24*60*60*1000).toISOString(), updated_at:new Date().toISOString() });
         if (r.error) throw r.error;
       }
     }
@@ -37,7 +37,10 @@ export default async function handler(req, res) {
       const sub = event.data.object, userId = sub.metadata?.iconia_user_id;
       if (userId) {
         const plan = (sub.status === 'active' || sub.status === 'trialing') ? (sub.metadata?.plan || planFromPrice(sub.items?.data?.[0]?.price?.id)) : 'free';
-        const r = await admin.from('iconia_accounts').update({ plan, credits:creditsFor(plan), stripe_customer_id:String(sub.customer||''), stripe_subscription_id:String(sub.id), period_start:new Date((sub.current_period_start||Date.now()/1000)*1000).toISOString(), updated_at:new Date().toISOString() }).eq('user_id',userId);
+        const credits=creditsFor(plan);
+        const start=(sub.current_period_start||Date.now()/1000)*1000;
+        const end=(sub.current_period_end||Date.now()/1000)*1000;
+        const r = await admin.from('profiles').update({ plan, credits, monthly_credits:credits, stripe_customer_id:String(sub.customer||''), stripe_subscription_id:String(sub.id), billing_period_start:new Date(start).toISOString(), billing_period_end:new Date(end).toISOString(), updated_at:new Date().toISOString() }).eq('id',userId);
         if (r.error) throw r.error;
       }
     }
@@ -49,7 +52,8 @@ export default async function handler(req, res) {
         const userId = sub.metadata?.iconia_user_id;
         if (userId) {
           const plan = sub.metadata?.plan || planFromPrice(sub.items?.data?.[0]?.price?.id);
-          const r = await admin.from('iconia_accounts').update({ plan, credits:creditsFor(plan), period_start:new Date((sub.current_period_start||Date.now()/1000)*1000).toISOString(), updated_at:new Date().toISOString() }).eq('user_id',userId);
+          const credits=creditsFor(plan);
+          const r = await admin.from('profiles').update({ plan, credits, monthly_credits:credits, billing_period_start:new Date((sub.current_period_start||Date.now()/1000)*1000).toISOString(), billing_period_end:new Date((sub.current_period_end||Date.now()/1000)*1000).toISOString(), updated_at:new Date().toISOString() }).eq('id',userId);
           if (r.error) throw r.error;
         }
       }
@@ -57,7 +61,7 @@ export default async function handler(req, res) {
 
     if (event.type === 'customer.subscription.deleted') {
       const sub = event.data.object, userId = sub.metadata?.iconia_user_id;
-      if (userId) { const r=await admin.from('iconia_accounts').update({ plan:'free', credits:10, stripe_subscription_id:null, updated_at:new Date().toISOString() }).eq('user_id',userId); if(r.error) throw r.error; }
+      if (userId) { const r=await admin.from('profiles').update({ plan:'free', credits:10, monthly_credits:10, stripe_subscription_id:null, updated_at:new Date().toISOString() }).eq('id',userId); if(r.error) throw r.error; }
     }
     return res.status(200).json({ received:true });
   } catch (e) { console.error('stripe webhook',e); return res.status(400).json({ error:'INVALID_WEBHOOK' }); }
