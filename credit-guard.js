@@ -34,10 +34,12 @@
   }
   async function credit(action) {
     const session = await getSession();
-    if (!session?.access_token) throw Object.assign(new Error('AUTHENTICATION_REQUIRED'), { code:'AUTHENTICATION_REQUIRED', status:401 });
+    const headers = {'Content-Type':'application/json'};
+    if (session?.access_token) headers.Authorization = `Bearer ${session.access_token}`;
     const r = await nativeFetch('/api/credits', {
       method:'POST',
-      headers:{'Content-Type':'application/json',Authorization:`Bearer ${session.access_token}`},
+      headers,
+      credentials:'same-origin',
       body:JSON.stringify({action})
     });
     const data = await r.json().catch(()=>({}));
@@ -50,11 +52,12 @@
   async function refresh() {
     try {
       const session = await getSession();
-      if (!session?.access_token) { remaining=null; render(); return; }
-      const r = await nativeFetch('/api/credits',{headers:{Authorization:`Bearer ${session.access_token}`}});
+      const headers = {};
+      if (session?.access_token) headers.Authorization = `Bearer ${session.access_token}`;
+      const r = await nativeFetch('/api/credits',{headers,credentials:'same-origin'});
       if (!r.ok) { remaining=null; render(); return; }
       const data=await r.json();
-      remaining=Number(data.credits||0); plan=data.plan||'free'; render();
+      remaining=Number(data.credits ?? 0); plan=data.plan||'free'; render();
     } catch { remaining=null; render(); }
   }
   const originalFetch = window.fetch;
@@ -69,7 +72,7 @@
       const session=await getSession();
       const headers=new Headers(init.headers || (typeof input!=='string'?input.headers:undefined));
       if(session?.access_token) headers.set('Authorization',`Bearer ${session.access_token}`);
-      const response=await originalFetch(input,{...init,headers});
+      const response=await originalFetch(input,{...init,headers,credentials:'same-origin'});
       if(!response.ok && consumed){try{await credit('refund')}catch{}}
       return response;
     }catch(error){
