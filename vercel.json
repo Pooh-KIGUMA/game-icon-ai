@@ -3,12 +3,11 @@
   "framework": null,
   "buildCommand": null,
   "functions": {
-    "api/*.js": {
-      "maxDuration": 300
-    }
+    "api/*.js": { "maxDuration": 300 }
   },
   "routes": [
     { "src": "^/$", "dest": "/global.html" },
+    { "src": "^/api/generate$", "dest": "/api/generate-protected.js" },
     { "handle": "filesystem" }
   ]
 }
