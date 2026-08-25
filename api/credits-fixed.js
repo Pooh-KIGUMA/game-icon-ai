@@ -29,13 +29,26 @@ function decodeCookie(value) {
 function setUserCookie(res, id) {
   res.setHeader('Set-Cookie', `${cookieName}=${encodeURIComponent(encodeCookie(id))}; Path=/; Max-Age=31536000; HttpOnly; Secure; SameSite=Lax`);
 }
-function apiHeaders(key, extra = {}) { return { apikey: key, 'Content-Type': 'application/json', ...extra }; }
+
+// Supabase Secret Keys require a Bearer Authorization header for server-side
+// REST/RPC calls. Keep the key in the Authorization header as well as apikey
+// so this works with the new sb_secret_* keys and older service-role keys.
+function apiHeaders(key, extra = {}) {
+  return {
+    apikey: key,
+    Authorization: `Bearer ${key}`,
+    'Content-Type': 'application/json',
+    ...extra
+  };
+}
+
 async function auth(req) {
   const t = token(req), url = process.env.SUPABASE_URL, key = publishableKey();
   if (!t || !url || !key) return null;
   const r = await fetch(`${url}/auth/v1/user`, { headers: { apikey: key, Authorization: `Bearer ${t}` } });
   return r.ok ? r.json() : null;
 }
+
 async function createAnonymousUser() {
   const url = process.env.SUPABASE_URL, key = secretKey();
   if (!url || !key) throw new Error('SUPABASE_NOT_CONFIGURED');
@@ -54,6 +67,7 @@ async function createAnonymousUser() {
   if (!data?.user?.id) throw new Error('ANONYMOUS_USER_CREATE_FAILED');
   return data.user.id;
 }
+
 async function ensureProfile(userId) {
   const url = process.env.SUPABASE_URL, key = secretKey();
   if (!url || !key) throw new Error('SUPABASE_NOT_CONFIGURED');
@@ -64,6 +78,7 @@ async function ensureProfile(userId) {
   });
   if (!r.ok && r.status !== 409) throw new Error(await r.text());
 }
+
 async function resolveUser(req, res) {
   const loggedIn = await auth(req);
   if (loggedIn?.id) { await ensureProfile(loggedIn.id); return loggedIn.id; }
@@ -74,16 +89,21 @@ async function resolveUser(req, res) {
   setUserCookie(res, id);
   return id;
 }
+
 async function callRpc(name, userId) {
   const url = process.env.SUPABASE_URL, key = secretKey();
   if (!url || !key) throw new Error('SUPABASE_NOT_CONFIGURED');
   const r = await fetch(`${url}/rest/v1/rpc/${name}`, {
-    method: 'POST', headers: apiHeaders(key), body: JSON.stringify({ p_user_id: userId })
+    method: 'POST',
+    headers: apiHeaders(key),
+    body: JSON.stringify({ p_user_id: userId })
   });
   if (!r.ok) throw new Error(await r.text());
   return r.json();
 }
+
 function rpcRow(result) { return Array.isArray(result) ? (result[0] || null) : (result && typeof result === 'object' ? result : null); }
+
 export default async function handler(req, res) {
   if (!['GET','POST'].includes(req.method)) return json(res,405,{error:'METHOD_NOT_ALLOWED'});
   try {
