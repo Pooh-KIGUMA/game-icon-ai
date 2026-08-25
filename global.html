@@ -22,10 +22,17 @@ frame.addEventListener('load',()=>{
   s.onload=()=>{
     const e=d.createElement('script');
     e.src='/locale-enhancements.js?v=2';
+    e.onload=()=>{
+      const c=d.createElement('script');
+      c.src='/credit-guard.js?v=6';
+      c.onload=()=>{
+        const f=d.createElement('script');
+        f.src='/mobile-fix.js?v=1';
+        d.head.appendChild(f);
+      };
+      d.head.appendChild(c);
+    };
     d.head.appendChild(e);
-    const c=d.createElement('script');
-    c.src='/credit-guard.js?v=5';
-    d.head.appendChild(c);
   };
   d.head.appendChild(s);
 });
