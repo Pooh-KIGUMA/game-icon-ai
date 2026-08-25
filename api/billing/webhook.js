@@ -18,8 +18,8 @@ function verifySignature(payload, signature, secret) {
 }
 
 async function fetchProfile(supabaseUrl, serviceKey, filter) {
-  const headers = { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` };
-  const r = await fetch(`${supabaseUrl}/rest/v1/profiles?${filter}&select=id,plan,credits,purchased_credits,monthly_credits,monthly_remaining,stripe_subscription_id,stripe_customer_id`, { headers });
+  const headers = { apikey: serviceKey };
+  const r = await fetch(`${supabaseUrl}/rest/v1/profiles?${filter}&select=id,plan,credits,purchased_credits,monthly_credits,monthly_remaining,stripe_subscription_id,stripe_customer_id,bonus_credits`, { headers });
   if (!r.ok) throw new Error(`PROFILE_LOOKUP_FAILED: ${await r.text()}`);
   return (await r.json())?.[0] || null;
 }
@@ -27,7 +27,7 @@ async function fetchProfile(supabaseUrl, serviceKey, filter) {
 async function patchProfile(supabaseUrl, serviceKey, userId, patch) {
   const r = await fetch(`${supabaseUrl}/rest/v1/profiles?id=eq.${encodeURIComponent(userId)}`, {
     method: 'PATCH',
-    headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}`, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
+    headers: { apikey: serviceKey, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
     body: JSON.stringify({ ...patch, updated_at: new Date().toISOString() }),
   });
   if (!r.ok) throw new Error(`PROFILE_UPDATE_FAILED: ${await r.text()}`);
@@ -36,7 +36,7 @@ async function patchProfile(supabaseUrl, serviceKey, userId, patch) {
 async function recordPurchase(supabaseUrl, serviceKey, row) {
   const r = await fetch(`${supabaseUrl}/rest/v1/credit_purchases?on_conflict=stripe_session_id`, {
     method: 'POST',
-    headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}`, 'Content-Type': 'application/json', Prefer: 'resolution=ignore-duplicates,return=representation' },
+    headers: { apikey: serviceKey, 'Content-Type': 'application/json', Prefer: 'resolution=ignore-duplicates,return=representation' },
     body: JSON.stringify(row),
   });
   if (!r.ok) throw new Error(`PURCHASE_RECORD_FAILED: ${await r.text()}`);
@@ -112,7 +112,6 @@ export default async function handler(req) {
           amount_jpy: Number(object.amount_paid || object.amount_total || 0),
         });
         if (inserted) {
-          // Monthly credits reset each billing cycle; purchased/bonus credits remain.
           const purchased = Number(profile.purchased_credits || 0);
           const bonus = Number(profile.bonus_credits || 0);
           await patchProfile(supabaseUrl, serviceKey, profile.id, {
