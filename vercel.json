@@ -9,6 +9,7 @@
   },
   "routes": [
     { "src": "^/$", "dest": "/global.html" },
+    { "src": "^/api/credits(?:/(.*))?$", "dest": "/api/credits-fixed" },
     { "handle": "filesystem" }
   ]
 }
