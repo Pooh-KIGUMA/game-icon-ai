@@ -52,19 +52,17 @@ async function auth(req) {
   return r.ok ? r.json() : null;
 }
 
+// Anonymous users must be created through Supabase Auth. The new sb_secret_*
+// key cannot be used as an Auth Bearer token, so use the normal publishable-key
+// Auth flow instead of auth.admin.createUser().
 async function createAnonymousUser() {
-  const url = process.env.SUPABASE_URL, key = secretKey();
+  const url = process.env.SUPABASE_URL, key = publishableKey();
   if (!url || !key) throw new Error('SUPABASE_NOT_CONFIGURED');
-  const email = `anonymous-${crypto.randomUUID()}@iconia-ai.local`;
-  const password = crypto.randomBytes(32).toString('hex');
-  const supabaseAdmin = createClient(url, key, {
+  const supabase = createClient(url, key, {
     auth: { autoRefreshToken: false, persistSession: false, detectSessionInUrl: false }
   });
-  const { data, error } = await supabaseAdmin.auth.admin.createUser({
-    email,
-    password,
-    email_confirm: true,
-    user_metadata: { anonymous: true }
+  const { data, error } = await supabase.auth.signInAnonymously({
+    options: { data: { anonymous: true, app: 'iconia-ai' } }
   });
   if (error) throw new Error(error.message);
   if (!data?.user?.id) throw new Error('ANONYMOUS_USER_CREATE_FAILED');
