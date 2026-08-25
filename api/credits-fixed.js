@@ -1,4 +1,5 @@
 import crypto from 'node:crypto';
+import { createClient } from '@supabase/supabase-js';
 
 const PLANS = {
   free: { monthlyCredits: 3, priceJPY: 0 },
@@ -40,13 +41,18 @@ async function createAnonymousUser() {
   if (!url || !key) throw new Error('SUPABASE_NOT_CONFIGURED');
   const email = `anonymous-${crypto.randomUUID()}@iconia-ai.local`;
   const password = crypto.randomBytes(32).toString('hex');
-  const headers = apiHeaders(key, { Authorization: `Bearer ${key}` });
-  const r = await fetch(`${url}/auth/v1/admin/users`, {
-    method: 'POST', headers,
-    body: JSON.stringify({ email, password, email_confirm: true, user_metadata: { anonymous: true } })
+  const supabaseAdmin = createClient(url, key, {
+    auth: { autoRefreshToken: false, persistSession: false, detectSessionInUrl: false }
   });
-  if (!r.ok) throw new Error(await r.text());
-  return (await r.json()).id;
+  const { data, error } = await supabaseAdmin.auth.admin.createUser({
+    email,
+    password,
+    email_confirm: true,
+    user_metadata: { anonymous: true }
+  });
+  if (error) throw new Error(error.message);
+  if (!data?.user?.id) throw new Error('ANONYMOUS_USER_CREATE_FAILED');
+  return data.user.id;
 }
 async function ensureProfile(userId) {
   const url = process.env.SUPABASE_URL, key = secretKey();
