@@ -26,7 +26,7 @@ function chooseFormat(body){ const key=['icon','xheader','youtube','portrait'].i
 async function fit(dataUrl,fmt){ const m=String(dataUrl).match(/^data:image\/[^;]+;base64,(.+)$/); if(!m)throw new Error('画像データを読み込めませんでした。'); const buf=Buffer.from(m[1],'base64'); const out=await sharp(buf).resize(fmt.w,fmt.h,{fit:'cover',position:'attention'}).jpeg({quality:90}).toBuffer(); return `data:image/jpeg;base64,${out.toString('base64')}`; }
 function simpleRequest(message,image,history){
   if(image)return false;
-  if(Array.isArray(history)&&history.length)return false;
+  if(Array.isArray(history)&&history.some(h=>h?.role==='assistant'))return false;
   const t=String(message||'').trim();
   if(!t)return false;
   return t.length<=180 && !/(編集|修正|変更|追加|消して|削除|この画像|このキャラ|さっき|文字|ロゴ|背景だけ|髪|服|ポーズ|移動|同じ|もっと|もう少し|戻して|ありがとう|いい感じ|いいね|了解|うん|ok|okay)/iu.test(t);
