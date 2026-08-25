@@ -4,6 +4,6 @@ const W={ja:{h:'自分だけのゲームアイコンを、話すだけで。',p:
 function syncWelcome(){try{const d=frame.contentDocument,t=frame.contentWindow.iconiaLocale?frame.contentWindow.iconiaLocale():'ja',x=W[t]||W.ja;const h=d.querySelector('.welcome h1'),p=d.querySelector('.welcome p');if(h)h.textContent=x.h;if(p)p.textContent=x.p;d.documentElement.lang=t;lang.value=t}catch(e){}}
 function setLocale(t){try{localStorage.setItem('iconia_locale',t)}catch(e){};lang.value=t;try{if(typeof frame.contentWindow.setIconiaLocale==='function'){frame.contentWindow.setIconiaLocale(t);syncWelcome();return}}catch(e){}try{frame.contentWindow.postMessage({type:'iconia-set-locale',locale:t},'*')}catch(e){}}
 lang.addEventListener('change',()=>setLocale(lang.value));
-frame.addEventListener('load',()=>{const d=frame.contentDocument,s=d.createElement('script');s.src='/i18n.js?v=instant4';s.onload=()=>{const e=d.createElement('script');e.src='/locale-enhancements.js?v=1';d.head.appendChild(e);const c=d.createElement('script');c.src='/credit-guard.js?v=3';d.head.appendChild(c);syncWelcome();setTimeout(syncWelcome,50);};d.head.appendChild(s)});
+frame.addEventListener('load',()=>{const d=frame.contentDocument,s=d.createElement('script');s.src='/i18n.js?v=instant4';s.onload=()=>{const e=d.createElement('script');e.src='/locale-enhancements.js?v=1';d.head.appendChild(e);const c=d.createElement('script');c.src='/credit-guard.js?v=4';d.head.appendChild(c);syncWelcome();setTimeout(syncWelcome,50);};d.head.appendChild(s)});
 setInterval(syncWelcome,500);
 </script></body></html>
