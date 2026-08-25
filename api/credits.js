@@ -74,28 +74,40 @@ async function callRpc(name, userId) {
   if (!r.ok) throw new Error(await r.text());
   return r.json();
 }
+function rpcRow(result) {
+  if (Array.isArray(result)) return result[0] || null;
+  return result && typeof result === 'object' ? result : null;
+}
 export default async function handler(req, res) {
   if (!['GET','POST'].includes(req.method)) return json(res,405,{error:'METHOD_NOT_ALLOWED'});
   try {
     const userId = await resolveUser(req, res);
     if (req.method === 'GET') {
       const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-      const r = await fetch(`${process.env.SUPABASE_URL}/rest/v1/profiles?id=eq.${encodeURIComponent(userId)}&select=plan,credits,purchased_credits`, {
+      const r = await fetch(`${process.env.SUPABASE_URL}/rest/v1/profiles?id=eq.${encodeURIComponent(userId)}&select=plan,credits,purchased_credits,monthly_remaining,bonus_credits`, {
         headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` }
       });
       if (!r.ok) throw new Error(await r.text());
-      const row = (await r.json())[0] || { plan:'free', credits:3, purchased_credits:0 };
+      const row = (await r.json())[0] || { plan:'free', credits:3, purchased_credits:0, monthly_remaining:3, bonus_credits:0 };
       const plan = PLANS[row.plan] || PLANS.free;
-      return json(res,200,{plan:row.plan,credits:Number(row.credits ?? 3),purchasedCredits:Number(row.purchased_credits ?? 0),packs:PACKS,...plan});
+      return json(res,200,{plan:row.plan,credits:Number(row.credits ?? 3),purchasedCredits:Number(row.purchased_credits ?? 0),monthlyRemaining:Number(row.monthly_remaining ?? 0),bonusCredits:Number(row.bonus_credits ?? 0),packs:PACKS,...plan});
     }
     const action = String(req.body?.action || 'consume');
     if (action === 'consume') {
-      const result = await callRpc('iconia_consume_credit', userId);
-      if (!result?.[0]) return json(res,402,{error:'NO_CREDITS',message:'クレジットがありません。'});
-      return json(res,200,{...result[0],consumed:1});
+      const result = rpcRow(await callRpc('spend_iconia_credit', userId));
+      if (!result?.ok) return json(res,402,{error:'NO_CREDITS',message:'クレジットがありません。'});
+      return json(res,200,{...result,consumed:1});
     }
-    if (action === 'refund') { const r = await callRpc('iconia_refund_credit',userId); return json(res,200,r[0] || {}); }
-    if (action === 'grant_ad') { const r = await callRpc('iconia_grant_ad_credit',userId); return json(res,200,r[0] || {}); }
+    if (action === 'refund') {
+      const result = rpcRow(await callRpc('refund_iconia_credit', userId));
+      if (!result?.ok) return json(res,503,{error:'REFUND_FAILED'});
+      return json(res,200,result);
+    }
+    if (action === 'grant_ad') {
+      const result = rpcRow(await callRpc('iconia_grant_ad_credit', userId));
+      if (!result) return json(res,429,{error:'AD_REWARD_UNAVAILABLE',message:'広告報酬は現在利用できません。'});
+      return json(res,200,{...result,granted:1});
+    }
     return json(res,400,{error:'UNKNOWN_ACTION'});
   } catch (e) {
     console.error('Iconia credits error',e);
