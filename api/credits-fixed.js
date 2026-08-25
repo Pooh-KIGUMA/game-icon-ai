@@ -30,16 +30,19 @@ function setUserCookie(res, id) {
   res.setHeader('Set-Cookie', `${cookieName}=${encodeURIComponent(encodeCookie(id))}; Path=/; Max-Age=31536000; HttpOnly; Secure; SameSite=Lax`);
 }
 
-// Supabase Secret Keys require a Bearer Authorization header for server-side
-// REST/RPC calls. Keep the key in the Authorization header as well as apikey
-// so this works with the new sb_secret_* keys and older service-role keys.
+// New Supabase sb_secret_* keys are opaque API keys, not JWTs.
+// Send them via `apikey` only. Legacy service_role JWTs still need
+// Authorization: Bearer, so keep backward compatibility for both formats.
 function apiHeaders(key, extra = {}) {
-  return {
+  const headers = {
     apikey: key,
-    Authorization: `Bearer ${key}`,
     'Content-Type': 'application/json',
     ...extra
   };
+  if (key && !String(key).startsWith('sb_')) {
+    headers.Authorization = `Bearer ${key}`;
+  }
+  return headers;
 }
 
 async function auth(req) {
