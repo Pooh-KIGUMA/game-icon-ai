@@ -27,6 +27,7 @@ function decodeCookie(value) {
   const expected = sign(m[1]);
   return crypto.timingSafeEqual(Buffer.from(m[2], 'hex'), Buffer.from(expected, 'hex')) ? m[1] : null;
 }
+function supabaseHeaders(key, extra = {}) { return { apikey:key, 'Content-Type':'application/json', ...extra }; }
 async function getAuthenticatedUser(req) {
   const token = String(req.headers.authorization || '').replace(/^Bearer\s+/i, '');
   const supabaseUrl = process.env.SUPABASE_URL;
@@ -40,7 +41,7 @@ async function ensureProfile(userId) {
   if (!url || !key) throw new Error('SUPABASE_NOT_CONFIGURED');
   const r = await fetch(`${url}/rest/v1/profiles?on_conflict=id`, {
     method: 'POST',
-    headers: { apikey:key, Authorization:`Bearer ${key}`, 'Content-Type':'application/json', Prefer:'resolution=ignore-duplicates,return=minimal' },
+    headers: supabaseHeaders(key, { Prefer:'resolution=ignore-duplicates,return=minimal' }),
     body: JSON.stringify({ id:userId, plan:'free', credits:3, monthly_credits:3, monthly_remaining:3, purchased_credits:0, bonus_credits:0 })
   });
   if (!r.ok && r.status !== 409) throw new Error(await r.text());
@@ -51,7 +52,7 @@ async function createAnonymousUser() {
   const email = `anonymous-${crypto.randomUUID()}@iconia-ai.local`;
   const password = crypto.randomBytes(32).toString('hex');
   const r = await fetch(`${url}/auth/v1/admin/users`, {
-    method:'POST', headers:{apikey:key,Authorization:`Bearer ${key}`,'Content-Type':'application/json'},
+    method:'POST', headers:supabaseHeaders(key),
     body:JSON.stringify({email,password,email_confirm:true,user_metadata:{anonymous:true}})
   });
   if (!r.ok) throw new Error(await r.text());
@@ -95,8 +96,6 @@ export default async function handler(req) {
     params.set('metadata[credits]', String(product.credits));
     if (type === 'subscription') {
       params.set('line_items[0][price_data][recurring][interval]', product.interval);
-      // Keep the purchaser identity on the Stripe Subscription so future
-      // recurring invoice events can be mapped back to the same Iconia user.
       params.set('subscription_data[metadata][user_id]', user.id);
       params.set('subscription_data[metadata][type]', type);
       params.set('subscription_data[metadata][product]', key);
