@@ -26,7 +26,7 @@ function decodeCookie(value) {
 function setUserCookie(res, id) {
   res.setHeader('Set-Cookie', `${cookieName}=${encodeURIComponent(encodeCookie(id))}; Path=/; Max-Age=31536000; HttpOnly; Secure; SameSite=Lax`);
 }
-function supabaseHeaders(key) { return { apikey: key, Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' }; }
+function supabaseHeaders(key) { return { apikey: key, 'Content-Type': 'application/json' }; }
 async function auth(req) {
   const t = token(req), url = process.env.SUPABASE_URL, key = process.env.SUPABASE_ANON_KEY;
   if (!t || !url || !key) return null;
@@ -85,7 +85,7 @@ export default async function handler(req, res) {
     if (req.method === 'GET') {
       const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
       const r = await fetch(`${process.env.SUPABASE_URL}/rest/v1/profiles?id=eq.${encodeURIComponent(userId)}&select=plan,credits,purchased_credits,monthly_remaining,bonus_credits`, {
-        headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` }
+        headers: { apikey: serviceKey }
       });
       if (!r.ok) throw new Error(await r.text());
       const row = (await r.json())[0] || { plan:'free', credits:3, purchased_credits:0, monthly_remaining:3, bonus_credits:0 };
