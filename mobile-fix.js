@@ -67,7 +67,7 @@
     const loadingBubble=loading?.querySelector('.bubble'); const started=Date.now();
     const timer=setInterval(()=>{if(!loadingBubble)return;const sec=Math.floor((Date.now()-started)/1000);loadingBubble.textContent=sec>8?`画像を生成しています… ${sec}秒`:'考えています…';},1000);
     try{
-      const r=await fetch('/api/generate',{method:'POST',headers:{'Content-Type':'application/json'},credentials:'same-origin',body:JSON.stringify({message,image,history,mode,format})});
+      const r=await fetch('/api/generate-fast',{method:'POST',headers:{'Content-Type':'application/json'},credentials:'same-origin',body:JSON.stringify({message,image,history,mode,format})});
       const data=await r.json().catch(()=>({}));
       if(!r.ok||!data.success)throw new Error(data.error||`画像生成に失敗しました (${r.status})`);
       if(loading)loading.remove();
@@ -100,7 +100,6 @@
     if(newButton){e.preventDefault();e.stopImmediatePropagation();resetConversation();}
   },true);
 
-  // Re-apply after the original page/i18n scripts finish and after iOS resizes.
   [50,300,1000].forEach(ms=>setTimeout(()=>{stabilizeViewport();setSendEnabled();},ms));
   window.addEventListener('resize',stabilizeViewport,{passive:true});
   window.addEventListener('orientationchange',()=>setTimeout(stabilizeViewport,100));
