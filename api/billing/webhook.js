@@ -62,10 +62,8 @@ export default async function handler(req) {
   const type = metadata.type;
   const credits = Number(metadata.credits || 0);
   const product = metadata.product;
-  const headers = { apikey: serviceKey, Authorization: `Bearer ${serviceKey}`, 'Content-Type': 'application/json' };
 
   try {
-    // One-time credit purchase: Stripe session -> idempotent purchase record -> credits.
     if (event.type === 'checkout.session.completed' && type === 'credits' && userId && credits > 0) {
       const inserted = await recordPurchase(supabaseUrl, serviceKey, {
         stripe_session_id: object.id,
@@ -74,7 +72,6 @@ export default async function handler(req) {
         credits,
         amount_jpy: Number(object.amount_total || 0),
       });
-      // Stripe can retry the same event. If the purchase already exists, do not grant twice.
       if (inserted) {
         const profile = await fetchProfile(supabaseUrl, serviceKey, `id=eq.${encodeURIComponent(userId)}`);
         if (!profile) throw new Error('Profile not found.');
@@ -86,7 +83,6 @@ export default async function handler(req) {
       return json(200, { received: true });
     }
 
-    // Initial subscription checkout. Preserve already purchased credits instead of overwriting them.
     if (event.type === 'checkout.session.completed' && type === 'subscription' && userId && credits > 0 && (product === 'standard' || product === 'pro')) {
       const profile = await fetchProfile(supabaseUrl, serviceKey, `id=eq.${encodeURIComponent(userId)}`);
       if (!profile) throw new Error('Profile not found.');
@@ -94,18 +90,16 @@ export default async function handler(req) {
         plan: product,
         monthly_credits: credits,
         monthly_remaining: credits,
-        credits: Number(profile.credits || 0) + credits,
+        credits: Number(profile.purchased_credits || 0) + Number(profile.bonus_credits || 0) + credits,
         stripe_customer_id: object.customer || null,
         stripe_subscription_id: object.subscription || null,
       });
       return json(200, { received: true });
     }
 
-    // Recurring subscription payment. The checkout code puts user_id/product/credits
-    // on the Stripe Subscription so invoice events can be mapped back to the same user.
     if ((event.type === 'invoice.paid' || event.type === 'invoice.payment_succeeded') && object.subscription) {
       const subscriptionId = String(object.subscription);
-      let profile = await fetchProfile(supabaseUrl, serviceKey, `stripe_subscription_id=eq.${encodeURIComponent(subscriptionId)}`);
+      const profile = await fetchProfile(supabaseUrl, serviceKey, `stripe_subscription_id=eq.${encodeURIComponent(subscriptionId)}`);
       const invoiceMeta = object.subscription_details?.metadata || object.metadata || {};
       const renewalCredits = Number(invoiceMeta.credits || profile?.monthly_credits || 0);
       const renewalPlan = invoiceMeta.product || profile?.plan;
@@ -118,30 +112,31 @@ export default async function handler(req) {
           amount_jpy: Number(object.amount_paid || object.amount_total || 0),
         });
         if (inserted) {
+          // Monthly credits reset each billing cycle; purchased/bonus credits remain.
+          const purchased = Number(profile.purchased_credits || 0);
+          const bonus = Number(profile.bonus_credits || 0);
           await patchProfile(supabaseUrl, serviceKey, profile.id, {
             plan: renewalPlan,
             monthly_credits: renewalCredits,
             monthly_remaining: renewalCredits,
-            credits: Number(profile.credits || 0) + renewalCredits,
+            credits: renewalCredits + purchased + bonus,
           });
         }
       }
       return json(200, { received: true });
     }
 
-    // Keep the user's remaining credits, but stop future monthly grants after cancellation.
     if (event.type === 'customer.subscription.deleted') {
       const subscriptionId = String(object.id || '');
       if (subscriptionId) {
         const profile = await fetchProfile(supabaseUrl, serviceKey, `stripe_subscription_id=eq.${encodeURIComponent(subscriptionId)}`);
-        if (profile) await patchProfile(supabaseUrl, serviceKey, profile.id, { plan: 'free', monthly_credits: 3, monthly_remaining: 0 });
+        if (profile) await patchProfile(supabaseUrl, serviceKey, profile.id, { plan: 'free', monthly_credits: 3, monthly_remaining: 0, credits: Number(profile.purchased_credits || 0) + Number(profile.bonus_credits || 0) });
       }
       return json(200, { received: true });
     }
 
     return json(200, { received: true });
   } catch (error) {
-    // Returning 5xx tells Stripe to retry instead of silently losing a paid credit grant.
     console.error('Iconia Stripe webhook error', error);
     return json(500, { error: 'WEBHOOK_PROCESSING_FAILED' });
   }
