@@ -1,13 +1,14 @@
 {
   "name": "iconia-ai",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "private": true,
   "type": "module",
   "description": "Iconia AI game icon generator",
   "dependencies": {
     "openai": "^6.34.0",
     "sharp": "^0.34.3",
-    "@vercel/postgres": "^0.10.0"
+    "@vercel/postgres": "^0.10.0",
+    "@supabase/supabase-js": "^2.57.0"
   },
   "allowScripts": {
     "bufferutil": true,
