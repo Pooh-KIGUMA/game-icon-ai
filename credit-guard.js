@@ -1,4 +1,7 @@
 (() => {
+  // Keep the generation gate deliberately simple: Iconia currently uses a
+  // signed first-party cookie for anonymous credits, so waiting on a client
+  // auth-session object is unnecessary and can hang inside the iframe on iOS.
   const nativeFetch = window.fetch.bind(window);
   let remaining = null;
   let plan = 'free';
@@ -19,33 +22,23 @@
     el.title = plan;
   }
 
-  async function getSession() {
-    try {
-      if (window.supabase?.auth?.getSession) return (await window.supabase.auth.getSession()).data?.session || null;
-    } catch {}
-    try {
-      const keys = Object.keys(localStorage).filter(k => k.includes('auth-token'));
-      for (const key of keys) {
-        const raw = localStorage.getItem(key);
-        if (!raw) continue;
-        const parsed = JSON.parse(raw);
-        if (parsed?.access_token) return parsed;
-      }
-    } catch {}
-    return null;
+  function withTimeout(promise, ms = 15000) {
+    let timer;
+    const timeout = new Promise((_, reject) => {
+      timer = setTimeout(() => reject(Object.assign(new Error('クレジットサービスへの接続がタイムアウトしました。'), { code: 'CREDITS_TIMEOUT' })), ms);
+    });
+    return Promise.race([promise, timeout]).finally(() => clearTimeout(timer));
   }
 
   async function credit(action) {
-    const session = await getSession();
     const headers = {'Content-Type':'application/json'};
-    if (session?.access_token) headers.Authorization = `Bearer ${session.access_token}`;
-    const r = await nativeFetch('/api/credits', {
+    const r = await withTimeout(nativeFetch('/api/credits', {
       method:'POST',
       headers,
       credentials:'same-origin',
       body:JSON.stringify({action})
-    });
-    const data = await r.json().catch(()=>({}));
+    }));
+    const data = await r.json().catch(() => ({}));
     if (!r.ok) throw Object.assign(new Error(data.message || data.error || 'credits error'), {code:data.error,status:r.status});
     remaining = Number(data.credits ?? remaining);
     plan = data.plan || plan;
@@ -55,10 +48,7 @@
 
   async function refresh() {
     try {
-      const session = await getSession();
-      const headers = {};
-      if (session?.access_token) headers.Authorization = `Bearer ${session.access_token}`;
-      const r = await nativeFetch('/api/credits',{headers,credentials:'same-origin'});
+      const r = await withTimeout(nativeFetch('/api/credits',{credentials:'same-origin'}), 10000);
       if (!r.ok) { remaining=null; render(); return; }
       const data=await r.json();
       remaining=Number(data.credits ?? 0); plan=data.plan||'free'; render();
@@ -82,9 +72,7 @@
     try{
       await credit('consume');
       consumed=true;
-      const session=await getSession();
       const headers=new Headers(init.headers || (typeof input!=='string'?input.headers:undefined));
-      if(session?.access_token) headers.set('Authorization',`Bearer ${session.access_token}`);
       const response=await originalFetch(input,{...init,headers,credentials:'same-origin'});
 
       if(!response.ok){
