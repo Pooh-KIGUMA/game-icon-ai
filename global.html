@@ -28,6 +28,11 @@ frame.addEventListener('load',()=>{
       c.onload=()=>{
         const f=d.createElement('script');
         f.src='/mobile-fix.js?v=2';
+        f.onload=()=>{
+          const q=d.createElement('script');
+          q.src='/fast-route.js?v=1';
+          d.head.appendChild(q);
+        };
         d.head.appendChild(f);
       };
       d.head.appendChild(c);
