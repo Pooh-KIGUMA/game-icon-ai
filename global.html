@@ -31,6 +31,11 @@ frame.addEventListener('load',()=>{
         f.onload=()=>{
           const q=d.createElement('script');
           q.src='/fast-route.js?v=1';
+          q.onload=()=>{
+            const h=d.createElement('script');
+            h.src='/history-enhancements.js?v=1';
+            d.head.appendChild(h);
+          };
           d.head.appendChild(q);
         };
         d.head.appendChild(f);
