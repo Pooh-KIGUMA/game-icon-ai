@@ -10,8 +10,15 @@
     if (document.getElementById('iconiaCredits')) return;
     const el = document.createElement('div');
     el.id = 'iconiaCredits';
-    el.style.cssText = 'position:fixed;right:12px;top:78px;z-index:40;background:#151822;color:#f6f7fb;border:1px solid #34394b;border-radius:12px;padding:7px 10px;font:700 11px -apple-system,BlinkMacSystemFont,sans-serif;box-shadow:0 8px 28px #0008;pointer-events:none';
+    el.style.cssText = 'position:fixed;right:12px;top:74px;z-index:40;background:#151822;color:#f6f7fb;border:1px solid #34394b;border-radius:12px;padding:7px 10px;font:700 11px -apple-system,BlinkMacSystemFont,sans-serif;box-shadow:0 8px 28px #0008;pointer-events:none;white-space:nowrap';
     document.body.appendChild(el);
+
+    // Reserve a small strip below the sticky header so the floating balance
+    // never covers the first user message on phones or desktop.
+    const style = document.createElement('style');
+    style.id = 'iconiaCreditsLayout';
+    style.textContent = '#main{padding-top:54px!important}@media(min-width:900px){#main{padding-top:58px!important}}';
+    document.head.appendChild(style);
   }
 
   function render() {
