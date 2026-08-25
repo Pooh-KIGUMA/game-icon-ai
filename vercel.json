@@ -10,6 +10,7 @@
   "routes": [
     { "src": "^/$", "dest": "/global.html" },
     { "src": "^/api/credits(?:/(.*))?$", "dest": "/api/credits-fixed" },
+    { "src": "^/api/generate(?:/(.*))?$", "dest": "/api/generate-gated" },
     { "handle": "filesystem" }
   ],
   "git": {
