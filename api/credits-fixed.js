@@ -40,8 +40,9 @@ async function createAnonymousUser() {
   if (!url || !key) throw new Error('SUPABASE_NOT_CONFIGURED');
   const email = `anonymous-${crypto.randomUUID()}@iconia-ai.local`;
   const password = crypto.randomBytes(32).toString('hex');
+  const headers = apiHeaders(key, { Authorization: `Bearer ${key}` });
   const r = await fetch(`${url}/auth/v1/admin/users`, {
-    method: 'POST', headers: apiHeaders(key),
+    method: 'POST', headers,
     body: JSON.stringify({ email, password, email_confirm: true, user_metadata: { anonymous: true } })
   });
   if (!r.ok) throw new Error(await r.text());
