@@ -1,7 +1,18 @@
 import crypto from 'crypto';
 
+// Stripe signs the exact raw request body. Vercel's automatic body parser must
+// be disabled for this endpoint so signature verification remains reliable.
+export const config = { api: { bodyParser: false } };
+
 function json(status, body) {
   return { statusCode: status, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) };
+}
+
+async function readRawBody(req) {
+  if (typeof req.body === 'string') return req.body;
+  const chunks = [];
+  for await (const chunk of req) chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
+  return Buffer.concat(chunks).toString('utf8');
 }
 
 function verifySignature(payload, signature, secret) {
@@ -51,7 +62,7 @@ export default async function handler(req) {
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!webhookSecret || !supabaseUrl || !serviceKey) return json(503, { error: 'Billing is not configured yet.' });
 
-  const raw = typeof req.body === 'string' ? req.body : JSON.stringify(req.body || {});
+  const raw = await readRawBody(req);
   if (!verifySignature(raw, req.headers['stripe-signature'], webhookSecret)) return json(400, { error: 'Invalid Stripe signature.' });
 
   let event;
