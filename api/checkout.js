@@ -103,6 +103,14 @@ export default async function handler(req, res) {
     if (!result.data?.url) return send(res, 502, { error: 'Stripe did not return a checkout URL.' });
 
     setCookie(res, userId);
+
+    // Mobile Safari can be unreliable when a serverless 303 redirects
+    // directly from an in-app browser. The pricing page uses this JSON mode
+    // and performs the final navigation itself.
+    if (String(body.json || '') === '1') {
+      return send(res, 200, { ok: true, url: result.data.url }, { 'Cache-Control': 'no-store' });
+    }
+
     res.redirect(303, result.data.url);
   } catch (error) {
     console.error('Iconia checkout error', error);
