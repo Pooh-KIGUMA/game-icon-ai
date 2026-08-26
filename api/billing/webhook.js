@@ -18,7 +18,7 @@ async function readRawBody(req) {
 function verifySignature(payload, signature, secret) {
   const parts = String(signature || '').split(',').map(x => x.split('='));
   const timestamp = parts.find(([k]) => k === 't')?.[1];
-  const received = parts.filter(([k]) => k === 'v1').map(([,v]) => v).filter(Boolean);
+  const received = parts.filter(([k]) => k === 'v1').map(([, v]) => v).filter(Boolean);
   if (!timestamp || !received.length) return false;
   if (Math.abs(Date.now() / 1000 - Number(timestamp)) > 300) return false;
   const signed = `${timestamp}.${payload}`;
@@ -28,15 +28,21 @@ function verifySignature(payload, signature, secret) {
   });
 }
 
+async function fetchWithTimeout(url, options = {}, ms = 10000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), ms);
+  try { return await fetch(url, { ...options, signal: controller.signal }); }
+  finally { clearTimeout(timer); }
+}
+
 async function fetchProfile(supabaseUrl, serviceKey, filter) {
-  const headers = { apikey: serviceKey };
-  const r = await fetch(`${supabaseUrl}/rest/v1/profiles?${filter}&select=id,plan,credits,purchased_credits,monthly_credits,monthly_remaining,stripe_subscription_id,stripe_customer_id,bonus_credits`, { headers });
+  const r = await fetchWithTimeout(`${supabaseUrl}/rest/v1/profiles?${filter}&select=id,plan,credits,purchased_credits,monthly_credits,monthly_remaining,stripe_subscription_id,stripe_customer_id,bonus_credits`, { headers: { apikey: serviceKey } });
   if (!r.ok) throw new Error(`PROFILE_LOOKUP_FAILED: ${await r.text()}`);
   return (await r.json())?.[0] || null;
 }
 
 async function patchProfile(supabaseUrl, serviceKey, userId, patch) {
-  const r = await fetch(`${supabaseUrl}/rest/v1/profiles?id=eq.${encodeURIComponent(userId)}`, {
+  const r = await fetchWithTimeout(`${supabaseUrl}/rest/v1/profiles?id=eq.${encodeURIComponent(userId)}`, {
     method: 'PATCH',
     headers: { apikey: serviceKey, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
     body: JSON.stringify({ ...patch, updated_at: new Date().toISOString() }),
@@ -45,7 +51,7 @@ async function patchProfile(supabaseUrl, serviceKey, userId, patch) {
 }
 
 async function recordPurchase(supabaseUrl, serviceKey, row) {
-  const r = await fetch(`${supabaseUrl}/rest/v1/credit_purchases?on_conflict=stripe_session_id`, {
+  const r = await fetchWithTimeout(`${supabaseUrl}/rest/v1/credit_purchases?on_conflict=stripe_session_id`, {
     method: 'POST',
     headers: { apikey: serviceKey, 'Content-Type': 'application/json', Prefer: 'resolution=ignore-duplicates,return=representation' },
     body: JSON.stringify(row),
@@ -59,7 +65,7 @@ export default async function handler(req) {
   if (req.method !== 'POST') return json(405, { error: 'POST only' });
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
   const supabaseUrl = process.env.SUPABASE_URL;
-  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const serviceKey = process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!webhookSecret || !supabaseUrl || !serviceKey) return json(503, { error: 'Billing is not configured yet.' });
 
   const raw = await readRawBody(req);
