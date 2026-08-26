@@ -24,10 +24,13 @@
 </div></section>
 <p class="notice">決済はStripeの安全なチェックアウト画面で行われます。購入完了後、クレジットは自動反映されます。<br>個別購入は月額契約ではありません。月額プランは別途いつでも選択できます。<br>現在はブラウザ単位の匿名アカウントにも対応しています。ブラウザのCookieを削除すると購入済みクレジットを復元できない場合があります。</p></main>
 <script>
+function checkout(type,product){
+  // Stripe session creation is now a normal browser navigation.
+  // This avoids a client-side fetch that can remain pending on mobile Safari.
+  const url='/api/billing/checkout?type='+encodeURIComponent(type)+'&product='+encodeURIComponent(product);
+  window.location.assign(url);
+}
 const statusEl=document.getElementById('status');
 function status(t){statusEl.textContent=t;statusEl.classList.add('show')}
-async function checkout(type,product){
-  try{status('決済画面を準備しています…');const r=await fetch('/api/billing/checkout',{method:'POST',headers:{'Content-Type':'application/json'},credentials:'same-origin',body:JSON.stringify({type,product})});const d=await r.json().catch(()=>({}));if(!r.ok||!d.url)throw new Error(d.error||'決済を開始できませんでした。');location.href=d.url}catch(e){status(e.message||'決済を開始できませんでした。')}
-}
 const q=new URLSearchParams(location.search);if(q.get('checkout')==='success')status('購入手続きが完了しました。数秒後にクレジットが反映されます。');if(q.get('checkout')==='cancelled')status('決済をキャンセルしました。');
 </script></body></html>
