@@ -30,19 +30,11 @@ function setUserCookie(res, id) {
   res.setHeader('Set-Cookie', `${cookieName}=${encodeURIComponent(encodeCookie(id))}; Path=/; Max-Age=31536000; HttpOnly; Secure; SameSite=Lax`);
 }
 
-// New Supabase sb_secret_* keys are opaque API keys, not JWTs.
-// Send them via `apikey` only. Legacy service_role JWTs still need
-// Authorization: Bearer, so keep backward compatibility for both formats.
+// Service/API keys are supplied through `apikey`. Do not mirror legacy
+// service_role JWTs into Authorization: a stale JWT can be rejected by
+// PostgREST with "JWT issued at future" even though the API key is valid.
 function apiHeaders(key, extra = {}) {
-  const headers = {
-    apikey: key,
-    'Content-Type': 'application/json',
-    ...extra
-  };
-  if (key && !String(key).startsWith('sb_')) {
-    headers.Authorization = `Bearer ${key}`;
-  }
-  return headers;
+  return { apikey: key, 'Content-Type': 'application/json', ...extra };
 }
 
 async function auth(req) {
@@ -52,9 +44,6 @@ async function auth(req) {
   return r.ok ? r.json() : null;
 }
 
-// Anonymous users must be created through Supabase Auth. The new sb_secret_*
-// key cannot be used as an Auth Bearer token, so use the normal publishable-key
-// Auth flow instead of auth.admin.createUser().
 async function createAnonymousUser() {
   const url = process.env.SUPABASE_URL, key = publishableKey();
   if (!url || !key) throw new Error('SUPABASE_NOT_CONFIGURED');
