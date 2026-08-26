@@ -34,6 +34,11 @@ frame.addEventListener('load',()=>{
           q.onload=()=>{
             const h=d.createElement('script');
             h.src='/history-enhancements.js?v=1';
+            h.onload=()=>{
+              const b=d.createElement('script');
+              b.src='/billing-ui.js?v=1';
+              d.head.appendChild(b);
+            };
             d.head.appendChild(h);
           };
           d.head.appendChild(q);
