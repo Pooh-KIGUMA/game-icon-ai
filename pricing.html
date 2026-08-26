@@ -14,28 +14,31 @@ body{background:radial-gradient(900px 500px at 50% -260px,#2a1b63 0,#07080d 65%)
 .packs{background:linear-gradient(180deg,#151823,#10121a);border:1px solid #7657ff66;border-radius:22px;padding:20px;box-shadow:0 20px 70px #4d3bc722}.packgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.pack{background:#10131b;border:1px solid var(--line);border-radius:15px;padding:16px;display:flex;justify-content:space-between;align-items:center;gap:10px}.pack b{display:block;font-size:14px}.pack span{display:block;color:var(--muted);font-size:12px;margin-top:4px}
 .buy{display:inline-flex;width:auto;min-width:88px;min-height:48px;padding:0 16px;align-items:center;justify-content:center;border-radius:13px;background:linear-gradient(135deg,var(--a),var(--c));color:white;font-weight:900;text-decoration:none;cursor:pointer;touch-action:manipulation;position:relative;z-index:5;-webkit-user-select:none;user-select:none}
 .plans{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}.card{background:linear-gradient(180deg,#151823,#10121a);border:1px solid var(--line);border-radius:20px;padding:22px;box-shadow:0 20px 60px #0004}.card.featured{border-color:#7657ff;box-shadow:0 20px 70px #4d3bc733}.card h2{margin:0 0 8px}.price{font-size:30px;font-weight:900;margin:14px 0}.price small{font-size:12px;color:var(--muted)}ul{padding-left:20px;color:#cdd2df;line-height:1.9;min-height:125px}.card .buy{width:100%;padding:13px;min-height:50px}
-.notice{text-align:center;color:#777f92;font-size:11px;margin-top:25px;line-height:1.7}.status{display:none;margin:0 auto 20px;max-width:700px;padding:12px 15px;border-radius:13px;background:#171b26;border:1px solid var(--line);text-align:center}.status.show{display:block}
+.status{display:none;margin:0 auto 20px;max-width:700px;padding:12px 15px;border-radius:13px;background:#171b26;border:1px solid var(--line);text-align:center}.status.show{display:block}.status.error{background:#32171b;border-color:#6b2931;color:#ffb9b9}
+.notice{text-align:center;color:#777f92;font-size:11px;margin-top:25px;line-height:1.7}
 @media(max-width:700px){.hero h1{font-size:29px}.packgrid,.plans{grid-template-columns:1fr}.packs{padding:14px}.pack{padding:14px}.top{margin-bottom:28px}}
 </style>
 </head>
 <body><main class="wrap"><div class="top"><div class="logo">✦ Iconia AI</div><a class="back" href="/">画像生成へ</a></div>
 <section class="hero"><div id="status" class="status"></div><h1>必要な分だけ、自由に使える。</h1><p>無料3クレジットからスタート。<b>クレジットは1回ずつ個別購入</b>できます。たくさん使う方は月額プランも選べます。</p></section>
 <section class="section"><div class="sectionTitle"><h2>🪙 クレジットを個別購入</h2><p>月額契約なし。必要な分だけ、その都度購入できます。</p></div><div class="packs"><div class="packgrid">
-<div class="pack"><div><b>5クレジット</b><span>¥150</span></div><a class="buy" href="/api/billing/checkout2?type=credits&amp;product=credits_5">購入</a></div>
-<div class="pack"><div><b>10クレジット</b><span>¥280</span></div><a class="buy" href="/api/billing/checkout2?type=credits&amp;product=credits_10">購入</a></div>
-<div class="pack"><div><b>20クレジット</b><span>¥500</span></div><a class="buy" href="/api/billing/checkout2?type=credits&amp;product=credits_20">購入</a></div>
-<div class="pack"><div><b>30クレジット</b><span>¥690</span></div><a class="buy" href="/api/billing/checkout2?type=credits&amp;product=credits_30">購入</a></div>
-<div class="pack"><div><b>60クレジット</b><span>¥1,200</span></div><a class="buy" href="/api/billing/checkout2?type=credits&amp;product=credits_60">購入</a></div>
-<div class="pack"><div><b>120クレジット</b><span>¥2,160</span></div><a class="buy" href="/api/billing/checkout2?type=credits&amp;product=credits_120">購入</a></div>
+<div class="pack"><div><b>5クレジット</b><span>¥150</span></div><a class="buy" href="/api/billing/checkout?type=credits&amp;product=credits_5">購入</a></div>
+<div class="pack"><div><b>10クレジット</b><span>¥280</span></div><a class="buy" href="/api/billing/checkout?type=credits&amp;product=credits_10">購入</a></div>
+<div class="pack"><div><b>20クレジット</b><span>¥500</span></div><a class="buy" href="/api/billing/checkout?type=credits&amp;product=credits_20">購入</a></div>
+<div class="pack"><div><b>30クレジット</b><span>¥690</span></div><a class="buy" href="/api/billing/checkout?type=credits&amp;product=credits_30">購入</a></div>
+<div class="pack"><div><b>60クレジット</b><span>¥1,200</span></div><a class="buy" href="/api/billing/checkout?type=credits&amp;product=credits_60">購入</a></div>
+<div class="pack"><div><b>120クレジット</b><span>¥2,160</span></div><a class="buy" href="/api/billing/checkout?type=credits&amp;product=credits_120">購入</a></div>
 </div></div></section>
 <section class="section"><div class="sectionTitle"><h2>⭐ 月額プラン</h2><p>毎月決まったクレジットが自動で付与されます。</p></div><div class="plans">
 <article class="card"><h2>Free</h2><div class="price">¥0 <small>/ 月</small></div><ul><li>毎月3クレジット</li><li>基本的な画像生成</li><li>ゲームアイコン 1:1</li></ul><span style="display:block;width:100%;padding:13px;border-radius:13px;background:#2a2e3a;color:#8e96aa;text-align:center;font-weight:900">現在の無料プラン</span></article>
-<article class="card featured"><h2>Standard</h2><div class="price">¥540 <small>/ 月</small></div><ul><li>毎月30クレジット</li><li>高精度AI画像生成</li><li>毎月のクレジットを自動付与</li></ul><a class="buy" href="/api/billing/checkout2?type=subscription&amp;product=standard">Standardを始める</a></article>
-<article class="card"><h2>Pro</h2><div class="price">¥1,620 <small>/ 月</small></div><ul><li>毎月120クレジット</li><li>高精度AI画像生成</li><li>ヘビーユーザー向け</li></ul><a class="buy" href="/api/billing/checkout2?type=subscription&amp;product=pro">Proを始める</a></article>
+<article class="card featured"><h2>Standard</h2><div class="price">¥540 <small>/ 月</small></div><ul><li>毎月30クレジット</li><li>高精度AI画像生成</li><li>毎月のクレジットを自動付与</li></ul><a class="buy" href="/api/billing/checkout?type=subscription&amp;product=standard">Standardを始める</a></article>
+<article class="card"><h2>Pro</h2><div class="price">¥1,620 <small>/ 月</small></div><ul><li>毎月120クレジット</li><li>高精度AI画像生成</li><li>ヘビーユーザー向け</li></ul><a class="buy" href="/api/billing/checkout?type=subscription&amp;product=pro">Proを始める</a></article>
 </div></section>
 <p class="notice">決済はStripeの安全なチェックアウト画面で行われます。購入完了後、クレジットは自動反映されます。<br>個別購入は月額契約ではありません。月額プランは別途いつでも選択できます。<br>現在はブラウザ単位の匿名アカウントにも対応しています。ブラウザのCookieを削除すると購入済みクレジットを復元できない場合があります。</p></main>
 <script>
 const statusEl=document.getElementById('status');
-function status(t){statusEl.textContent=t;statusEl.classList.add('show')}
-const q=new URLSearchParams(location.search);if(q.get('checkout')==='success')status('購入手続きが完了しました。数秒後にクレジットが反映されます。');if(q.get('checkout')==='cancelled')status('決済をキャンセルしました。');
+function status(t,error=false){statusEl.textContent=t;statusEl.classList.toggle('error',error);statusEl.classList.add('show')}
+const q=new URLSearchParams(location.search);
+if(q.get('checkout')==='success')status('購入手続きが完了しました。数秒後にクレジットが反映されます。');
+if(q.get('checkout')==='cancelled')status('決済をキャンセルしました。');
 </script></body></html>
