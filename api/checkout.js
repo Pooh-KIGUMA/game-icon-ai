@@ -15,7 +15,8 @@ const PLANS = {
 const cookieName = 'iconia_uid';
 
 function send(res, status, body, headers = {}) {
-  res.status(status).set(headers).json(body);
+  Object.entries(headers).forEach(([key, value]) => res.setHeader(key, value));
+  res.status(status).json(body);
 }
 function cookie(req, name) {
   const raw = String(req.headers.cookie || '');
