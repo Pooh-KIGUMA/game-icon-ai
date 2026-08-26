@@ -13,6 +13,7 @@ const PLANS = {
   pro: { credits: 120, amount: 1620, interval: 'month' },
 };
 const json = (status, body, extraHeaders = {}) => ({ statusCode: status, headers: { 'Content-Type': 'application/json', ...extraHeaders }, body: JSON.stringify(body) });
+const redirect = (url, extraHeaders = {}) => ({ statusCode: 303, headers: { Location: url, ...extraHeaders }, body: '' });
 const cookieName = 'iconia_uid';
 
 function cookie(req, name) {
@@ -31,10 +32,6 @@ function decodeCookie(value) {
 function setCookie(id) {
   return `${cookieName}=${encodeURIComponent(`${id}.${sign(id)}`)}; Path=/; Max-Age=31536000; HttpOnly; Secure; SameSite=Lax`;
 }
-
-// Checkout must never wait for Supabase. Stripe can create the session first;
-// the webhook creates/updates the profile after payment. This prevents a slow
-// database request from making the checkout endpoint hit Vercel's 300s limit.
 function resolveAnonymousId(req) {
   return decodeCookie(cookie(req, cookieName)) || crypto.randomUUID();
 }
@@ -47,13 +44,15 @@ async function fetchWithTimeout(url, options = {}, ms = 15000) {
 }
 
 export default async function handler(req) {
-  if (req.method !== 'POST') return json(405, { error: 'POST only' });
+  if (!['GET', 'POST'].includes(req.method)) return json(405, { error: 'GET or POST only' });
   const secret = process.env.STRIPE_SECRET_KEY;
   if (!secret) return json(503, { error: 'Stripe is not configured yet.' });
 
-  let body;
-  try { body = typeof req.body === 'string' ? JSON.parse(req.body) : (req.body || {}); }
-  catch { return json(400, { error: 'Invalid JSON' }); }
+  let body = {};
+  try {
+    if (req.method === 'POST') body = typeof req.body === 'string' ? JSON.parse(req.body) : (req.body || {});
+    else body = req.query || {};
+  } catch { return json(400, { error: 'Invalid request' }); }
 
   const type = body.type === 'subscription' ? 'subscription' : 'credits';
   const key = String(body.product || body.pack || body.plan || '');
@@ -92,7 +91,11 @@ export default async function handler(req) {
     const data = await r.json().catch(() => ({}));
     if (!r.ok) return json(r.status, { error: data.error?.message || 'Stripe checkout failed.' });
 
-    return json(200, { success: true, url: data.url, sessionId: data.id }, { 'Set-Cookie': setCookie(userId) });
+    const headers = { 'Set-Cookie': setCookie(userId) };
+    // GET is used by the pricing buttons so the browser can navigate directly
+    // to Stripe without waiting on a client-side fetch request.
+    if (req.method === 'GET' && data.url) return redirect(data.url, headers);
+    return json(200, { success: true, url: data.url, sessionId: data.id }, headers);
   } catch (e) {
     console.error('Iconia checkout error', e);
     if (e?.name === 'AbortError') return json(504, { error: '決済サービスへの接続がタイムアウトしました。もう一度お試しください。' });
