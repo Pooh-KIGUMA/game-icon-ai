@@ -12,8 +12,9 @@ const PLANS = {
   standard: { credits: 30, amount: 540, interval: 'month' },
   pro: { credits: 120, amount: 1620, interval: 'month' },
 };
-const json = (status, body) => ({ statusCode: status, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+const json = (status, body, extraHeaders = {}) => ({ statusCode: status, headers: { 'Content-Type': 'application/json', ...extraHeaders }, body: JSON.stringify(body) });
 const cookieName = 'iconia_uid';
+
 function cookie(req, name) {
   const raw = String(req.headers.cookie || '');
   const found = raw.split(';').map(x => x.trim()).find(x => x.startsWith(`${name}=`));
@@ -28,11 +29,17 @@ function decodeCookie(value) {
   return crypto.timingSafeEqual(Buffer.from(m[2], 'hex'), Buffer.from(expected, 'hex')) ? m[1] : null;
 }
 
-// Supabase secret/service-role keys must be sent in the `apikey` header.
-// New `sb_secret_...` keys are not JWTs and are rejected when sent as
-// `Authorization: Bearer ...` (which caused the checkout 401s).
 function supabaseHeaders(key, extra = {}) {
-  return { apikey: key, 'Content-Type':'application/json', ...extra };
+  // Modern sb_secret_ keys authenticate through apikey. They are not JWTs,
+  // so they must NOT be sent as Authorization: Bearer tokens.
+  return { apikey: key, 'Content-Type': 'application/json', ...extra };
+}
+
+async function fetchWithTimeout(url, options = {}, ms = 10000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), ms);
+  try { return await fetch(url, { ...options, signal: controller.signal }); }
+  finally { clearTimeout(timer); }
 }
 
 async function getAuthenticatedUser(req) {
@@ -40,7 +47,7 @@ async function getAuthenticatedUser(req) {
   const supabaseUrl = process.env.SUPABASE_URL;
   const publishableKey = process.env.SUPABASE_PUBLISHABLE_KEY || process.env.SUPABASE_ANON_KEY;
   if (!token || !supabaseUrl || !publishableKey) return null;
-  const r = await fetch(`${supabaseUrl}/auth/v1/user`, { headers: { apikey: publishableKey, Authorization: `Bearer ${token}` } });
+  const r = await fetchWithTimeout(`${supabaseUrl}/auth/v1/user`, { headers: { apikey: publishableKey, Authorization: `Bearer ${token}` } }, 8000);
   return r.ok ? r.json() : null;
 }
 
@@ -48,48 +55,53 @@ async function ensureProfile(userId) {
   const url = process.env.SUPABASE_URL;
   const key = process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!url || !key) throw new Error('SUPABASE_NOT_CONFIGURED');
-  const r = await fetch(`${url}/rest/v1/profiles?on_conflict=id`, {
+  const r = await fetchWithTimeout(`${url}/rest/v1/profiles?on_conflict=id`, {
     method: 'POST',
-    headers: supabaseHeaders(key, { Prefer:'resolution=ignore-duplicates,return=minimal' }),
-    body: JSON.stringify({ id:userId, plan:'free', credits:3, monthly_credits:3, monthly_remaining:3, purchased_credits:0, bonus_credits:0 })
-  });
+    headers: supabaseHeaders(key, { Prefer: 'resolution=ignore-duplicates,return=minimal' }),
+    body: JSON.stringify({ id: userId, plan: 'free', credits: 3, monthly_credits: 3, monthly_remaining: 3, purchased_credits: 0, bonus_credits: 0 })
+  }, 8000);
   if (!r.ok && r.status !== 409) throw new Error(await r.text());
 }
 
-async function createAnonymousUser() {
-  const url = process.env.SUPABASE_URL;
-  const key = process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!url || !key) throw new Error('SUPABASE_NOT_CONFIGURED');
-  const email = `anonymous-${crypto.randomUUID()}@iconia-ai.local`;
-  const password = crypto.randomBytes(32).toString('hex');
-  const r = await fetch(`${url}/auth/v1/admin/users`, {
-    method:'POST', headers:supabaseHeaders(key),
-    body:JSON.stringify({email,password,email_confirm:true,user_metadata:{anonymous:true}})
-  });
-  if (!r.ok) throw new Error(await r.text());
-  return (await r.json()).id;
+async function resolveUser(req) {
+  const loggedIn = await getAuthenticatedUser(req);
+  if (loggedIn?.id) {
+    await ensureProfile(loggedIn.id);
+    return { id: loggedIn.id, setCookie: null };
+  }
+
+  const existing = decodeCookie(cookie(req, cookieName));
+  if (existing) {
+    await ensureProfile(existing);
+    return { id: existing, setCookie: null };
+  }
+
+  // Anonymous users do not need a Supabase Auth account. The profiles table
+  // has no FK to auth.users, so a signed UUID cookie is enough to persist the
+  // browser's credit balance and avoids the Admin Auth endpoint entirely.
+  const id = crypto.randomUUID();
+  await ensureProfile(id);
+  return { id, setCookie: setCookie(id) };
 }
+
 function setCookie(id) {
   return `${cookieName}=${encodeURIComponent(`${id}.${sign(id)}`)}; Path=/; Max-Age=31536000; HttpOnly; Secure; SameSite=Lax`;
 }
-async function resolveUser(req) {
-  const loggedIn = await getAuthenticatedUser(req);
-  if (loggedIn?.id) { await ensureProfile(loggedIn.id); return { id:loggedIn.id, setCookie:null }; }
-  const existing = decodeCookie(cookie(req, cookieName));
-  if (existing) { await ensureProfile(existing); return { id:existing, setCookie:null }; }
-  const id = await createAnonymousUser();
-  await ensureProfile(id);
-  return { id, setCookie:setCookie(id) };
-}
+
 export default async function handler(req) {
   if (req.method !== 'POST') return json(405, { error: 'POST only' });
   const secret = process.env.STRIPE_SECRET_KEY;
   if (!secret) return json(503, { error: 'Stripe is not configured yet.' });
-  let body; try { body = typeof req.body === 'string' ? JSON.parse(req.body) : (req.body || {}); } catch { return json(400, { error:'Invalid JSON' }); }
+
+  let body;
+  try { body = typeof req.body === 'string' ? JSON.parse(req.body) : (req.body || {}); }
+  catch { return json(400, { error: 'Invalid JSON' }); }
+
   const type = body.type === 'subscription' ? 'subscription' : 'credits';
   const key = String(body.product || body.pack || body.plan || '');
   const product = type === 'subscription' ? PLANS[key] : PACKS[key];
-  if (!product) return json(400, { error:'Invalid product.' });
+  if (!product) return json(400, { error: 'Invalid product.' });
+
   try {
     const user = await resolveUser(req);
     const origin = process.env.APP_URL || `https://${req.headers.host}`;
@@ -105,6 +117,7 @@ export default async function handler(req) {
     params.set('metadata[type]', type);
     params.set('metadata[product]', key);
     params.set('metadata[credits]', String(product.credits));
+
     if (type === 'subscription') {
       params.set('line_items[0][price_data][recurring][interval]', product.interval);
       params.set('subscription_data[metadata][user_id]', user.id);
@@ -112,14 +125,21 @@ export default async function handler(req) {
       params.set('subscription_data[metadata][product]', key);
       params.set('subscription_data[metadata][credits]', String(product.credits));
     }
-    const r = await fetch('https://api.stripe.com/v1/checkout/sessions', { method:'POST', headers:{Authorization:`Bearer ${secret}`,'Content-Type':'application/x-www-form-urlencoded'}, body:params });
-    const data = await r.json();
-    if (!r.ok) return json(r.status, { error:data.error?.message || 'Stripe checkout failed.' });
-    const headers = { 'Content-Type':'application/json' };
+
+    const r = await fetchWithTimeout('https://api.stripe.com/v1/checkout/sessions', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${secret}`, 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: params
+    }, 15000);
+    const data = await r.json().catch(() => ({}));
+    if (!r.ok) return json(r.status, { error: data.error?.message || 'Stripe checkout failed.' });
+
+    const headers = {};
     if (user.setCookie) headers['Set-Cookie'] = user.setCookie;
-    return { statusCode:200, headers, body:JSON.stringify({success:true,url:data.url,sessionId:data.id}) };
+    return json(200, { success: true, url: data.url, sessionId: data.id }, headers);
   } catch (e) {
     console.error('Iconia checkout error', e);
-    return json(503, { error:'CHECKOUT_SERVICE_UNAVAILABLE' });
+    if (e?.name === 'AbortError') return json(504, { error: '決済サービスへの接続がタイムアウトしました。もう一度お試しください。' });
+    return json(503, { error: 'CHECKOUT_SERVICE_UNAVAILABLE' });
   }
 }
