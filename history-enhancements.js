@@ -37,33 +37,14 @@
   }
   async function syncCurrent() { await archiveCurrent(false); }
 
+  // The balance badge is intentionally a single, clear entry point to billing.
+  // Do not open the old plan-only modal here: users could mistake it for the
+  // only purchase option. The billing page contains both one-time credit packs
+  // and monthly plans.
   function ensureCreditButton() {
     const badge=$('iconiaCredits'); if(!badge)return;
     badge.style.pointerEvents='auto'; badge.style.cursor='pointer'; badge.setAttribute('role','button'); badge.title='クレジットを追加';
-    if(!badge.dataset.bound){ badge.dataset.bound='1'; badge.addEventListener('click', showCredits); }
-  }
-
-  function showCredits(){
-    let d=$('iconiaCreditDrawer');
-    if(!d){
-      d=document.createElement('div'); d.id='iconiaCreditDrawer'; d.className='drawer show';
-      d.innerHTML=`<div class="drawerBox"><div class="drawerHead"><b>クレジット</b><button class="close" id="iconiaCreditClose">×</button></div><div id="iconiaCreditBody" style="display:grid;gap:10px;margin-top:12px"></div></div>`;
-      document.body.appendChild(d);
-      $('iconiaCreditClose').onclick=()=>d.classList.remove('show');
-      d.onclick=e=>{if(e.target===d)d.classList.remove('show')};
-    }
-    d.classList.add('show');
-    const info=window.iconiaCredits?.get?.() || {};
-    const credits=Number.isFinite(Number(info.credits))?Number(info.credits):'確認中';
-    const body=$('iconiaCreditBody');
-    body.innerHTML=`
-      <div style="padding:16px;border:1px solid #34394b;border-radius:16px;background:#181c27">
-        <div style="font-size:12px;color:#8e96aa">現在の残高</div>
-        <div style="font-size:30px;font-weight:800;margin-top:4px">✦ ${credits} <span style="font-size:14px;color:#8e96aa">クレジット</span></div>
-      </div>
-      <button id="iconiaAddCredits" style="width:100%;padding:15px;border:0;border-radius:14px;background:linear-gradient(135deg,#7657ff,#0bc8ff);color:white;font-weight:900;font-size:15px;cursor:pointer">＋ クレジットを追加</button>
-      <div style="text-align:center;color:#737b8e;font-size:10px;line-height:1.6">必要な分だけ個別購入できます。<br>月額プランも料金ページから選べます。</div>`;
-    $('iconiaAddCredits').onclick=()=>{ window.location.href='/pricing.html'; };
+    if(!badge.dataset.bound){ badge.dataset.bound='1'; badge.addEventListener('click',()=>{ window.location.href='/pricing.html'; }); }
   }
 
   async function renderHistory(){
