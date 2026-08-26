@@ -27,7 +27,9 @@ function decodeCookie(value) {
   const expected = sign(m[1]);
   return crypto.timingSafeEqual(Buffer.from(m[2], 'hex'), Buffer.from(expected, 'hex')) ? m[1] : null;
 }
-function supabaseHeaders(key, extra = {}) { return { apikey:key, 'Content-Type':'application/json', ...extra }; }
+function supabaseHeaders(key, extra = {}) {
+  return { apikey:key, Authorization:`Bearer ${key}`, 'Content-Type':'application/json', ...extra };
+}
 async function getAuthenticatedUser(req) {
   const token = String(req.headers.authorization || '').replace(/^Bearer\s+/i, '');
   const supabaseUrl = process.env.SUPABASE_URL;
