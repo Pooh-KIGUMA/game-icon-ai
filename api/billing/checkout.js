@@ -19,7 +19,7 @@ function cookie(req, name) {
   const found = raw.split(';').map(x => x.trim()).find(x => x.startsWith(`${name}=`));
   return found ? decodeURIComponent(found.slice(name.length + 1)) : '';
 }
-function cookieSecret() { return process.env.CREDIT_COOKIE_SECRET || process.env.SUPABASE_SERVICE_ROLE_KEY || 'iconia-credit-secret'; }
+function cookieSecret() { return process.env.CREDIT_COOKIE_SECRET || process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY || 'iconia-credit-secret'; }
 function sign(id) { return crypto.createHmac('sha256', cookieSecret()).update(id).digest('hex'); }
 function decodeCookie(value) {
   const m = String(value || '').match(/^([0-9a-f-]{36})\.([0-9a-f]{64})$/i);
@@ -27,19 +27,26 @@ function decodeCookie(value) {
   const expected = sign(m[1]);
   return crypto.timingSafeEqual(Buffer.from(m[2], 'hex'), Buffer.from(expected, 'hex')) ? m[1] : null;
 }
+
+// Supabase secret/service-role keys must be sent in the `apikey` header.
+// New `sb_secret_...` keys are not JWTs and are rejected when sent as
+// `Authorization: Bearer ...` (which caused the checkout 401s).
 function supabaseHeaders(key, extra = {}) {
-  return { apikey:key, Authorization:`Bearer ${key}`, 'Content-Type':'application/json', ...extra };
+  return { apikey: key, 'Content-Type':'application/json', ...extra };
 }
+
 async function getAuthenticatedUser(req) {
   const token = String(req.headers.authorization || '').replace(/^Bearer\s+/i, '');
   const supabaseUrl = process.env.SUPABASE_URL;
-  const anonKey = process.env.SUPABASE_ANON_KEY;
-  if (!token || !supabaseUrl || !anonKey) return null;
-  const r = await fetch(`${supabaseUrl}/auth/v1/user`, { headers: { apikey: anonKey, Authorization: `Bearer ${token}` } });
+  const publishableKey = process.env.SUPABASE_PUBLISHABLE_KEY || process.env.SUPABASE_ANON_KEY;
+  if (!token || !supabaseUrl || !publishableKey) return null;
+  const r = await fetch(`${supabaseUrl}/auth/v1/user`, { headers: { apikey: publishableKey, Authorization: `Bearer ${token}` } });
   return r.ok ? r.json() : null;
 }
+
 async function ensureProfile(userId) {
-  const url = process.env.SUPABASE_URL, key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const url = process.env.SUPABASE_URL;
+  const key = process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!url || !key) throw new Error('SUPABASE_NOT_CONFIGURED');
   const r = await fetch(`${url}/rest/v1/profiles?on_conflict=id`, {
     method: 'POST',
@@ -48,8 +55,10 @@ async function ensureProfile(userId) {
   });
   if (!r.ok && r.status !== 409) throw new Error(await r.text());
 }
+
 async function createAnonymousUser() {
-  const url = process.env.SUPABASE_URL, key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const url = process.env.SUPABASE_URL;
+  const key = process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!url || !key) throw new Error('SUPABASE_NOT_CONFIGURED');
   const email = `anonymous-${crypto.randomUUID()}@iconia-ai.local`;
   const password = crypto.randomBytes(32).toString('hex');
