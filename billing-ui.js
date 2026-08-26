@@ -1,6 +1,9 @@
 (() => {
-  // Make the plan cards in the in-app credit modal actionable on mobile.
-  // The existing pricing page already owns the real Stripe checkout flow.
+  // This helper is only for the in-app credit modal.
+  // The pricing page has its own real Stripe checkout buttons, so never
+  // intercept clicks there.
+  if (window.location.pathname === '/pricing.html') return;
+
   const goPricing = () => { window.location.href = '/pricing.html'; };
 
   function isPlanTarget(el) {
