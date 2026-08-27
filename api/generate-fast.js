@@ -25,22 +25,35 @@ function formatInfo(key){
 function chooseFormat(body){ const key=['icon','xheader','youtube','portrait'].includes(body?.format)?body.format:'icon'; return key; }
 async function fit(dataUrl,fmt){ const m=String(dataUrl).match(/^data:image\/[^;]+;base64,(.+)$/); if(!m)throw new Error('画像データを読み込めませんでした。'); const buf=Buffer.from(m[1],'base64'); const out=await sharp(buf).resize(fmt.w,fmt.h,{fit:'cover',position:'attention'}).jpeg({quality:90}).toBuffer(); return `data:image/jpeg;base64,${out.toString('base64')}`; }
 function simpleRequest(message,image,history){
+  // Initial generation requests should stay on the fast path even when the
+  // conversation already contains assistant messages. Follow-up edits with an
+  // image still go through the full context-aware handler.
   if(image)return false;
-  if(Array.isArray(history)&&history.some(h=>h?.role==='assistant'))return false;
   const t=String(message||'').trim();
   if(!t)return false;
   return t.length<=180 && !/(編集|修正|変更|追加|消して|削除|この画像|このキャラ|さっき|文字|ロゴ|背景だけ|髪|服|ポーズ|移動|同じ|もっと|もう少し|戻して|ありがとう|いい感じ|いいね|了解|うん|ok|okay)/iu.test(t);
 }
 
+async function withTimeout(promise, ms, label){
+  let timer;
+  const timeout = new Promise((_, reject)=>{ timer=setTimeout(()=>reject(new Error(`${label} が ${Math.round(ms/1000)} 秒以内に完了しませんでした。`)),ms); });
+  try { return await Promise.race([promise,timeout]); }
+  finally { clearTimeout(timer); }
+}
+
 export default async function handler(req,res){
   if(req.method!=='POST')return res.status(405).json({success:false,error:'POSTリクエストのみ対応しています。'});
   let userId=null,consumed=false;
+  const started=Date.now();
   try{
     if(!process.env.OPENAI_API_KEY)throw new Error('OPENAI_API_KEY がVercelに設定されていません。');
+    console.log('[Iconia] generation start');
     userId=await resolveUser(req,res);
-    const spent=await rpc('spend_iconia_credit',userId);
+    console.log('[Iconia] user resolved',Date.now()-started,'ms');
+    const spent=await withTimeout(rpc('spend_iconia_credit',userId),20000,'クレジット確認');
     if(!spent?.ok)return res.status(402).json({success:false,error:'NO_CREDITS',message:'クレジットがありません。'});
     consumed=true;
+    console.log('[Iconia] credit consumed',Date.now()-started,'ms');
     const body=req.body||{};
     const message=String(body.message||'').trim();
     const image=typeof body.image==='string'&&body.image.startsWith('data:image/')?body.image:null;
@@ -48,12 +61,16 @@ export default async function handler(req,res){
     if(simpleRequest(message,image,history)){
       const key=chooseFormat(body),fmt=formatInfo(key);
       const prompt=`Create a premium, striking commercial-quality gaming icon based directly on this user's request. ${message}. Make it visually impressive, polished, dramatic, highly detailed, cleanly composed, suitable for a competitive mobile game profile icon. Strong focal subject, cinematic lighting, refined colors, crisp details, professional game-art finish. Do not add random text or logos unless the user explicitly requested them. Output as a ${fmt.label}.`;
-      const result=await client.images.generate({model:IMAGE_MODEL,prompt,size:fmt.size,quality:'medium',output_format:'jpeg',output_compression:88,n:1});
+      console.log('[Iconia] fast image request',Date.now()-started,'ms');
+      const result=await withTimeout(client.images.generate({model:IMAGE_MODEL,prompt,size:fmt.size,quality:'medium',output_format:'jpeg',output_compression:88,n:1}),240000,'画像生成');
+      console.log('[Iconia] image received',Date.now()-started,'ms');
       const b64=result?.data?.[0]?.b64_json;
       if(!b64)throw new Error('画像データがAIから返されませんでした。');
-      const output=await fit(`data:image/jpeg;base64,${b64}`,fmt);
+      const output=await withTimeout(fit(`data:image/jpeg;base64,${b64}`,fmt),30000,'画像仕上げ');
+      console.log('[Iconia] response ready',Date.now()-started,'ms');
       return res.status(200).json({success:true,image:output,reply:'できました。',plan:{mode:'FAST_GENERATE',format:key,formatLabel:fmt.label}});
     }
+    console.log('[Iconia] full context generation',Date.now()-started,'ms');
     await generateHandler(req,res);
     if(Number(res.statusCode||200)>=400&&consumed){try{await rpc('refund_iconia_credit',userId);}catch{}}
   }catch(error){
