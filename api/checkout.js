@@ -77,7 +77,7 @@ export default async function handler(req, res) {
     const origin = process.env.APP_URL || `https://${req.headers.host}`;
     const params = new URLSearchParams();
     params.set('mode', type === 'subscription' ? 'subscription' : 'payment');
-    params.set('success_url', `${origin}/pricing.html?checkout=success`);
+    params.set('success_url', `${origin}/api/billing/reconcile?next=/pricing.html&checkout=success`);
     params.set('cancel_url', `${origin}/pricing.html?checkout=cancelled`);
     params.set('line_items[0][quantity]', '1');
     params.set('line_items[0][price_data][currency]', 'jpy');
