@@ -8,7 +8,7 @@
     }
   },
   "routes": [
-    { "src": "^/$", "dest": "/index.html" },
+    { "src": "^/$", "dest": "/api/app" },
     { "src": "^/api/credits(?:/(.*))?$", "dest": "/api/credits-fixed" },
     { "src": "^/api/generate(?:/(.*))?$", "dest": "/api/generate-fast" },
     { "src": "^/api/billing/checkout$", "dest": "/api/checkout" },
