@@ -1,7 +1,3 @@
-import originalHandler from "./generate.js";
-
-// Compatibility endpoint. All image generation/editing now uses the same AI-first
-// pipeline so text is rendered by the image model instead of being overlaid later.
-export default async function handler(req, res) {
-  return originalHandler(req, res);
-}
+// Compatibility endpoint for the main image generation route.
+// Reuses the existing fast generation handler without adding another Vercel function.
+export { default } from './generate-fast.js';
