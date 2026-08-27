@@ -3,24 +3,53 @@ import crypto from 'node:crypto';
 export const config = { api: { bodyParser: false } };
 
 function send(res, status, body) { return res.status(status).json(body); }
+
 async function readRawBody(req) {
-  if (Buffer.isBuffer(req.body)) return req.body.toString('utf8');
-  if (typeof req.body === 'string') return req.body;
+  if (Buffer.isBuffer(req.body)) return req.body;
+  if (typeof req.body === 'string') return Buffer.from(req.body, 'utf8');
   const chunks = [];
   for await (const chunk of req) chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
-  return Buffer.concat(chunks).toString('utf8');
+  return Buffer.concat(chunks);
 }
+
+function getHeader(req, name) {
+  const value = req.headers?.[name.toLowerCase()] ?? req.headers?.[name];
+  return Array.isArray(value) ? value[0] : value;
+}
+
 function verifySignature(payload, signature, secret) {
-  const parts = String(signature || '').split(',').map(x => x.split('='));
-  const timestamp = parts.find(([k]) => k === 't')?.[1];
-  const received = parts.filter(([k]) => k === 'v1').map(([, v]) => v).filter(Boolean);
-  if (!timestamp || !received.length) return false;
-  if (Math.abs(Date.now() / 1000 - Number(timestamp)) > 300) return false;
-  const expected = crypto.createHmac('sha256', secret).update(`${timestamp}.${payload}`).digest('hex');
+  const header = String(signature || '').trim();
+  const webhookSecret = String(secret || '').trim();
+  if (!header || !webhookSecret) return false;
+
+  let timestamp = null;
+  const received = [];
+  for (const part of header.split(',')) {
+    const separator = part.indexOf('=');
+    if (separator < 0) continue;
+    const key = part.slice(0, separator).trim();
+    const value = part.slice(separator + 1).trim();
+    if (key === 't') timestamp = value;
+    if (key === 'v1' && value) received.push(value);
+  }
+
+  const timestampNumber = Number(timestamp);
+  if (!Number.isFinite(timestampNumber) || !received.length) return false;
+  if (Math.abs(Date.now() / 1000 - timestampNumber) > 300) return false;
+
+  const signedPayload = `${timestamp}.${payload.toString('utf8')}`;
+  const expected = crypto.createHmac('sha256', webhookSecret).update(signedPayload, 'utf8').digest();
+
   return received.some(value => {
-    try { return crypto.timingSafeEqual(Buffer.from(expected, 'utf8'), Buffer.from(value, 'utf8')); } catch { return false; }
+    try {
+      const receivedBytes = Buffer.from(value, 'hex');
+      return receivedBytes.length === expected.length && crypto.timingSafeEqual(expected, receivedBytes);
+    } catch {
+      return false;
+    }
   });
 }
+
 async function fetchWithTimeout(url, options = {}, ms = 10000) {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), ms);
@@ -66,8 +95,18 @@ export default async function handler(req, res) {
 
   try {
     const raw = await readRawBody(req);
-    if (!verifySignature(raw, req.headers['stripe-signature'], webhookSecret)) return send(res, 400, { error:'Invalid Stripe signature.' });
-    const event = JSON.parse(raw);
+    const signature = getHeader(req, 'stripe-signature');
+    if (!verifySignature(raw, signature, webhookSecret)) {
+      console.error('Iconia Stripe webhook signature verification failed', {
+        hasSignature: Boolean(signature),
+        rawBodyBytes: raw.length,
+        contentType: getHeader(req, 'content-type') || null,
+        signatureParts: String(signature || '').split(',').map(part => part.trim().split('=')[0]).filter(Boolean),
+      });
+      return send(res, 400, { error:'Invalid Stripe signature.' });
+    }
+
+    const event = JSON.parse(raw.toString('utf8'));
     const object = event.data?.object || {};
     const metadata = object.metadata || {};
     const userId = metadata.user_id;
