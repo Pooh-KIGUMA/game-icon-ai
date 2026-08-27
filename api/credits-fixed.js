@@ -15,7 +15,7 @@ function cookie(req, name) {
   const found = raw.split(';').map(x => x.trim()).find(x => x.startsWith(`${name}=`));
   return found ? decodeURIComponent(found.slice(name.length + 1)) : '';
 }
-function secretKey() { return process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY; }
+function secretKey() { return process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SECRET_KEY; }
 function publishableKey() { return process.env.SUPABASE_PUBLISHABLE_KEY || process.env.SUPABASE_ANON_KEY; }
 function cookieSecret() { return process.env.CREDIT_COOKIE_SECRET || secretKey() || 'iconia-credit-secret'; }
 function sign(id) { return crypto.createHmac('sha256', cookieSecret()).update(id).digest('hex'); }
@@ -30,9 +30,6 @@ function setUserCookie(res, id) {
   res.setHeader('Set-Cookie', `${cookieName}=${encodeURIComponent(encodeCookie(id))}; Path=/; Max-Age=31536000; HttpOnly; Secure; SameSite=Lax`);
 }
 
-// Service/API keys are supplied through `apikey`. Do not mirror legacy
-// service_role JWTs into Authorization: a stale JWT can be rejected by
-// PostgREST with "JWT issued at future" even though the API key is valid.
 function apiHeaders(key, extra = {}) {
   return { apikey: key, 'Content-Type': 'application/json', ...extra };
 }
