@@ -3,6 +3,7 @@ import crypto from 'node:crypto';
 const PACKS={credits_5:{credits:5,amount:150},credits_10:{credits:10,amount:280},credits_20:{credits:20,amount:500},credits_30:{credits:30,amount:690},credits_60:{credits:60,amount:1200},credits_120:{credits:120,amount:2160}};
 const PLANS={standard:{credits:30,amount:540,interval:'month'},pro:{credits:120,amount:1620,interval:'month'}};
 const cookieName='iconia_uid';
+const canonicalOrigin=()=>String(process.env.APP_URL||process.env.NEXT_PUBLIC_APP_URL||'https://game-icon-ai.vercel.app').replace(/\/$/,'');
 function send(res,status,body,headers={}){Object.entries(headers).forEach(([key,value])=>res.setHeader(key,value));res.status(status).json(body)}
 function cookie(req,name){const raw=String(req.headers.cookie||'');const found=raw.split(';').map(x=>x.trim()).find(x=>x.startsWith(`${name}=`));return found?decodeURIComponent(found.slice(name.length+1)):''}
 function cookieSecret(){return process.env.CREDIT_COOKIE_SECRET||process.env.SUPABASE_SERVICE_ROLE_KEY||process.env.SUPABASE_SECRET_KEY||'iconia-credit-secret'}
@@ -17,7 +18,7 @@ export default async function handler(req,res){
   const body=req.method==='GET'?(req.query||{}):(req.body||{}),type=body.type==='subscription'?'subscription':'credits',key=String(body.product||body.pack||body.plan||''),product=(type==='subscription'?PLANS:PACKS)[key];
   if(!product)return send(res,400,{error:'Invalid product.',product:key,type});
   try{
-    const userId=resolveAnonymousId(req),origin=`https://${req.headers.host}`,params=new URLSearchParams();
+    const userId=resolveAnonymousId(req),origin=canonicalOrigin(),params=new URLSearchParams();
     params.set('mode',type==='subscription'?'subscription':'payment');
     params.set('success_url',`${origin}/api/reconcile?session_id={CHECKOUT_SESSION_ID}&next=/pricing.html`);
     params.set('cancel_url',`${origin}/pricing.html?checkout=cancelled`);
