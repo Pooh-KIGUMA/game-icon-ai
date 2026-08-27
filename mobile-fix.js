@@ -1,6 +1,6 @@
 (() => {
-  if (window.__iconiaMobileFixV6) return;
-  window.__iconiaMobileFixV6 = true;
+  if (window.__iconiaMobileFixV7) return;
+  window.__iconiaMobileFixV7 = true;
   const $ = id => document.getElementById(id);
 
   function stabilize() {
@@ -34,10 +34,26 @@
         try { if (file.showPicker) file.showPicker(); else file.click(); }
         catch (_) { file.click(); }
       };
-      // Keep the app's original onchange handler intact: it owns the `pending` value used by generation.
     }
     stabilize();
   }
+
+  // Simple new-image generation uses the credit-aware fast endpoint first.
+  // Complex edits still fall back to the original API inside generate-fast.js.
+  const nativeFetch = window.fetch.bind(window);
+  window.fetch = async (input, init) => {
+    try {
+      const url = typeof input === 'string' ? input : input?.url || '';
+      if (url === '/api/generate' && init?.method === 'POST' && typeof init.body === 'string') {
+        const body = JSON.parse(init.body);
+        const fastBody = { ...body };
+        if (!fastBody.image) {
+          return nativeFetch('/api/generate-fast', { ...init, body: JSON.stringify(fastBody) });
+        }
+      }
+    } catch (_) {}
+    return nativeFetch(input, init);
+  };
 
   function run() { requestAnimationFrame(() => { bindUpload(); setTimeout(bindUpload,100); }); }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', run, {once:true});
