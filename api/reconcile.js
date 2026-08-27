@@ -43,24 +43,39 @@ export default async function handler(req, res) {
   const serviceKey = process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!stripeKey || !supabaseUrl || !serviceKey) return send(res, 503, { error:'Billing is not configured yet.' });
 
-  const userId = decodeCookie(cookie(req, cookieName));
-  if (!userId) return send(res, 400, { error:'NO_USER_COOKIE' });
-
   try {
-    const since = Math.floor(Date.now() / 1000) - 7 * 24 * 60 * 60;
-    const params = new URLSearchParams({ limit:'100', 'created[gte]':String(since) });
-    const result = await stripe(`https://api.stripe.com/v1/checkout/sessions?${params}`, { headers:{ Authorization:`Bearer ${stripeKey}` } });
-    if (!result.ok) return send(res, 502, { error:'STRIPE_LOOKUP_FAILED' });
+    // Prefer Stripe's signed/opaque Checkout Session ID from success_url.
+    // This is more reliable than relying on an anonymous browser cookie after
+    // Apple Pay / mobile Safari returns from Stripe.
+    const sessionId = String(req.query?.session_id || '');
+    let matches = [];
 
-    const sessions = Array.isArray(result.data?.data) ? result.data.data : [];
-    const matches = sessions.filter(s => s.payment_status === 'paid' && s.mode === 'payment' && s.metadata?.type === 'credits' && s.metadata?.user_id === userId && PACKS[s.metadata?.product]);
+    if (sessionId) {
+      const result = await stripe(`https://api.stripe.com/v1/checkout/sessions/${encodeURIComponent(sessionId)}`, { headers:{ Authorization:`Bearer ${stripeKey}` } });
+      if (!result.ok) return send(res, 502, { error:'STRIPE_SESSION_LOOKUP_FAILED' });
+      const s = result.data;
+      if (s?.payment_status === 'paid' && s?.mode === 'payment' && s?.metadata?.type === 'credits' && PACKS[s?.metadata?.product]) {
+        matches = [s];
+      }
+    } else {
+      const userId = decodeCookie(cookie(req, cookieName));
+      if (!userId) return send(res, 400, { error:'NO_USER_COOKIE' });
+      const since = Math.floor(Date.now() / 1000) - 7 * 24 * 60 * 60;
+      const params = new URLSearchParams({ limit:'100', 'created[gte]':String(since) });
+      const result = await stripe(`https://api.stripe.com/v1/checkout/sessions?${params}`, { headers:{ Authorization:`Bearer ${stripeKey}` } });
+      if (!result.ok) return send(res, 502, { error:'STRIPE_LOOKUP_FAILED' });
+      const sessions = Array.isArray(result.data?.data) ? result.data.data : [];
+      matches = sessions.filter(s => s.payment_status === 'paid' && s.mode === 'payment' && s.metadata?.type === 'credits' && s.metadata?.user_id === userId && PACKS[s.metadata?.product]);
+    }
+
     if (!matches.length) return send(res, 200, { ok:true, added:0, message:'No pending purchase found.' });
 
     let added = 0;
     for (const session of matches) {
       const product = PACKS[session.metadata.product];
       const credits = Number(session.metadata.credits || product.credits);
-      if (credits !== product.credits || Number(session.amount_total || 0) !== product.amount) continue;
+      const userId = String(session.metadata?.user_id || '');
+      if (!userId || credits !== product.credits || Number(session.amount_total || 0) !== product.amount) continue;
 
       const profileRes = await supabase(supabaseUrl, serviceKey, `profiles?id=eq.${encodeURIComponent(userId)}&select=id,credits,purchased_credits`);
       if (!profileRes.ok) throw new Error(`PROFILE_LOOKUP_FAILED:${await profileRes.text()}`);
@@ -83,8 +98,8 @@ export default async function handler(req, res) {
 
     const next = String(req.query?.next || '/');
     const safeNext = next.startsWith('/') && !next.startsWith('//') ? next : '/';
-    if (added > 0) return res.redirect(303, `${safeNext}${safeNext.includes('?') ? '&' : '?'}credits=reconciled`);
-    return send(res, 200, { ok:true, added:0 });
+    if (added > 0) return res.redirect(303, `${safeNext}${safeNext.includes('?') ? '&' : '?'}checkout=success&credits=reconciled`);
+    return res.redirect(303, `${safeNext}${safeNext.includes('?') ? '&' : '?'}checkout=success`);
   } catch (error) {
     console.error('Iconia billing reconcile error', error);
     return send(res, 500, { error:'RECONCILE_FAILED' });
