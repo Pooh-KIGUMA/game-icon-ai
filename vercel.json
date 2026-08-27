@@ -13,6 +13,7 @@
     { "src": "^/api/generate(?:/(.*))?$", "dest": "/api/generate-fast" },
     { "src": "^/api/billing/checkout$", "dest": "/api/checkout" },
     { "src": "^/api/billing/webhook$", "dest": "/api/webhook" },
+    { "src": "^/api/billing/reconcile$", "dest": "/api/reconcile" },
     { "handle": "filesystem" }
   ],
   "git": {
