@@ -7,7 +7,7 @@ import generateHandler from './generate.js';
 const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 const IMAGE_MODEL = 'gpt-image-2';
 
-function secretKey(){ return process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY; }
+function secretKey(){ return process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SECRET_KEY; }
 function publishableKey(){ return process.env.SUPABASE_PUBLISHABLE_KEY || process.env.SUPABASE_ANON_KEY; }
 function cookieSecret(){ return process.env.CREDIT_COOKIE_SECRET || secretKey() || 'iconia-credit-secret'; }
 function sign(id){ return crypto.createHmac('sha256', cookieSecret()).update(id).digest('hex'); }
