@@ -13,7 +13,6 @@ body{background:radial-gradient(900px 500px at 50% -260px,#2a1b63 0,#07080d 65%)
 .section{margin-top:32px}.sectionTitle{text-align:center;margin-bottom:15px}.sectionTitle h2{margin:0 0 5px;font-size:23px}.sectionTitle p{margin:0;color:var(--muted);font-size:12px}
 .packs{background:linear-gradient(180deg,#151823,#10121a);border:1px solid #7657ff66;border-radius:22px;padding:20px;box-shadow:0 20px 70px #4d3bc722}.packgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.pack{background:#10131b;border:1px solid var(--line);border-radius:15px;padding:16px;display:flex;justify-content:space-between;align-items:center;gap:10px}.pack b{display:block;font-size:14px}.pack span{display:block;color:var(--muted);font-size:12px;margin-top:4px}
 .buy{display:inline-flex;width:auto;min-width:88px;min-height:48px;padding:0 16px;align-items:center;justify-content:center;border-radius:13px;background:linear-gradient(135deg,var(--a),var(--c));color:white;font-weight:900;text-decoration:none;cursor:pointer;touch-action:manipulation;position:relative;z-index:5;-webkit-user-select:none;user-select:none}
-.buy.is-loading{opacity:.7;pointer-events:none}.buy.is-loading::after{content:'決済画面へ…'}
 .plans{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}.card{background:linear-gradient(180deg,#151823,#10121a);border:1px solid var(--line);border-radius:20px;padding:22px;box-shadow:0 20px 60px #0004}.card.featured{border-color:#7657ff;box-shadow:0 20px 70px #4d3bc733}.card h2{margin:0 0 8px}.price{font-size:30px;font-weight:900;margin:14px 0}.price small{font-size:12px;color:var(--muted)}ul{padding-left:20px;color:#cdd2df;line-height:1.9;min-height:125px}.card .buy{width:100%;padding:13px;min-height:50px}
 .status{display:none;margin:0 auto 20px;max-width:700px;padding:12px 15px;border-radius:13px;background:#171b26;border:1px solid var(--line);text-align:center}.status.show{display:block}.status.error{background:#32171b;border-color:#6b2931;color:#ffb9b9}.status.success{background:#12241f;border-color:#2e6b5a;color:#b9ffe9}
 .notice{text-align:center;color:#777f92;font-size:11px;margin-top:25px;line-height:1.7}
@@ -37,32 +36,8 @@ body{background:radial-gradient(900px 500px at 50% -260px,#2a1b63 0,#07080d 65%)
 </div></section>
 <p class="notice">決済はStripeの安全なチェックアウト画面で行われます。購入完了後、クレジットは自動反映されます。<br>個別購入は月額契約ではありません。月額プランは別途いつでも選択できます。<br>現在はブラウザ単位の匿名アカウントにも対応しています。ブラウザのCookieを削除すると購入済みクレジットを復元できない場合があります。</p></main>
 <script>
-const statusEl=document.getElementById('status');
-function status(t,error=false,success=false){statusEl.textContent=t;statusEl.classList.toggle('error',error);statusEl.classList.toggle('success',success);statusEl.classList.add('show');}
-async function startCheckout(link,event){
-  event.preventDefault();
-  if(link.classList.contains('is-loading')) return;
-  link.classList.add('is-loading');
-  const original=link.textContent;
-  link.textContent='準備中…';
-  status('決済画面を準備しています…');
-  try{
-    const url=new URL(link.href,location.origin);
-    url.searchParams.set('json','1');
-    const response=await fetch(url.toString(),{method:'GET',credentials:'same-origin',cache:'no-store',headers:{Accept:'application/json'}});
-    const data=await response.json().catch(()=>({}));
-    if(!response.ok || !data.url) throw new Error(data.error || `決済の準備に失敗しました (${response.status})`);
-    status('Stripeの決済画面へ移動しています…');
-    window.location.assign(data.url);
-  }catch(error){
-    console.error('Checkout error',error);
-    status(error?.message || '決済画面を開けませんでした。もう一度お試しください。',true);
-    link.classList.remove('is-loading');
-    link.textContent=original;
-  }
-}
-document.querySelectorAll('a.buy[href*="/api/checkout"]').forEach(link=>link.addEventListener('click',(event)=>startCheckout(link,event)));
 const q=new URLSearchParams(location.search);
-if(q.get('checkout')==='success')status('購入手続きが完了しました。数秒後にクレジットが反映されます。',false,true);
-if(q.get('checkout')==='cancelled')status('決済をキャンセルしました。');
+const statusEl=document.getElementById('status');
+if(q.get('checkout')==='success'){statusEl.textContent='購入手続きが完了しました。数秒後にクレジットが反映されます。';statusEl.classList.add('show','success');}
+if(q.get('checkout')==='cancelled'){statusEl.textContent='決済をキャンセルしました。';statusEl.classList.add('show');}
 </script></body></html>
