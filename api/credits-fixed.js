@@ -31,7 +31,11 @@ function setUserCookie(res, id) {
 }
 
 function apiHeaders(key, extra = {}) {
-  return { apikey: key, 'Content-Type': 'application/json', ...extra };
+  const headers = { apikey: key, 'Content-Type': 'application/json', ...extra };
+  // Legacy Supabase JWT keys also need the Authorization header. Modern sb_* keys
+  // are API keys rather than JWTs, so do not send them as Bearer tokens.
+  if (key && !String(key).startsWith('sb_')) headers.Authorization = `Bearer ${key}`;
+  return headers;
 }
 
 async function auth(req) {
