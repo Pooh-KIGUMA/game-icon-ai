@@ -17,7 +17,7 @@ function send(res, status, body, headers = {}) { Object.entries(headers).forEach
 function cookie(req, name) { const raw = String(req.headers.cookie || ''); const found = raw.split(';').map(x => x.trim()).find(x => x.startsWith(`${name}=`)); return found ? decodeURIComponent(found.slice(name.length + 1)) : ''; }
 function cookieSecret() { return process.env.CREDIT_COOKIE_SECRET || process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY || 'iconia-credit-secret'; }
 function sign(id) { return crypto.createHmac('sha256', cookieSecret()).update(id).digest('hex'); }
-function decodeCookie(value) { const m = String(value || '').match(/^([0-9a-f-]{36})\.([0-9a-f]{64})$/i); if (!m) return null; const expected = sign(m[1]); return crypto.timingSafeEqual(Buffer.from(m[2], 'hex'), Buffer.from(expected, 'hex')) ? m[1] : null; }
+function decodeCookie(value) { const m = String(value || '').match(/^([0-9a-f-]{36})\.([0-9a-f]{64})$/i); if (!m) return null; const expected = sign(m[1]); try { return crypto.timingSafeEqual(Buffer.from(m[2], 'hex'), Buffer.from(expected, 'hex')) ? m[1] : null; } catch { return null; } }
 function setCookie(res, id) { res.setHeader('Set-Cookie', `${cookieName}=${encodeURIComponent(`${id}.${sign(id)}`)}; Path=/; Max-Age=31536000; HttpOnly; Secure; SameSite=Lax`); }
 function resolveAnonymousId(req) { return decodeCookie(cookie(req, cookieName)) || crypto.randomUUID(); }
 async function stripeCheckout(params, secret) {
@@ -31,9 +31,14 @@ export default async function handler(req, res) {
   const type = body.type === 'subscription' ? 'subscription' : 'credits'; const key = String(body.product || body.pack || body.plan || ''); const product = (type === 'subscription' ? PLANS : PACKS)[key];
   if (!product) return send(res, 400, { error:'Invalid product.', product:key, type });
   try {
-    const userId = resolveAnonymousId(req); const origin = process.env.APP_URL || `https://${req.headers.host}`; const params = new URLSearchParams();
+    const userId = resolveAnonymousId(req);
+    // Always build return URLs from the hostname that served this checkout request.
+    // This prevents Stripe from returning to an older Vercel deployment when APP_URL
+    // still points at a previous deployment URL.
+    const origin = `https://${req.headers.host}`;
+    const params = new URLSearchParams();
     params.set('mode', type === 'subscription' ? 'subscription' : 'payment');
-    // Pass Stripe's Checkout Session ID back so reconciliation does not depend on mobile cookies.
+    // Stripe replaces {CHECKOUT_SESSION_ID} with the real session ID after payment.
     params.set('success_url', `${origin}/api/reconcile?session_id={CHECKOUT_SESSION_ID}&next=/pricing.html`);
     params.set('cancel_url', `${origin}/pricing.html?checkout=cancelled`);
     params.set('line_items[0][quantity]', '1'); params.set('line_items[0][price_data][currency]', 'jpy'); params.set('line_items[0][price_data][unit_amount]', String(product.amount));
