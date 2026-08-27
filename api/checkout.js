@@ -77,7 +77,10 @@ export default async function handler(req, res) {
     const origin = process.env.APP_URL || `https://${req.headers.host}`;
     const params = new URLSearchParams();
     params.set('mode', type === 'subscription' ? 'subscription' : 'payment');
-    params.set('success_url', `${origin}/api/billing/reconcile?next=/pricing.html&checkout=success`);
+    // The actual reconciliation endpoint is /api/reconcile.js -> /api/reconcile.
+    // Keep the success URL on the same anonymous user cookie so paid credits
+    // are restored immediately after Stripe Checkout, including Apple Pay.
+    params.set('success_url', `${origin}/api/reconcile?next=/pricing.html&checkout=success`);
     params.set('cancel_url', `${origin}/pricing.html?checkout=cancelled`);
     params.set('line_items[0][quantity]', '1');
     params.set('line_items[0][price_data][currency]', 'jpy');
@@ -105,9 +108,6 @@ export default async function handler(req, res) {
 
     setCookie(res, userId);
 
-    // Mobile Safari can be unreliable when a serverless 303 redirects
-    // directly from an in-app browser. The pricing page uses this JSON mode
-    // and performs the final navigation itself.
     if (String(body.json || '') === '1') {
       return send(res, 200, { ok: true, url: result.data.url }, { 'Cache-Control': 'no-store' });
     }
