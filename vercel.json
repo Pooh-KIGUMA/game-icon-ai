@@ -10,7 +10,7 @@
   "routes": [
     { "src": "^/$", "dest": "/api/app" },
     { "src": "^/api/credits(?:/(.*))?$", "dest": "/api/credits-fixed" },
-    { "src": "^/api/generate(?:/(.*))?$", "dest": "/api/generate-fast" },
+    { "src": "^/api/generate(?:/(.*))?$", "dest": "/api/generate-direct" },
     { "src": "^/api/billing/checkout$", "dest": "/api/checkout" },
     { "src": "^/api/billing/webhook$", "dest": "/api/webhook" },
     { "src": "^/api/billing/reconcile$", "dest": "/api/reconcile" },
