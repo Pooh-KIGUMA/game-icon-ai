@@ -1,0 +1,31 @@
+name: Load mobile fix
+on:
+  push:
+    paths-ignore:
+      - .github/workflows/load-mobile-fix.yml
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Ensure mobile fix is loaded
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('index.html')
+          s=p.read_text()
+          tag='<script src="/mobile-fix.js"></script>'
+          if tag not in s:
+              s=s.replace('</body></html>', tag+'\n</body></html>')
+              p.write_text(s)
+          PY
+      - name: Commit
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          git diff --cached --quiet && exit 0
+          git commit -m "Load mobile attachment and sticky UI fix"
+          git push
