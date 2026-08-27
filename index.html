@@ -48,4 +48,5 @@ function openLight(src){$('lightImg').src=src;$('lightbox').classList.add('show'
 if(window.visualViewport){window.visualViewport.addEventListener('resize',syncViewport);window.visualViewport.addEventListener('scroll',syncViewport)}window.addEventListener('resize',syncViewport);window.addEventListener('orientationchange',()=>setTimeout(syncViewport,200));
 syncViewport();render();
 </script>
+<script src="/mobile-fix.js"></script>
 </body></html>
