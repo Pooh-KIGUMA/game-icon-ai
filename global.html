@@ -5,52 +5,9 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#07080d">
 <title>Iconia AI</title>
-<style>
-html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#07080d}
-iframe{display:block;width:100%;height:100%;border:0}
-</style>
+<meta http-equiv="refresh" content="0; url=/index.html">
 </head>
 <body>
-<iframe id="app" src="/index.html" title="Iconia AI"></iframe>
-<script>
-const frame=document.getElementById('app');
-frame.addEventListener('load',()=>{
-  const d=frame.contentDocument;
-  if(!d)return;
-  const s=d.createElement('script');
-  s.src='/i18n.js?v=instant5';
-  s.onload=()=>{
-    const e=d.createElement('script');
-    e.src='/locale-enhancements.js?v=2';
-    e.onload=()=>{
-      const c=d.createElement('script');
-      c.src='/credit-guard.js?v=7';
-      c.onload=()=>{
-        const f=d.createElement('script');
-        f.src='/mobile-fix.js?v=3';
-        f.onload=()=>{
-          const q=d.createElement('script');
-          q.src='/fast-route.js?v=1';
-          q.onload=()=>{
-            const h=d.createElement('script');
-            h.src='/history-enhancements.js?v=1';
-            h.onload=()=>{
-              const b=d.createElement('script');
-              b.src='/billing-ui.js?v=1';
-              d.head.appendChild(b);
-            };
-            d.head.appendChild(h);
-          };
-          d.head.appendChild(q);
-        };
-        d.head.appendChild(f);
-      };
-      d.head.appendChild(c);
-    };
-    d.head.appendChild(e);
-  };
-  d.head.appendChild(s);
-});
-</script>
+<script>location.replace('/index.html');</script>
 </body>
 </html>
