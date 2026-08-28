@@ -1,7 +1,26 @@
 (() => {
-  if (window.__iconiaMobileFixV14) return;
-  window.__iconiaMobileFixV14 = true;
+  if (window.__iconiaMobileFixV15) return;
+  window.__iconiaMobileFixV15 = true;
   const $ = id => document.getElementById(id);
+
+  // Use the dedicated generation endpoint. The normal /api/generate route can
+  // take too long on mobile and Safari may surface the aborted request as
+  // "Load failed" after a refresh. The fast endpoint has the credit/refund
+  // guard and a longer server-side timeout.
+  try {
+    const nativeFetch = window.fetch.bind(window);
+    window.fetch = (input, init = {}) => {
+      try {
+        const url = typeof input === 'string' ? input : input?.url;
+        if (url && url.startsWith('/api/generate') && !url.includes('/api/generate-fast')) {
+          const target = url.replace('/api/generate', '/api/generate-fast');
+          if (typeof input === 'string') input = target;
+          else input = new Request(target, input);
+        }
+      } catch {}
+      return nativeFetch(input, init);
+    };
+  } catch {}
 
   function recoverInterruptedGeneration(){
     // A page reload cannot keep the in-flight fetch alive. The old UI was
