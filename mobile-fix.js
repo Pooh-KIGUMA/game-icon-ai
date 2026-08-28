@@ -1,6 +1,6 @@
 (() => {
-  if (window.__iconiaMobileFixV8) return;
-  window.__iconiaMobileFixV8 = true;
+  if (window.__iconiaMobileFixV9) return;
+  window.__iconiaMobileFixV9 = true;
   const $ = id => document.getElementById(id);
 
   function stabilize() {
@@ -13,7 +13,6 @@
       header.style.setProperty('z-index', '1100', 'important');
       document.body.style.paddingTop = '64px';
     }
-
     const composer = document.querySelector('.composerWrap');
     if (composer) {
       composer.style.setProperty('position', 'fixed', 'important');
@@ -25,41 +24,26 @@
     }
   }
 
-  // iPhone images can easily exceed Vercel's request-body limit. Resize and
-  // compress the selected image in the browser before the original upload
-  // handler receives it. Also explicitly enable Send after an image is chosen;
-  // the original page only updated this state from textarea input.
   async function compressImage(file) {
-    if (!file || !file.type.startsWith('image/')) return file;
-
-    const MAX_SIDE = 1600;
-    const TARGET_BYTES = 3 * 1024 * 1024;
-
+    if (!file || !file.type || !file.type.startsWith('image/')) return file;
     try {
       const bitmap = await createImageBitmap(file);
+      const MAX_SIDE = 1600;
       const scale = Math.min(1, MAX_SIDE / Math.max(bitmap.width, bitmap.height));
-      const w = Math.max(1, Math.round(bitmap.width * scale));
-      const h = Math.max(1, Math.round(bitmap.height * scale));
       const canvas = document.createElement('canvas');
-      canvas.width = w;
-      canvas.height = h;
-      const ctx = canvas.getContext('2d', { alpha: false });
-      ctx.drawImage(bitmap, 0, 0, w, h);
+      canvas.width = Math.max(1, Math.round(bitmap.width * scale));
+      canvas.height = Math.max(1, Math.round(bitmap.height * scale));
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
       bitmap.close?.();
-
-      let quality = 0.84;
+      let quality = 0.82;
       let dataUrl = canvas.toDataURL('image/jpeg', quality);
-      while (dataUrl.length * 0.75 > TARGET_BYTES && quality > 0.55) {
-        quality -= 0.07;
+      while (dataUrl.length * 0.75 > 2.5 * 1024 * 1024 && quality > 0.5) {
+        quality -= 0.06;
         dataUrl = canvas.toDataURL('image/jpeg', quality);
       }
-
-      const res = await fetch(dataUrl);
-      const blob = await res.blob();
-      return new File([blob], 'iconia-reference.jpg', {
-        type: 'image/jpeg',
-        lastModified: Date.now()
-      });
+      const blob = await (await fetch(dataUrl)).blob();
+      return new File([blob], 'iconia-reference.jpg', { type: 'image/jpeg' });
     } catch (_) {
       return file;
     }
@@ -68,96 +52,56 @@
   function bindUpload() {
     const button = $('attachBtn');
     const file = $('file');
-    if (button && file) {
-      button.type = 'button';
-      button.style.display = 'inline-grid';
-      button.onclick = e => {
-        e.preventDefault();
-        try {
-          if (file.showPicker) file.showPicker();
-          else file.click();
-        } catch (_) {
-          file.click();
-        }
-      };
+    if (!button || !file) return stabilize();
 
-      // Preserve the page's original file handler, but feed it a compressed
-      // image and then make the send button usable even when no text is typed.
-      if (!file.__iconiaUploadBound) {
-        const originalChange = file.onchange;
-        file.onchange = async e => {
-          const selected = e.target.files?.[0];
-          if (!selected) return;
-          const compressed = await compressImage(selected);
-          const originalFiles = e.target.files;
+    button.type = 'button';
+    button.style.display = 'inline-grid';
+    button.onclick = e => {
+      e.preventDefault();
+      e.stopPropagation();
+      try { file.click(); } catch (_) {}
+    };
 
+    if (!file.__iconiaUploadBound) {
+      const originalChange = file.onchange;
+      file.onchange = async e => {
+        const input = e.target;
+        const selected = input?.files?.[0];
+        if (!selected) return;
+
+        let compressed = selected;
+        try { compressed = await compressImage(selected); } catch (_) {}
+
+        if (typeof originalChange === 'function') {
+          // The page's handler only needs target.files[0] and target.value.
+          // Use a tiny safe event target instead of replacing iOS FileList.
           try {
-            const dt = new DataTransfer();
-            dt.items.add(compressed);
-            e.target.files = dt.files;
+            await originalChange({ target: { files: [compressed], value: '' } });
           } catch (_) {
-            // If iOS blocks assigning input.files, pass a synthetic event to
-            // the original handler; the File object is still available here.
+            try { await originalChange(e); } catch (_) {}
           }
+        }
 
-          if (typeof originalChange === 'function') {
-            const synthetic = { ...e, target: { ...e.target, files: [compressed] } };
-            try {
-              await originalChange(synthetic);
-            } catch (_) {
-              // Fall back to the real event if a browser rejects the synthetic target.
-              try { await originalChange(e); } catch (_) {}
-            }
-          }
-
-          const send = $('send');
-          if (send) send.disabled = false;
-          stabilize();
-
-          // Restore the input's original selection semantics so the same file
-          // can be selected again later.
-          try { e.target.value = ''; } catch (_) {}
-          void originalFiles;
-        };
-        file.__iconiaUploadBound = true;
-      }
+        const send = $('send');
+        if (send) {
+          send.disabled = false;
+          send.style.opacity = '1';
+        }
+        stabilize();
+        try { input.value = ''; } catch (_) {}
+      };
+      file.__iconiaUploadBound = true;
     }
     stabilize();
   }
 
-  // Keep the simple-generation fast endpoint, while leaving image edits on
-  // the full context-aware endpoint.
-  const nativeFetch = window.fetch.bind(window);
-  window.fetch = async (input, init) => {
-    try {
-      const url = typeof input === 'string' ? input : input?.url || '';
-      if (url === '/api/generate' && init?.method === 'POST' && typeof init.body === 'string') {
-        const body = JSON.parse(init.body);
-        if (!body.image) {
-          return nativeFetch('/api/generate-fast', {
-            ...init,
-            body: JSON.stringify({ ...body })
-          });
-        }
-      }
-    } catch (_) {}
-    return nativeFetch(input, init);
-  };
-
   function run() {
-    requestAnimationFrame(() => {
-      bindUpload();
-      setTimeout(bindUpload, 100);
-    });
+    requestAnimationFrame(bindUpload);
   }
 
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', run, { once: true });
-  } else {
-    run();
-  }
-
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', run, { once: true });
+  else run();
   window.addEventListener('resize', run, { passive: true });
   window.addEventListener('orientationchange', () => setTimeout(run, 150), { passive: true });
-  [0, 100, 400, 1000, 2000].forEach(ms => setTimeout(run, ms));
+  [100, 500, 1500, 3000].forEach(ms => setTimeout(run, ms));
 })();
