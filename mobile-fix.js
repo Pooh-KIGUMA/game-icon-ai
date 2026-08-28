@@ -1,7 +1,32 @@
 (() => {
-  if (window.__iconiaMobileFixV13) return;
-  window.__iconiaMobileFixV13 = true;
+  if (window.__iconiaMobileFixV14) return;
+  window.__iconiaMobileFixV14 = true;
   const $ = id => document.getElementById(id);
+
+  function recoverInterruptedGeneration(){
+    // A page reload cannot keep the in-flight fetch alive. The old UI was
+    // saving its {loading:true} message to localStorage, so a reload restored
+    // the spinner forever. Only clean it on an actual browser reload; never
+    // interfere with a generation that is currently running in a fresh page.
+    try{
+      const nav=performance.getEntriesByType?.('navigation')?.[0];
+      if(nav?.type!=='reload') return;
+      const key='iconia_pro_v6';
+      const raw=localStorage.getItem(key); if(!raw)return;
+      const data=JSON.parse(raw); if(!Array.isArray(data?.messages))return;
+      const hadLoading=data.messages.some(m=>m&&m.loading);
+      if(!hadLoading)return;
+      data.messages=data.messages.filter(m=>!m?.loading);
+      localStorage.setItem(key,JSON.stringify(data));
+      sessionStorage.setItem('iconia_recovered_reload','1');
+      // The main app has already rendered from the stale snapshot. Reload once
+      // after cleaning it so the normal load() path starts from the repaired data.
+      if(!sessionStorage.getItem('iconia_recovered_reload_done')){
+        sessionStorage.setItem('iconia_recovered_reload_done','1');
+        location.reload();
+      }
+    }catch{}
+  }
 
   function stabilize(){
     const h=document.querySelector('.header');
@@ -54,11 +79,11 @@
     const btn=$('attachBtn'),input=$('file');
     if(btn&&input){
       btn.type='button';btn.style.display='inline-grid';
-      if(!btn.__v13){
+      if(!btn.__v14){
         btn.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();input.click();},true);
-        btn.__v13=true;
+        btn.__v14=true;
       }
-      if(!input.__v13){
+      if(!input.__v14){
         input.addEventListener('change',async e=>{
           const f=e.target.files?.[0];if(!f)return;
           const out=await compress(f);preview(out);
@@ -66,12 +91,12 @@
           const send=$('send');if(send)send.disabled=false;
           stabilize();
         },false);
-        input.__v13=true;
+        input.__v14=true;
       }
       const rem=$('remove');
-      if(rem&&!rem.__v13){
+      if(rem&&!rem.__v14){
         rem.addEventListener('click',()=>{$('attach')?.classList.remove('show');if(input)input.value='';const img=$('preview');if(img)img.removeAttribute('src');});
-        rem.__v13=true;
+        rem.__v14=true;
       }
     }
     stabilize();
@@ -112,8 +137,8 @@
   }
 
   function addStyles(){
-    if(document.getElementById('iconia-v13-style'))return;
-    const s=document.createElement('style');s.id='iconia-v13-style';s.textContent=`
+    if(document.getElementById('iconia-v14-style'))return;
+    const s=document.createElement('style');s.id='iconia-v14-style';s.textContent=`
       .iconiaImageTools{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
       .iconiaImageTool{border:1px solid #34394b;background:#242938;color:#f6f7fb;border-radius:12px;padding:9px 12px;font-size:11px;font-weight:750}
       .iconiaImageTool:active{transform:scale(.97);opacity:.85}
@@ -128,7 +153,7 @@
   }
 
   function run(){
-    requestAnimationFrame(()=>{bind();addStyles();addSaveButtons();loadHistoryEnhancements();});
+    requestAnimationFrame(()=>{recoverInterruptedGeneration();bind();addStyles();addSaveButtons();loadHistoryEnhancements();});
   }
 
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run,{once:true});else run();
