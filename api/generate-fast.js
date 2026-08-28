@@ -116,7 +116,7 @@ export default async function handler(req,res){
       const ext=mime==='image/png'?'png':mime==='image/webp'?'webp':'jpg';
       const variant=designVariant();
       console.log('[Iconia] direct design edit',Date.now()-started,'ms',variant);
-      const result=await withTimeout(client.images.edit({model:IMAGE_MODEL,image:await toFile(buffer,`reference.${ext}`,{type:mime}),prompt:buildDesignPrompt(message,fmt,variant),size:fmt.size,quality:'medium',output_format:'jpeg',output_compression:90,n:1}),50000,'画像生成');
+      const result=await withTimeout(client.images.edit({model:IMAGE_MODEL,image:await toFile(buffer,`reference.${ext}`,{type:mime}),prompt:buildDesignPrompt(message,fmt,variant),size:fmt.size,quality:'medium',output_format:'jpeg',output_compression:90,n:1}),120000,'画像生成');
       const b64=result?.data?.[0]?.b64_json;
       if(!b64)throw new Error('画像データがAIから返されませんでした。');
       const output=await withTimeout(fit(`data:image/jpeg;base64,${b64}`,fmt),8000,'画像仕上げ');
