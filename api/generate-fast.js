@@ -23,8 +23,8 @@ function chooseFormat(body){ return ['icon','xheader','youtube','portrait'].incl
 function dataImageToBuffer(value){ const m=String(value||'').match(/^data:image\/([^;]+);base64,(.+)$/); if(!m)throw new Error('参考画像を読み込めませんでした。'); const mime=`image/${m[1].toLowerCase()}`; if(!['image/jpeg','image/png','image/webp'].includes(mime))throw new Error('参考画像はJPG・PNG・WebPに対応しています。'); return {buffer:Buffer.from(m[2],'base64'),mime}; }
 async function fit(dataUrl,fmt){ const {buffer}=dataImageToBuffer(dataUrl); const out=await sharp(buffer).resize(fmt.w,fmt.h,{fit:'cover',position:'attention'}).jpeg({quality:92}).toBuffer(); return `data:image/jpeg;base64,${out.toString('base64')}`; }
 function hasDesignRequest(message){ return /(文字|テキスト|ロゴ|名前|チーム名|クラン名|同盟名|ギルド名|入れて|書いて|デザイン|かっこよく|おしゃれ|ロゴ風)/iu.test(String(message||'')); }
-function buildDesignPrompt(message,fmt){ return `Create a premium commercial-quality gaming icon/edit from the supplied reference image.\n\nUSER REQUEST:\n${message}\n\nOUTPUT: ${fmt.label}.\n\nDESIGN RULES:\n- Preserve the recognizable subject, face, hair, clothing, pose, important objects and overall composition unless the user explicitly asks to change them.\n- If the request includes a name, word, team/clan/alliance name or logo, treat it as a professionally designed graphic element integrated into the artwork, NOT as a plain pasted caption.\n- Decide the best placement yourself from focal point, negative space, lighting, shapes and visual balance. Do NOT automatically put the text in the center.\n- Choose typography that matches the artwork: appropriate weight, perspective, outline, shadow, glow, metallic/energy texture, emblem treatment or other tasteful effects.\n- Keep faces and important focal details unobstructed when possible.\n- Use the surrounding palette and lighting so the text/logo looks like it belongs to the original artwork.\n- Spell requested text exactly and include it only once.\n- Do not add unrelated text, logos, watermarks or signatures.\n- Make the result look like a finished professional game icon, not an edited screenshot.\n\nReturn one final image only.`; }
-function buildGeneratePrompt(message,fmt){ return `Create a premium commercial-quality gaming icon directly from this request.\nUSER REQUEST: ${message}\nOUTPUT: ${fmt.label}.\nIf text or a logo is requested, design its placement, typography, effects and integration yourself based on the composition. Never treat it as a plain pasted caption. Preserve requested spelling exactly and include it only once. Do not add unrelated text, logos, watermarks or signatures.`; }
+function buildDesignPrompt(message,fmt){ return `Create a premium commercial-quality gaming icon/edit from the supplied reference image.\n\nUSER REQUEST:\n${message}\n\nOUTPUT: ${fmt.label}.\n\nIMPORTANT DESIGN-DIRECTOR WORKFLOW:\n- First inspect the reference image as a designer: identify the main focal point, face/character silhouette, visual center of gravity, negative-space areas, circular/frame geometry, dominant colors, light direction, contrast and existing graphic elements.\n- Then make an intentional typography/logo composition before rendering. The requested word must feel commissioned as part of the artwork, not added afterward.\n- Choose the placement yourself from the actual composition. There is NO fixed center placement. Prefer a strong negative-space area, lower arc, upper arc, side area, frame/rim or another balanced location when that creates a better hierarchy. Never cover the face or the strongest focal feature unless the user explicitly asks for it.\n- Choose scale, width, orientation, tracking, weight and perspective based on the image. Avoid oversized text that hides the subject and avoid tiny unreadable text.\n- Design a custom wordmark treatment: typography/letterform character, bevel or dimensional depth, outline, shadow, glow, texture, gradient, highlights and/or emblem framing should be selected to match the artwork. Do not use generic plain white/red caption text unless the reference clearly calls for it.\n- Match the logo's lighting to the scene so highlights, shadows, glow and reflections behave as if the logo was created inside the original artwork.\n- Use the reference's geometry where useful: circles, armor lines, weapons, energy arcs, smoke, flames, borders and other shapes may guide the logo placement and treatment.\n- The final composition should have a clear visual hierarchy: subject first, logo second, background/supporting effects third.\n- If the requested word is short (for example AxLF), favor a distinctive compact wordmark/emblem rather than a generic sentence-like caption.\n- If the image already contains a suitable empty region, exploit it instead of forcing text over the character.\n\nIDENTITY RULES:\n- Preserve the recognizable subject, face, hair, clothing, pose, important objects and overall composition unless the user explicitly asks to change them.\n- Do not redesign the character merely to accommodate the logo.\n- Keep faces and important focal details unobstructed when possible.\n\nTEXT RULES:\n- Spell requested text exactly.\n- Include the requested text only once.\n- Do not add unrelated text, logos, watermarks or signatures.\n- Treat requested text as an integrated professional logo/wordmark, never as a plain pasted caption.\n\nReturn one final image only.`; }
+function buildGeneratePrompt(message,fmt){ return `Create a premium commercial-quality gaming icon directly from this request.\nUSER REQUEST: ${message}\nOUTPUT: ${fmt.label}.\n\nAct as an art director before rendering. If text or a logo is requested, inspect the intended composition and deliberately choose the best placement, scale, orientation, typography, wordmark character, lighting, depth, outline, glow, texture and integration. Do NOT automatically center the text and do NOT treat it as a plain pasted caption. Keep the subject and focal point dominant. Use negative space and existing geometry intelligently. Preserve requested spelling exactly and include requested text only once. Do not add unrelated text, logos, watermarks or signatures.`; }
 async function withTimeout(promise,ms,label){ let timer; const timeout=new Promise((_,reject)=>{timer=setTimeout(()=>reject(new Error(`${label} が ${Math.round(ms/1000)} 秒以内に完了しませんでした。`)),ms);}); try{return await Promise.race([promise,timeout]);}finally{clearTimeout(timer);} }
 
 export default async function handler(req,res){
@@ -47,9 +47,8 @@ export default async function handler(req,res){
     if(!message&&!image)throw new Error('画像またはメッセージを入力してください。');
     if(image&&image.length>9_500_000)return res.status(413).json({success:false,error:'参考画像が大きすぎます。もう少し小さい画像を使ってください。'});
 
-    // Critical fast path: image + text/logo requests no longer invoke the slow
-    // GPT planner first. The image model itself handles composition and typography.
-    // This avoids the previous 60-second Vercel Hobby timeout.
+    // Fast design path: image + text/logo requests go directly to the image model.
+    // The prompt now makes composition and typography an explicit art-direction task.
     if(image&&hasDesignRequest(message)){
       const {buffer,mime}=dataImageToBuffer(image);
       const ext=mime==='image/png'?'png':mime==='image/webp'?'webp':'jpg';
@@ -59,11 +58,9 @@ export default async function handler(req,res){
       if(!b64)throw new Error('画像データがAIから返されませんでした。');
       const output=await withTimeout(fit(`data:image/jpeg;base64,${b64}`,fmt),8000,'画像仕上げ');
       console.log('[Iconia] direct design response ready',Date.now()-started,'ms');
-      return res.status(200).json({success:true,image:output,reply:'できました。画像の雰囲気に合わせて文字・ロゴをデザインしました。',plan:{mode:'AI_DESIGN_FAST',format:key,formatLabel:fmt.label}});
+      return res.status(200).json({success:true,image:output,reply:'できました。画像を分析して、雰囲気に合わせて文字・ロゴをデザインしました。',plan:{mode:'AI_DESIGN_FAST',format:key,formatLabel:fmt.label}});
     }
 
-    // New images also use a short direct path. Low quality is intentional here:
-    // it keeps the request reliably inside the Hobby execution window.
     if(!image){
       console.log('[Iconia] direct image request',Date.now()-started,'ms');
       const result=await withTimeout(client.images.generate({model:IMAGE_MODEL,prompt:buildGeneratePrompt(message,fmt),size:fmt.size,quality:'low',output_format:'jpeg',output_compression:88,n:1}),50000,'画像生成');
@@ -74,8 +71,6 @@ export default async function handler(req,res){
       return res.status(200).json({success:true,image:output,reply:'できました。',plan:{mode:'FAST_GENERATE',format:key,formatLabel:fmt.label}});
     }
 
-    // Complex image edits keep the full planner path, but only when the request
-    // cannot be handled by the fast design path above.
     console.log('[Iconia] full context generation',Date.now()-started,'ms');
     await generateHandler(req,res);
     if(Number(res.statusCode||200)>=400&&consumed){try{await rpc('refund_iconia_credit',userId);}catch{}}
