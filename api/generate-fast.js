@@ -25,10 +25,9 @@ function formatInfo(key){
 function chooseFormat(body){ const key=['icon','xheader','youtube','portrait'].includes(body?.format)?body.format:'icon'; return key; }
 async function fit(dataUrl,fmt){ const m=String(dataUrl).match(/^data:image\/[^;]+;base64,(.+)$/); if(!m)throw new Error('画像データを読み込めませんでした。'); const buf=Buffer.from(m[1],'base64'); const out=await sharp(buf).resize(fmt.w,fmt.h,{fit:'cover',position:'attention'}).jpeg({quality:90}).toBuffer(); return `data:image/jpeg;base64,${out.toString('base64')}`; }
 function simpleRequest(message,image,history){
-  // Any initial prompt without a reference image is generation, even when it
-  // contains a logo, text, background, or style instruction. Sending these
-  // through the planner first added avoidable latency and made mobile Safari
-  // more likely to abort the request with "Load failed".
+  // Initial prompts without a reference image can go directly to the image model.
+  // This avoids the extra planner call and prevents mobile Safari from waiting on
+  // an unnecessary reasoning stage before image generation starts.
   if(image)return false;
   const t=String(message||'').trim();
   if(!t)return false;
@@ -41,6 +40,29 @@ async function withTimeout(promise, ms, label){
   const timeout = new Promise((_, reject)=>{ timer=setTimeout(()=>reject(new Error(`${label} が ${Math.round(ms/1000)} 秒以内に完了しませんでした。`)),ms); });
   try { return await Promise.race([promise,timeout]); }
   finally { clearTimeout(timer); }
+}
+
+function buildFastPrompt(message, fmt){
+  return `Create a premium commercial-quality gaming icon directly from the user's request below.
+
+USER REQUEST:
+${message}
+
+OUTPUT:
+${fmt.label}. Strong focal subject, sophisticated composition, cinematic lighting, crisp details, polished professional game-art finish.
+
+IMPORTANT DESIGN RULES:
+- Treat every requested name, word, team name, clan name, alliance name, or logo as an intentional graphic-design element, not as plain text pasted on top of the image.
+- If the user requests text/logo, decide the best placement yourself based on the composition, focal point, negative space, character face, lighting, and visual balance. Do NOT default to the center.
+- Design the typography to belong to the artwork: choose an appropriate type treatment, weight, perspective, outline, glow, shadow, metallic/energy texture, emblem treatment, or other tasteful effects that fit the image.
+- The requested text must be spelled exactly. Do not add duplicate copies of the requested text.
+- Keep important character faces and focal details unobstructed unless the user explicitly asks for text over them.
+- Make the logo/text look intentionally designed as part of a professional game icon, not like a sticker, caption, watermark, or later overlay.
+- Use the surrounding colors, lighting, genre, and shapes to make the typography visually integrated with the scene.
+- Prefer asymmetrical or composition-aware placement when that creates a stronger result; use the center only when it is genuinely the best design choice.
+- Do not add unrelated text, logos, watermarks, signatures, or random lettering.
+
+${message}`;
 }
 
 export default async function handler(req,res){
@@ -62,9 +84,11 @@ export default async function handler(req,res){
     const history=Array.isArray(body.history)?body.history:[];
     if(simpleRequest(message,image,history)){
       const key=chooseFormat(body),fmt=formatInfo(key);
-      const prompt=`Create a premium, striking commercial-quality gaming icon based directly on this user's request. ${message}. Make it visually impressive, polished, dramatic, highly detailed, cleanly composed, suitable for a competitive mobile game profile icon. Strong focal subject, cinematic lighting, refined colors, crisp details, professional game-art finish. Do not add random text or logos unless the user explicitly requested them. Output as a ${fmt.label}.`;
+      const prompt=buildFastPrompt(message,fmt);
       console.log('[Iconia] fast image request',Date.now()-started,'ms');
-      const result=await withTimeout(client.images.generate({model:IMAGE_MODEL,prompt,size:fmt.size,quality:'medium',output_format:'jpeg',output_compression:88,n:1}),240000,'画像生成');
+      // Medium quality keeps the result visually strong while avoiding the
+      // unnecessary latency of high-quality generation for the first draft.
+      const result=await withTimeout(client.images.generate({model:IMAGE_MODEL,prompt,size:fmt.size,quality:'medium',output_format:'jpeg',output_compression:88,n:1}),150000,'画像生成');
       console.log('[Iconia] image received',Date.now()-started,'ms');
       const b64=result?.data?.[0]?.b64_json;
       if(!b64)throw new Error('画像データがAIから返されませんでした。');
