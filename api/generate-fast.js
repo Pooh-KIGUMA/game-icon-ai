@@ -23,49 +23,61 @@ function chooseFormat(body){ return ['icon','xheader','youtube','portrait'].incl
 function dataImageToBuffer(value){ const m=String(value||'').match(/^data:image\/([^;]+);base64,(.+)$/); if(!m)throw new Error('参考画像を読み込めませんでした。'); const mime=`image/${m[1].toLowerCase()}`; if(!['image/jpeg','image/png','image/webp'].includes(mime))throw new Error('参考画像はJPG・PNG・WebPに対応しています。'); return {buffer:Buffer.from(m[2],'base64'),mime}; }
 async function fit(dataUrl,fmt){ const {buffer}=dataImageToBuffer(dataUrl); const out=await sharp(buffer).resize(fmt.w,fmt.h,{fit:'cover',position:'attention'}).jpeg({quality:92}).toBuffer(); return `data:image/jpeg;base64,${out.toString('base64')}`; }
 function hasDesignRequest(message){ return /(文字|テキスト|ロゴ|名前|チーム名|クラン名|同盟名|ギルド名|入れて|書いて|デザイン|かっこよく|おしゃれ|ロゴ風)/iu.test(String(message||'')); }
-function buildDesignPrompt(message,fmt){ return `Create a premium commercial-quality gaming icon/edit from the supplied reference image.
+function designVariant(){
+  const variants=[
+    'FRAME CREST: build the wordmark into the circular/frame geometry. Prefer an upper arc or lower side arc, with a compact emblem and generous breathing room around the face. Do not span the entire width.',
+    'SIDE EMBLEM: place the wordmark in a strong left or right negative-space lane, slightly angled to follow the subject. Use a compact badge/insignia treatment rather than a banner across the character.',
+    'TOP ARC: use the upper third or upper arc of the composition. Let the wordmark echo the existing rim/energy shape, keeping the face and head silhouette completely clear.',
+    'LOWER CORNER: use one lower corner or lower-side pocket of negative space. Keep the wordmark medium-sized and integrate a small emblem with the existing effects instead of a giant title.',
+    'INTERLOCK: create a compact custom wordmark that interlocks with a non-critical frame, weapon, energy ring or ornament. The letters may overlap the frame but must remain away from eyes and facial features.',
+    'ASYMMETRIC BADGE: deliberately avoid symmetry. Choose the visually quieter side of the image and build a small premium esports badge/wordmark there, using the image palette and lighting.'
+  ];
+  return variants[Math.floor(Date.now()/1000)%variants.length];
+}
+function buildDesignPrompt(message,fmt,variant){ return `Create a premium commercial-quality gaming icon/edit from the supplied reference image.
 
 USER REQUEST:
 ${message}
 
 OUTPUT: ${fmt.label}.
 
-ACT AS A PROFESSIONAL GAME-ICON ART DIRECTOR. Do not simply place text on top of the image. Before rendering, make a deliberate composition decision as if this were a paid esports/team-logo commission.
+ACT AS A PROFESSIONAL GAME-ICON ART DIRECTOR. This is a real logo-composition task, not a text-overlay task. Analyze the whole reference before rendering.
 
-DESIGN DECISION PROCESS:
-1. Inspect the entire reference and identify the primary focal point, secondary focal point, strongest negative-space zones, existing frame/rim geometry, dominant color palette, light direction, energy effects, perspective and visual balance.
-2. Create 3 possible mental logo placements and choose the strongest one. Do not use a fixed template and do not default to the center. The best placement may be a lower arc, upper arc, left/right negative space, inside or along the frame, beside the subject, or another compositionally strong location.
-3. Protect the subject. Never cover the eyes, face, head silhouette, weapon tip, or other defining focal detail merely to make room for text. If the only available area is crowded, reduce the wordmark or integrate it into the frame instead.
-4. Decide the wordmark's scale from the composition. It should be prominent and readable at small game-icon size, but it must not dominate the character. Avoid the common mistake of making a short word huge just because it is the requested text.
-5. Build a custom logo treatment specifically for this image. Select letterform character, width, tracking, slant/perspective, bevel, depth, outline, shadow, glow, texture, highlights and emblem geometry based on the reference. The treatment should look intentionally designed, not like a default font.
-6. Integrate the logo into the scene's physical design language. Existing circles, armor, blades, lightning, flames, smoke, magical energy, borders and other shapes may become part of the logo's frame or supporting ornament. Match the scene's lighting so reflections, highlights, shadows and glow feel physically consistent.
-7. Use controlled overlap only when it improves the composition. A logo can partially intersect a frame, energy ring or non-critical background element, but it should not obscure the face or main subject.
-8. Establish hierarchy: SUBJECT first, CUSTOM WORDMARK second, SUPPORTING EFFECTS third. The finished image should still look strong if the viewer sees it for one second.
-9. If the requested text is short, such as AxLF, treat it as a premium esports wordmark or emblem. Give the letters distinctive character and spacing rather than rendering them as a generic caption.
-10. Before finalizing, visually check the result for balance, readability, safe margins and whether the logo genuinely looks like it belongs to the original artwork.
+ART-DIRECTION PASS:
+1. Identify the primary focal point, face/eyes, subject silhouette, secondary focal points, negative space, frame/rim geometry, dominant palette, light direction, energy effects, perspective, safe margins and visual balance.
+2. Mentally test at least three different logo compositions, then choose the strongest one for THIS image.
+3. REQUIRED COMPOSITION DIRECTION FOR THIS VERSION:
+${variant}
+4. The subject remains first in the hierarchy. The custom wordmark is second. Supporting effects are third.
+5. Never cover eyes, face, head silhouette or defining focal details just to fit the text. If space is tight, reduce the wordmark and integrate it into the frame instead.
+6. The requested wordmark must be readable at small game-icon size, but short text must NOT become an oversized title. Use the smallest scale that still gives the logo strong presence.
+7. Build a custom wordmark specifically for this image: distinctive letter silhouette, controlled tracking, intentional width/slant, palette-matched material, bevel/depth, selective outline, shadow, highlights and restrained glow. Avoid ordinary fonts and avoid a pasted sticker appearance.
+8. Integrate the lettering with existing physical design language: frame, blades, armor, lightning, flames, smoke, magical energy, particles and ornaments can influence the logo's geometry and effects. Match the scene lighting and perspective.
+9. Use asymmetry or controlled overlap when it improves the design, but never obscure defining facial details.
+10. Before finalizing, check balance, readability, safe margins, hierarchy and whether the logo genuinely looks commissioned for this artwork.
 
-ANTI-PATTERN RULES:
-- Do NOT automatically center the requested text.
-- Do NOT automatically put the text across the character's face or muzzle.
-- Do NOT automatically use a giant metallic fantasy font at the bottom.
-- Do NOT use generic caption styling, plain text, sticker-like text or a pasted-on appearance.
-- Do NOT force the same placement, font treatment or color treatment across different images.
-- Do NOT add unrelated decorative text, fake brand names, watermarks or signatures.
-- Do NOT redesign the character just to accommodate the wordmark.
+ANTI-PATTERNS — DO NOT DO THESE:
+- Do not automatically center the text.
+- Do not automatically put the text across the face or muzzle.
+- Do not automatically put a giant metallic wordmark across the entire bottom.
+- Do not reuse the same placement, font treatment or composition as the previous common template.
+- Do not use plain sans-serif/caption text, sticker text or UI-like typography.
+- Do not add unrelated text, fake brand names, watermarks or signatures.
+- Do not redesign the character just to accommodate the logo.
 
 IDENTITY RULES:
 - Preserve the recognizable subject, face, hair, clothing, pose, important objects and overall composition unless the user explicitly asks to change them.
-- Preserve the reference's strongest visual identity while improving only what the request requires.
-- Keep faces and defining focal details unobstructed whenever possible.
+- Preserve the reference's strongest visual identity.
+- Keep defining focal details unobstructed.
 
 TEXT RULES:
 - Spell every requested word exactly.
-- Include the requested text only once unless the user explicitly asks for repetition.
-- Treat requested text as an integrated professional logo/wordmark, never as a plain pasted caption.
+- Include requested text only once unless repetition is explicitly requested.
+- Treat requested text as a custom professional wordmark/emblem, never as a plain caption.
 - No unrelated text, logos, watermarks or signatures.
 
-FINAL QUALITY BAR:
-The result should look like a finished commercial game icon that a professional designer intentionally composed around the reference image—not an AI image with text pasted onto it.
+QUALITY BAR:
+The final result should look like a finished commercial game icon that a professional designer intentionally composed around this exact reference. The logo should feel native to the artwork, not pasted on afterward.
 
 Return one final image only.`; }
 function buildGeneratePrompt(message,fmt){ return `Create a premium commercial-quality gaming icon directly from this request.
@@ -97,18 +109,19 @@ export default async function handler(req,res){
     if(!message&&!image)throw new Error('画像またはメッセージを入力してください。');
     if(image&&image.length>9_500_000)return res.status(413).json({success:false,error:'参考画像が大きすぎます。もう少し小さい画像を使ってください。'});
 
-    // Fast design path: image + text/logo requests go directly to the image model.
-    // The prompt performs image-specific art direction before rendering.
+    // Fast design path: image + text/logo requests use the image model directly.
+    // The design variant changes the composition direction so repeated edits do not collapse into one template.
     if(image&&hasDesignRequest(message)){
       const {buffer,mime}=dataImageToBuffer(image);
       const ext=mime==='image/png'?'png':mime==='image/webp'?'webp':'jpg';
-      console.log('[Iconia] direct design edit',Date.now()-started,'ms');
-      const result=await withTimeout(client.images.edit({model:IMAGE_MODEL,image:await toFile(buffer,`reference.${ext}`,{type:mime}),prompt:buildDesignPrompt(message,fmt),size:fmt.size,quality:'low',output_format:'jpeg',output_compression:88,n:1}),50000,'画像生成');
+      const variant=designVariant();
+      console.log('[Iconia] direct design edit',Date.now()-started,'ms',variant);
+      const result=await withTimeout(client.images.edit({model:IMAGE_MODEL,image:await toFile(buffer,`reference.${ext}`,{type:mime}),prompt:buildDesignPrompt(message,fmt,variant),size:fmt.size,quality:'medium',output_format:'jpeg',output_compression:90,n:1}),50000,'画像生成');
       const b64=result?.data?.[0]?.b64_json;
       if(!b64)throw new Error('画像データがAIから返されませんでした。');
       const output=await withTimeout(fit(`data:image/jpeg;base64,${b64}`,fmt),8000,'画像仕上げ');
       console.log('[Iconia] direct design response ready',Date.now()-started,'ms');
-      return res.status(200).json({success:true,image:output,reply:'できました。画像全体を分析して、この画像専用の文字・ロゴ構成にしました。',plan:{mode:'AI_DESIGN_FAST',format:key,formatLabel:fmt.label}});
+      return res.status(200).json({success:true,image:output,reply:'できました。画像全体を分析し、今回の画像に合うロゴ構成・文字デザインで仕上げました。',plan:{mode:'AI_DESIGN_MEDIUM',format:key,formatLabel:fmt.label,designVariant:variant}});
     }
 
     if(!image){
