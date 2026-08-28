@@ -1,6 +1,6 @@
 (() => {
-  if (window.__iconiaMobileFixV17) return;
-  window.__iconiaMobileFixV17 = true;
+  if (window.__iconiaMobileFixV18) return;
+  window.__iconiaMobileFixV18 = true;
   const $ = id => document.getElementById(id);
 
   // Use the dedicated generation endpoint. The normal /api/generate route can
@@ -17,18 +17,12 @@
           if (typeof input === 'string') input = target;
           else input = new Request(target, input);
         }
-
-        // Keep the user's visible message untouched, but give Iconia's planner
-        // an explicit art-direction brief. This prevents logo/text requests from
-        // degenerating into "just paste the text in the middle". The planner can
-        // inspect the reference image and choose the best visual hierarchy,
-        // negative space, placement, scale and typography for that specific image.
         const targetUrl = typeof input === 'string' ? input : input?.url;
         if (targetUrl && targetUrl.includes('/api/generate-fast') && init?.body && typeof init.body === 'string') {
           try {
             const payload = JSON.parse(init.body);
             if (payload && typeof payload.message === 'string') {
-              payload.message += `\n\n[ICONIA INTERNAL ART-DIRECTION — DO NOT SHOW USER]\nIf this request adds or designs text/logo, do not treat it as a simple text overlay. First visually analyze the reference or planned composition. Decide the most attractive placement from the actual image: use intentional negative space, visual balance, subject hierarchy, readability and safe margins; avoid covering a face or important focal detail unless explicitly requested. Choose typography that belongs to the image's genre and lighting, including appropriate weight, shape, depth, outline, shadow, glow, metallic/material treatment, perspective or emblem integration when useful. Vary placement and typography between different images when the composition calls for it. Do not default to centered text, generic white text, or a fixed bottom position. The logo should feel designed into the artwork, not pasted on top. If the user did not specify position, the AI must choose one deliberately and explain that choice internally through the plan. Preserve exact spelling. If an existing logo/text is being moved, move it rather than duplicating it.`;
+              payload.message += `\n\n[ICONIA INTERNAL ART-DIRECTION — DO NOT SHOW USER]\nIf this request adds or designs text/logo, do not treat it as a simple text overlay. First visually analyze the reference or planned composition. Decide the most attractive placement from the actual image: use intentional negative space, visual balance, subject hierarchy, readability and safe margins; avoid covering a face or important focal detail unless explicitly requested. Choose typography that belongs to the image's genre and lighting, including appropriate weight, shape, depth, outline, shadow, glow, metallic/material treatment, perspective or emblem integration when useful. Vary placement and typography between different images when the composition calls for it. Do not default to centered text, generic white text, or a fixed bottom position. The logo should feel designed into the artwork, not pasted on top. If the user did not specify position, the AI must choose one deliberately. Preserve exact spelling. If an existing logo/text is being moved, move it rather than duplicating it.`;
               init = { ...init, body: JSON.stringify(payload) };
             }
           } catch {}
@@ -38,11 +32,17 @@
     };
   } catch {}
 
+  function addAdsenseLoader(){
+    if(document.querySelector('script[data-iconia-adsense]')) return;
+    const s=document.createElement('script');
+    s.async=true;
+    s.src='https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3315416823173996';
+    s.crossOrigin='anonymous';
+    s.dataset.iconiaAdsense='1';
+    document.head.appendChild(s);
+  }
+
   function recoverInterruptedGeneration(){
-    // A page reload cannot keep the in-flight fetch alive. The old UI was
-    // saving its {loading:true} message to localStorage, so a reload restored
-    // the spinner forever. Only clean it on an actual browser reload; never
-    // interfere with a generation that is currently running in a fresh page.
     try{
       const nav=performance.getEntriesByType?.('navigation')?.[0];
       if(nav?.type!=='reload') return;
@@ -53,9 +53,6 @@
       if(!hadLoading)return;
       data.messages=data.messages.filter(m=>!m?.loading);
       localStorage.setItem(key,JSON.stringify(data));
-      sessionStorage.setItem('iconia_recovered_reload','1');
-      // The main app has already rendered from the stale snapshot. Reload once
-      // after cleaning it so the normal load() path starts from the repaired data.
       if(!sessionStorage.getItem('iconia_recovered_reload_done')){
         sessionStorage.setItem('iconia_recovered_reload_done','1');
         location.reload();
@@ -161,7 +158,6 @@
     document.querySelectorAll('.result').forEach(img=>{
       if(img.dataset.saveBound)return;
       img.dataset.saveBound='1';
-      const wrap=img.parentElement;if(!wrap)return;
       const tools=document.createElement('div');
       tools.className='iconiaImageTools';
       tools.innerHTML='<button type="button" class="iconiaImageTool save">⬇️ 保存 / 共有</button><button type="button" class="iconiaImageTool zoom">🔍 拡大</button>';
@@ -210,7 +206,7 @@
   }
 
   function run(){
-    requestAnimationFrame(()=>{recoverInterruptedGeneration();bind();addStyles();addSaveButtons();addLegalStyles();addLegalFooter();loadHistoryEnhancements();});
+    requestAnimationFrame(()=>{recoverInterruptedGeneration();bind();addStyles();addSaveButtons();addLegalStyles();addLegalFooter();addAdsenseLoader();loadHistoryEnhancements();});
   }
 
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run,{once:true});else run();
