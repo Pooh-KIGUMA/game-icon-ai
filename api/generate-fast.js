@@ -25,13 +25,15 @@ function formatInfo(key){
 function chooseFormat(body){ const key=['icon','xheader','youtube','portrait'].includes(body?.format)?body.format:'icon'; return key; }
 async function fit(dataUrl,fmt){ const m=String(dataUrl).match(/^data:image\/[^;]+;base64,(.+)$/); if(!m)throw new Error('画像データを読み込めませんでした。'); const buf=Buffer.from(m[1],'base64'); const out=await sharp(buf).resize(fmt.w,fmt.h,{fit:'cover',position:'attention'}).jpeg({quality:90}).toBuffer(); return `data:image/jpeg;base64,${out.toString('base64')}`; }
 function simpleRequest(message,image,history){
-  // Initial generation requests should stay on the fast path even when the
-  // conversation already contains assistant messages. Follow-up edits with an
-  // image still go through the full context-aware handler.
+  // Any initial prompt without a reference image is generation, even when it
+  // contains a logo, text, background, or style instruction. Sending these
+  // through the planner first added avoidable latency and made mobile Safari
+  // more likely to abort the request with "Load failed".
   if(image)return false;
   const t=String(message||'').trim();
   if(!t)return false;
-  return t.length<=180 && !/(編集|修正|変更|追加|消して|削除|この画像|このキャラ|さっき|文字|ロゴ|背景だけ|髪|服|ポーズ|移動|同じ|もっと|もう少し|戻して|ありがとう|いい感じ|いいね|了解|うん|ok|okay)/iu.test(t);
+  if(/^(ありがとう|ありがとう！|いい感じ|いいね|最高|完璧|すごい|良いね|良い感じ|助かった|気に入った|ok|okay|了解|うん|そうそう|その調子)$/iu.test(t))return false;
+  return t.length<=500;
 }
 
 async function withTimeout(promise, ms, label){
