@@ -23,7 +23,7 @@ function chooseFormat(body){ return ['icon','xheader','youtube','portrait'].incl
 function dataImageToBuffer(value){ const m=String(value||'').match(/^data:image\/([^;]+);base64,(.+)$/); if(!m)throw new Error('参考画像を読み込めませんでした。'); const mime=`image/${m[1].toLowerCase()}`; if(!['image/jpeg','image/png','image/webp'].includes(mime))throw new Error('参考画像はJPG・PNG・WebPに対応しています。'); return {buffer:Buffer.from(m[2],'base64'),mime}; }
 async function fit(dataUrl,fmt){ const {buffer}=dataImageToBuffer(dataUrl); const out=await sharp(buffer).resize(fmt.w,fmt.h,{fit:'cover',position:'attention'}).jpeg({quality:92}).toBuffer(); return `data:image/jpeg;base64,${out.toString('base64')}`; }
 function hasDesignRequest(message){ return /(文字|テキスト|ロゴ|名前|チーム名|クラン名|同盟名|ギルド名|入れて|書いて|デザイン|かっこよく|おしゃれ|ロゴ風)/iu.test(String(message||'')); }
-function designVariant(){
+function designVariant(message=''){
   const variants=[
     'FRAME CREST: build the wordmark into the circular/frame geometry. Prefer an upper arc or lower side arc, with a compact emblem and generous breathing room around the face. Do not span the entire width.',
     'SIDE EMBLEM: place the wordmark in a strong left or right negative-space lane, slightly angled to follow the subject. Use a compact badge/insignia treatment rather than a banner across the character.',
@@ -32,7 +32,8 @@ function designVariant(){
     'INTERLOCK: create a compact custom wordmark that interlocks with a non-critical frame, weapon, energy ring or ornament. The letters may overlap the frame but must remain away from eyes and facial features.',
     'ASYMMETRIC BADGE: deliberately avoid symmetry. Choose the visually quieter side of the image and build a small premium esports badge/wordmark there, using the image palette and lighting.'
   ];
-  return variants[Math.floor(Date.now()/1000)%variants.length];
+  const seed=crypto.createHash('sha256').update(String(message||'')).digest().readUInt32BE(0);
+  return variants[seed%variants.length];
 }
 function buildDesignPrompt(message,fmt,variant){ return `Create a premium commercial-quality gaming icon/edit from the supplied reference image.
 
@@ -110,11 +111,12 @@ export default async function handler(req,res){
     if(image&&image.length>9_500_000)return res.status(413).json({success:false,error:'参考画像が大きすぎます。もう少し小さい画像を使ってください。'});
 
     // Fast design path: image + text/logo requests use the image model directly.
-    // The design variant changes the composition direction so repeated edits do not collapse into one template.
+    // The design direction is deterministic for the same request, so repeated attempts
+    // do not randomly jump between unrelated layouts while still varying across different requests.
     if(image&&hasDesignRequest(message)){
       const {buffer,mime}=dataImageToBuffer(image);
       const ext=mime==='image/png'?'png':mime==='image/webp'?'webp':'jpg';
-      const variant=designVariant();
+      const variant=designVariant(message);
       console.log('[Iconia] direct design edit',Date.now()-started,'ms',variant);
       const result=await withTimeout(client.images.edit({model:IMAGE_MODEL,image:await toFile(buffer,`reference.${ext}`,{type:mime}),prompt:buildDesignPrompt(message,fmt,variant),size:fmt.size,quality:'medium',output_format:'jpeg',output_compression:90,n:1}),120000,'画像生成');
       const b64=result?.data?.[0]?.b64_json;
