@@ -1,6 +1,5 @@
 import OpenAI, { toFile } from "openai";
 import sharp from "sharp";
-import fs from "node:fs/promises";
 
 const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 const PLANNER_MODEL = "gpt-5.6";
@@ -14,28 +13,6 @@ const FORMATS = {
   youtube: { modelSize: "1536x1024", width: 1280, height: 720, label: "YouTube 16:9" },
   portrait: { modelSize: "1024x1536", width: 1024, height: 1536, label: "縦長 2:3" }
 };
-
-let japaneseFontReady = null;
-async function ensureJapaneseFont() {
-  if (japaneseFontReady) return japaneseFontReady;
-  japaneseFontReady = (async () => {
-    const dir = "/tmp/iconia-fonts";
-    const fontPath = `${dir}/NotoSansJP-VF.ttf`;
-    const configPath = `${dir}/fonts.conf`;
-    await fs.mkdir(dir, { recursive: true });
-    try { await fs.access(fontPath); }
-    catch {
-      const r = await fetch("https://github.com/notofonts/noto-cjk/raw/main/Sans/Variable/TTF/Subset/NotoSansJP-VF.ttf");
-      if (!r.ok) throw new Error(`日本語フォントの取得に失敗しました (${r.status})`);
-      await fs.writeFile(fontPath, Buffer.from(await r.arrayBuffer()));
-    }
-    await fs.writeFile(configPath, `<?xml version="1.0"?><!DOCTYPE fontconfig SYSTEM "fonts.dtd"><fontconfig><dir>${dir}</dir><cachedir>/tmp/iconia-font-cache</cachedir></fontconfig>`);
-    process.env.FONTCONFIG_FILE = configPath;
-    process.env.FONTCONFIG_PATH = dir;
-    return fontPath;
-  })().catch(e => { japaneseFontReady = null; throw e; });
-  return japaneseFontReady;
-}
 
 function dataImageToBuffer(value) {
   const m = String(value || "").match(/^data:image\/([^;]+);base64,(.+)$/);
@@ -98,14 +75,6 @@ function isLikelyChat(message, hasImage) {
   return /^(いい感じ|いいね|最高|完璧|すごい|良いね|良い感じ|ありがとう|ありがとう！|助かった|気に入った|ok|okay|了解|うん|そうそう|その調子|いいじゃん|めっちゃいい)/iu.test(t) || (hasImage && t.length < 80 && /^(これ|それ|このまま|そのまま|いい|最高)/u.test(t));
 }
 
-function isTextOnlyRequest(message, hasImage) {
-  if (!hasImage) return false;
-  const t = String(message || "");
-  if (!exactText(t)) return false;
-  if (!/(文字|テキスト|ロゴ|名前|チーム名|クラン名|同盟名|ギルド名)/u.test(t)) return false;
-  return !/(背景|ポーズ|髪|髪型|服|衣装|人物|顔|構図|キャラ|イラストタッチ|画風|絵柄|スタイル).*(変え|変更|追加|消し|削除|描き|書き直)/u.test(t);
-}
-
 function parseJson(text) {
   try { return JSON.parse(text); } catch {}
   const s = String(text || "");
@@ -118,26 +87,31 @@ async function makePlan(message, image, history, format, modeHint) {
   const recent = (Array.isArray(history) ? history.slice(-28) : [])
     .map((m, i) => `${i + 1}. ${m.role === "user" ? "USER" : "ASSISTANT"}: ${clean(m.text, 1800)}`)
     .join("\n");
-  const system = `You are Iconia AI, a premium game-icon editing assistant. You are not merely an image prompt generator: understand the conversation like a strong chat assistant, then decide whether the user wants conversation or an image operation.
+  const system = `You are Iconia AI, a premium visual art director and game-icon editor. You must THINK about the image before editing it. You are not a sticker/text overlay tool and not a generic prompt generator.
 
 Return JSON only with this schema:
 {"action":"generate|edit|chat","mode":"ORIGINAL|FAITHFUL|STYLE_ONLY|TARGETED_EDIT|AI_DESIGN|BACKGROUND_ONLY|POSE_ONLY|HAIR_ONLY|CLOTHING_ONLY|TEXT_ONLY|TEXT_MOVE","requested_text":string|null,"text_position":string|null,"text_style":string|null,"text_scale":"tiny|small|medium|large|xlarge|huge","keep":string[],"change":string[],"style":string,"composition":string,"image_prompt":string,"reply":string}
 
-CORE RULES:
-1. The reference image is the source of truth. Preserve the same recognizable person/character, face, hair, clothing, pose, important objects, existing text, camera and composition unless the user explicitly asks to change them.
-2. If the user asks to change ONLY the art style, change rendering style only. Do not redesign the person.
-3. If the user asks to change ONLY the background, change only the environment/background.
-4. If the user asks for text/logo, exact spelling and requested size/position are hard requirements.
-4A. If the user asks to MOVE/REPOSITION an existing named text or logo, this is a TEXT_MOVE operation. Locate the EXISTING instance in the reference, remove/erase that original instance completely, and place that SAME text/logo only once at the requested position. NEVER add a second copy. Preserve its typography/design as closely as possible.
-5. When the user says "big", "larger", "もっと大きく", etc., choose large/xlarge/huge, not medium.
-6. When the user asks for text but gives no typography style, AUTOMATICALLY DESIGN typography that matches the reference image: color palette, mood, lighting, genre, character, and composition. Do not use a generic plain text treatment. Describe a tasteful logo/typography treatment in text_style.
-7. When the user gives a specific typography direction, follow it exactly while still matching the image.
-8. If the latest message is praise, thanks, agreement or casual conversation with no edit request, action=chat and reply naturally in Japanese. Do not generate another image.
-9. The default output is a square game icon. Only use another format when the user explicitly asks or the UI format is not icon.
-10. "この画像", "このキャラ", "さっき", "そのまま" refer to the supplied reference and recent conversation.
-11. Never invent an unrequested change just to make the image prettier.
+VISUAL ART-DIRECTION RULES:
+1. First inspect the reference as a designer: subject silhouette, face/eyes, focal point, lighting direction, color palette, background complexity, empty/negative space, circular/icon safe area, existing ornaments, visual hierarchy, and places where typography can sit without damaging the subject.
+2. If text/logo is requested, DO NOT simply paste plain text on top. Invent a custom typography/logo treatment that belongs to the artwork: choose a suitable type character, weight, slant, width, material, outline, bevel, glow, shadow, texture, icon/ornament, and color treatment from the reference. The result should look intentionally designed by a professional game-logo designer.
+3. For short Latin names such as AxLF, prefer a compact custom wordmark/emblem with strong silhouette and integrated effects rather than ordinary UI text. It may arc, interlock with the frame, follow the composition, or sit in negative space when that improves the design.
+4. Choose text placement from the actual image. Do NOT default to center or bottom. Avoid covering eyes/face/focal details unless the user explicitly requests it. Prefer negative space, frame edges, lower third, upper arc, or an intentional overlap that looks designed. Record the chosen position and WHY in composition.
+5. Vary typography across requests when the user asks for "another version" or "different". Do not keep the same font/placement/composition merely with a color change.
+6. The reference image is the source of truth. Preserve the same recognizable person/character, face, hair, clothing, pose, important objects, camera and composition unless the user explicitly asks to change them.
+7. If the user asks to change ONLY the art style, change rendering style only. Do not redesign the person.
+8. If the user asks to change ONLY the background, change only the environment/background.
+9. If the user asks for text/logo, exact spelling and requested size/position are hard requirements.
+10. If the user asks to MOVE/REPOSITION an existing named text or logo, use TEXT_MOVE: remove the original instance completely and place that SAME text/logo only once at the requested position. NEVER duplicate it.
+11. When the user says big/larger/もっと大きく, choose large/xlarge/huge, not medium.
+12. If the user gives no typography style, automatically design it from the reference's palette, genre, lighting and visual language. Never use generic default typography.
+13. If the latest message is praise, thanks, agreement or casual conversation with no edit request, action=chat and reply naturally in Japanese. Do not generate another image.
+14. Default output is a square game icon. Only use another format when explicitly requested or the UI format is not icon.
+15. Never invent unrelated changes merely to make the image prettier.
 
-The UI mode hint is only a hint; the user's natural-language request wins. Current output: ${format.label}. Current mode hint: ${modeHint || "auto"}.
+For text requests, your image_prompt must explicitly describe: exact text, chosen placement, scale, visual hierarchy, typography material/style, relationship to the subject, and how the lettering integrates with lighting/effects. Do not say only "add text".
+
+Current output: ${format.label}. Current mode hint: ${modeHint || "auto"}.
 Recent conversation:
 ${recent || "none"}`;
   const content = [{ type: "input_text", text: `LATEST USER MESSAGE:\n${clean(message)}\n\nREFERENCE IMAGE PRESENT: ${image ? "YES" : "NO"}` }];
@@ -168,20 +142,22 @@ function normalize(plan, message, hasImage, format) {
   if (mode === "POSE_ONLY") change.push("ONLY pose/body position");
   if (mode === "HAIR_ONLY") change.push("ONLY hairstyle/hair color");
   if (mode === "CLOTHING_ONLY") change.push("ONLY clothing/outfit");
-  if (mode === "TEXT_ONLY") change.push("ONLY typography/logo layer");
+  if (mode === "TEXT_ONLY") change.push("ONLY typography/logo layer; preserve all artwork underneath");
   if (mode === "TEXT_MOVE") change.push("MOVE ONLY THE EXISTING NAMED TEXT/LOGO: erase its original location completely, then place the same text/logo once at the requested position; do not add a duplicate");
   let textScaleValue = String(plan?.text_scale || "").toLowerCase();
   if (!["tiny", "small", "medium", "large", "xlarge", "huge"].includes(textScaleValue)) {
     const raw = textScale(message);
     textScaleValue = raw >= .18 ? "huge" : raw >= .15 ? "xlarge" : raw >= .12 ? "large" : raw <= .06 ? "small" : "medium";
   }
-  if (requestedText && !plan?.text_style) change.push("automatic typography design matched to the reference image");
+  const defaultStyle = requestedText
+    ? "Custom premium game wordmark designed from the reference: choose a distinctive non-generic type silhouette, palette-matched material, dimensional bevel/edge, controlled outline, directional light, subtle glow, shadow and one restrained emblem/ornament. Integrate it into the composition rather than placing it like a sticker."
+    : "";
   return {
     action,
     mode,
     requestedText,
     textPosition: clean(plan?.text_position, 80) || textPosition(message),
-    textStyle: clean(plan?.text_style || (requestedText ? "Automatic premium logo typography matched to the reference image: elegant, dimensional, polished, with palette-aware gradient, outline, subtle glow and balanced negative space; never plain default text." : ""), 1200),
+    textStyle: clean(plan?.text_style || defaultStyle, 1600),
     textScale: textScaleValue,
     keep: uniq(keep),
     change: uniq(change),
@@ -195,10 +171,47 @@ function normalize(plan, message, hasImage, format) {
 
 function buildPrompt(plan, message) {
   const strict = ["FAITHFUL", "STYLE_ONLY", "BACKGROUND_ONLY", "TEXT_ONLY", "TARGETED_EDIT", "TEXT_MOVE"].includes(plan.mode);
+  const textArtDirection = plan.requestedText ? `
+TYPOGRAPHY ART DIRECTION — THIS IS A DESIGN TASK, NOT A TEXT OVERLAY:
+- Exact text: "${plan.requestedText}"
+- Placement: ${plan.textPosition || "choose the strongest negative-space/compositional area after inspecting the reference"}
+- Scale: ${plan.textScale}
+- Design: ${plan.textStyle}
+- Integrate the wordmark with the image's existing lighting, perspective, frame, effects and visual hierarchy.
+- Do NOT use a generic plain sans-serif/caption treatment.
+- Do NOT simply center the text by default.
+- Do NOT cover the face/eyes/focal point unless explicitly requested.
+- The lettering must look intentionally art-directed, like a professional game emblem/wordmark created specifically for this image.
+- If the reference has a frame, energy, weapons, ornaments, flames, lightning or other motifs, harmonize the lettering with those motifs rather than ignoring them.` : "";
   const moveInstruction = plan.mode === "TEXT_MOVE" && plan.requestedText
-    ? `\nTEXT MOVE OPERATION: Find the existing visible text/logo that reads exactly "${plan.requestedText}" in the reference. REMOVE/ERASE that original instance completely from its old position, reconstruct the SAME text/logo with the same spelling and visual identity, and place it ONLY ONCE at ${plan.textPosition || "the requested position"}. DO NOT add a second copy. DO NOT leave the old copy behind. This is a move/reposition operation, not an add-text operation.`
+    ? `
+TEXT MOVE OPERATION: Find the existing visible text/logo that reads exactly "${plan.requestedText}" in the reference. REMOVE/ERASE that original instance completely from its old position, reconstruct the SAME text/logo with the same spelling and visual identity, and place it ONLY ONCE at ${plan.textPosition || "the requested position"}. DO NOT add a second copy. DO NOT leave the old copy behind.`
     : "";
-  return `Iconia AI high-fidelity visual editing operation.\nLATEST USER REQUEST:\n${clean(message)}\nMODE: ${plan.mode}\nOUTPUT FORMAT: ${plan.format.label}\n\nINTENT:\n${plan.imagePrompt}\n\nSTYLE:\n${plan.style}\n\nCOMPOSITION:\n${plan.composition}\n\nKEEP EXACTLY:\n- ${plan.keep.join("\n- ")}\n\nONLY CHANGE:\n- ${plan.change.join("\n- ")}\n${plan.requestedText ? `\nEXACT TEXT: ${plan.requestedText}\nTYPOGRAPHY DIRECTION: ${plan.textStyle}\nTEXT SCALE: ${plan.textScale}` : ""}\n${plan.textPosition ? `TEXT POSITION: ${plan.textPosition}` : ""}${moveInstruction}\n${strict ? "\nIDENTITY LOCK: Do not replace, redesign, beautify into a different person, or regenerate unrequested parts. Preserve the recognizable subject from the reference." : ""}\nQUALITY: premium commercial game artwork, polished anatomy, coherent lighting, crisp details, sophisticated composition.\nNON-NEGOTIABLE: Never change an unrequested element merely because it seems aesthetically preferable.`;
+  return `Iconia AI high-fidelity visual editing operation.
+LATEST USER REQUEST:
+${clean(message)}
+MODE: ${plan.mode}
+OUTPUT FORMAT: ${plan.format.label}
+
+VISUAL ANALYSIS / INTENT:
+${plan.imagePrompt}
+
+STYLE:
+${plan.style}
+
+COMPOSITION:
+${plan.composition}
+
+KEEP EXACTLY:
+- ${plan.keep.join("\n- ")}
+
+ONLY CHANGE:
+- ${plan.change.join("\n- ")}
+${textArtDirection}
+${plan.textPosition ? `\nTEXT POSITION CONSTRAINT: ${plan.textPosition}` : ""}${moveInstruction}
+${strict ? "\nIDENTITY LOCK: Do not replace, redesign, beautify into a different person, or regenerate unrequested parts. Preserve the recognizable subject from the reference." : ""}
+QUALITY: premium commercial game artwork, polished anatomy, coherent lighting, crisp details, sophisticated composition, strong visual hierarchy.
+NON-NEGOTIABLE: Never change an unrequested element merely because it seems aesthetically preferable. For typography, prioritize bespoke visual design and composition over generic readability-first placement.`;
 }
 
 async function editImage(file, prompt, size, quality) {
@@ -209,50 +222,6 @@ async function editImage(file, prompt, size, quality) {
     } catch (e) { last = e; console.error(`image edit attempt ${i + 1} failed`, e); }
   }
   throw last;
-}
-
-function colorFromStyle(text) {
-  const s = String(text || "");
-  if (/金|gold|amber|yellow/i.test(s)) return ["#fff6c5", "#e5a72a", "#4b2b00"];
-  if (/ピンク|pink|rose|magenta/i.test(s)) return ["#fff3fb", "#ff70c9", "#4a1239"];
-  if (/赤|red|crimson/i.test(s)) return ["#fff1f1", "#ff4f5e", "#4a060d"];
-  if (/紫|purple|violet|lavender/i.test(s)) return ["#fff7ff", "#9f67ff", "#34105f"];
-  if (/緑|green|emerald/i.test(s)) return ["#effff5", "#4bdc8a", "#073b23"];
-  if (/青|blue|cyan|ice|silver/i.test(s)) return ["#ffffff", "#63d8ff", "#06243d"];
-  return ["#ffffff", "#a7c7ff", "#091529"];
-}
-
-async function renderText(imageData, text, position, textStyle, message, scale, formatKey) {
-  await ensureJapaneseFont();
-  const { buffer } = dataImageToBuffer(imageData);
-  const fmt = FORMATS[formatKey] || FORMATS.icon;
-  const source = await sharp(buffer).resize(fmt.width, fmt.height, { fit: "cover", position: "attention" }).jpeg({ quality: 95 }).toBuffer();
-  const w = fmt.width, h = fmt.height;
-  const lines = String(text).split(/\n/).slice(0, 6);
-  const ratios = { tiny: .052, small: .072, medium: .105, large: .145, xlarge: .175, huge: .205 };
-  let fs0 = Math.round(Math.min(w, h) * (ratios[scale] || ratios.medium));
-  if (/大き|large|big|xlarge|huge/i.test(message) && !["tiny", "small"].includes(scale)) fs0 = Math.max(fs0, Math.round(Math.min(w, h) * .14));
-  if (formatKey === "xheader") fs0 = Math.max(fs0, 70);
-  if (formatKey === "youtube") fs0 = Math.max(fs0, 64);
-  const maxWidth = w * (/右|right/.test(String(position || "")) ? .74 : .9);
-  const estimated = Math.max(...lines.map(x => Math.max(1, [...x].length))) * fs0 * .57;
-  if (estimated > maxWidth) fs0 = Math.max(30, Math.floor(fs0 * maxWidth / estimated));
-  let x = w / 2, y = h * .83, anchor = "middle";
-  const p = String(position || "").toLowerCase();
-  if (/left|左/.test(p)) { x = w * .07; anchor = "start"; y = h * .78; }
-  else if (/right|右/.test(p)) { x = w * .93; anchor = "end"; y = h * .78; }
-  else if (/top|上/.test(p)) y = h * .16;
-  else if (/center|中央|真ん中/.test(p)) y = h * .52;
-  const [fill1, fill2, stroke] = colorFromStyle(`${textStyle} ${message}`);
-  const decorative = /蝶|花|幻想|fantasy|elegant|上品|高級|魔法|dream|luxury|anime|ゲーム/i.test(`${textStyle} ${message}`);
-  const shadow = Math.max(4, fs0 * .075);
-  const strokeW = Math.max(3, fs0 * .09);
-  const esc = v => String(v).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\"/g, "&quot;").replace(/'/g, "&apos;");
-  const tspans = lines.map((line, i) => `<tspan x="${x}" dy="${i ? fs0 * 1.12 : 0}">${esc(line)}</tspan>`).join("");
-  const ornament = decorative ? `<g opacity=".9" fill="${fill2}"><path d="M ${x - fs0 * .62} ${y - fs0 * .48} q ${fs0 * .22} -${fs0 * .28} ${fs0 * .44} 0 q -${fs0 * .22} ${fs0 * .28} -${fs0 * .44} 0z"/><path d="M ${x + fs0 * .18} ${y + fs0 * .52} q ${fs0 * .22} -${fs0 * .28} ${fs0 * .44} 0 q -${fs0 * .22} ${fs0 * .28} -${fs0 * .44} 0z"/></g>` : "";
-  const svg = `<svg width="${w}" height="${h}" xmlns="http://www.w3.org/2000/svg" xml:lang="ja"><defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${fill1}"/><stop offset=".52" stop-color="${fill2}"/><stop offset="1" stop-color="${fill1}"/></linearGradient><filter id="s"><feDropShadow dx="0" dy="${shadow}" stdDeviation="${Math.max(2, fs0 * .045)}" flood-color="#000" flood-opacity=".92"/></filter></defs>${ornament}<text x="${x}" y="${y}" text-anchor="${anchor}" dominant-baseline="middle" font-family="Noto Sans CJK JP" font-weight="900" font-style="italic" font-size="${fs0}" fill="url(#g)" stroke="${stroke}" stroke-width="${strokeW}" stroke-linejoin="round" paint-order="stroke" filter="url(#s)">${tspans}</text></svg>`;
-  const out = await sharp(source).composite([{ input: Buffer.from(svg), top: 0, left: 0 }]).jpeg({ quality: 96 }).toBuffer();
-  return `data:image/jpeg;base64,${out.toString("base64")}`;
 }
 
 async function fitExactCanvas(dataUrl, formatKey) {
@@ -283,24 +252,7 @@ export default async function handler(req, res) {
       return res.status(200).json({ success: true, chat: true, reply: plan.reply || "いい感じだね。", plan: { mode: "CHAT", format: formatKey } });
     }
 
-    if (isTextMoveRequest(message, Boolean(image)) && image) {
-      const { buffer, mime } = dataImageToBuffer(image);
-      const ext = mime.split("/")[1] === "png" ? "png" : mime.split("/")[1] === "webp" ? "webp" : "jpg";
-      const movePrompt = buildPrompt(plan, message);
-      const moved = await editImage(await toFile(buffer, `reference.${ext}`, { type: mime }), movePrompt, format.modelSize, "high");
-      const b64 = moved?.data?.[0]?.b64_json;
-      if (!b64) throw new Error("文字移動後の画像データがAIから返されませんでした。");
-      const output = await fitExactCanvas(`data:image/jpeg;base64,${b64}`, formatKey);
-      return res.status(200).json({ success: true, image: output, reply: plan.reply || `「${plan.requestedText}」を既存の位置から移動しました。`, plan: { mode: "TEXT_MOVE", requestedText: plan.requestedText, textPosition: plan.textPosition, textStyle: plan.textStyle, textScale: plan.textScale, keep: plan.keep, change: plan.change, format: formatKey, formatLabel: format.label } });
-    }
-
-    if (isTextOnlyRequest(message, Boolean(image)) && image) {
-      const requested = plan.requestedText || exactText(message);
-      const edited = await renderText(image, requested, plan.textPosition, plan.textStyle, message, plan.textScale, formatKey);
-      return res.status(200).json({ success: true, image: edited, reply: plan.reply || `できました。「${requested}」を画像の雰囲気に合わせてデザインしました。`, plan: { mode: "TEXT_ONLY", requestedText: requested, textPosition: plan.textPosition, textStyle: plan.textStyle, textScale: plan.textScale, keep: ["元画像の人物・背景・構図"], change: ["文字・ロゴだけ"], format: formatKey, formatLabel: format.label } });
-    }
-
-    const quality = /高品質|高画質|最高|超高精細|精密|最高品質|premium/i.test(message) || ["STYLE_ONLY", "FAITHFUL", "AI_DESIGN", "TARGETED_EDIT", "TEXT_MOVE"].includes(plan.mode) ? "high" : "medium";
+    const quality = /高品質|高画質|最高|超高精細|精密|最高品質|premium/i.test(message) || ["STYLE_ONLY", "FAITHFUL", "AI_DESIGN", "TARGETED_EDIT", "TEXT_ONLY", "TEXT_MOVE"].includes(plan.mode) ? "high" : "medium";
     const prompt = buildPrompt(plan, message);
     let result;
     if (image) {
@@ -312,7 +264,7 @@ export default async function handler(req, res) {
     }
     const b64 = result?.data?.[0]?.b64_json;
     if (!b64) throw new Error("画像データがAIから返されませんでした。");
-    let output = await fitExactCanvas(`data:image/jpeg;base64,${b64}`, formatKey);
+    const output = await fitExactCanvas(`data:image/jpeg;base64,${b64}`, formatKey);
     return res.status(200).json({ success: true, image: output, reply: plan.reply, plan: { mode: plan.mode, requestedText: plan.requestedText, textPosition: plan.textPosition, textStyle: plan.textStyle, textScale: plan.textScale, keep: plan.keep, change: plan.change, format: formatKey, formatLabel: format.label } });
   } catch (error) {
     console.error("ICONIA API ERROR", error);
