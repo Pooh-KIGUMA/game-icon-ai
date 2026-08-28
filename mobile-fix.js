@@ -1,7 +1,8 @@
 (() => {
-  if (window.__iconiaMobileFixV12) return;
-  window.__iconiaMobileFixV12 = true;
+  if (window.__iconiaMobileFixV13) return;
+  window.__iconiaMobileFixV13 = true;
   const $ = id => document.getElementById(id);
+
   function stabilize(){
     const h=document.querySelector('.header');
     if(h&&innerWidth<=700){
@@ -30,20 +31,108 @@
       }
     }
   }
+
   async function compress(file){
     if(!file||!file.type?.startsWith('image/'))return file;
-    try{const b=await createImageBitmap(file),max=1600,s=Math.min(1,max/Math.max(b.width,b.height));const c=document.createElement('canvas');c.width=Math.max(1,Math.round(b.width*s));c.height=Math.max(1,Math.round(b.height*s));c.getContext('2d').drawImage(b,0,0,c.width,c.height);b.close?.();const blob=await new Promise(r=>c.toBlob(r,'image/jpeg',.84));return blob?new File([blob],'iconia-reference.jpg',{type:'image/jpeg'}):file}catch{return file;}
+    try{
+      const b=await createImageBitmap(file),max=1600,s=Math.min(1,max/Math.max(b.width,b.height));
+      const c=document.createElement('canvas');c.width=Math.max(1,Math.round(b.width*s));c.height=Math.max(1,Math.round(b.height*s));
+      c.getContext('2d').drawImage(b,0,0,c.width,c.height);b.close?.();
+      const blob=await new Promise(r=>c.toBlob(r,'image/jpeg',.84));
+      return blob?new File([blob],'iconia-reference.jpg',{type:'image/jpeg'}):file;
+    }catch{return file;}
   }
-  function preview(file){const w=$('attach'),img=$('preview');if(!w||!img)return;img.src=URL.createObjectURL(file);w.classList.add('show');const l=$('attachLabel');if(l)l.textContent='この画像を元に編集します';}
+
+  function preview(file){
+    const w=$('attach'),img=$('preview');if(!w||!img)return;
+    if(typeof file==='string') img.src=file; else img.src=URL.createObjectURL(file);
+    w.classList.add('show');
+    const l=$('attachLabel');if(l)l.textContent='この画像を元に編集します';
+  }
+
   function bind(){
-    const btn=$('attachBtn'),input=$('file');if(!btn||!input)return stabilize();
-    btn.type='button';btn.style.display='inline-grid';
-    if(!btn.__v12){btn.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();input.click();},true);btn.__v12=true;}
-    if(!input.__v12){input.addEventListener('change',async e=>{const f=e.target.files?.[0];if(!f)return;const out=await compress(f);preview(out);if(out!==f){try{const dt=new DataTransfer();dt.items.add(out);input.files=dt.files;}catch{}}const send=$('send');if(send)send.disabled=false;stabilize();},false);input.__v12=true;}
-    const rem=$('remove');if(rem&&!rem.__v12){rem.addEventListener('click',()=>{$('attach')?.classList.remove('show');if(input)input.value='';const img=$('preview');if(img)img.removeAttribute('src');});rem.__v12=true;}
+    const btn=$('attachBtn'),input=$('file');
+    if(btn&&input){
+      btn.type='button';btn.style.display='inline-grid';
+      if(!btn.__v13){
+        btn.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();input.click();},true);
+        btn.__v13=true;
+      }
+      if(!input.__v13){
+        input.addEventListener('change',async e=>{
+          const f=e.target.files?.[0];if(!f)return;
+          const out=await compress(f);preview(out);
+          if(out!==f){try{const dt=new DataTransfer();dt.items.add(out);input.files=dt.files;}catch{}}
+          const send=$('send');if(send)send.disabled=false;
+          stabilize();
+        },false);
+        input.__v13=true;
+      }
+      const rem=$('remove');
+      if(rem&&!rem.__v13){
+        rem.addEventListener('click',()=>{$('attach')?.classList.remove('show');if(input)input.value='';const img=$('preview');if(img)img.removeAttribute('src');});
+        rem.__v13=true;
+      }
+    }
     stabilize();
   }
-  function run(){requestAnimationFrame(bind)}
+
+  async function saveImage(src){
+    try{
+      let blob;
+      if(src.startsWith('data:')){
+        const r=await fetch(src);blob=await r.blob();
+      }else{
+        const r=await fetch(src,{mode:'cors'});if(!r.ok)throw new Error('image');blob=await r.blob();
+      }
+      const ext=(blob.type||'image/png').split('/')[1]?.replace('jpeg','jpg')||'png';
+      const file=new File([blob],`iconia-ai-${Date.now()}.${ext}`,{type:blob.type||'image/png'});
+      if(navigator.canShare?.({files:[file]}) && navigator.share){
+        await navigator.share({title:'Iconia AI',text:'Iconia AIで作成した画像',files:[file]});
+        return;
+      }
+      const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=file.name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),2000);
+    }catch(e){
+      try{window.open(src,'_blank','noopener');}catch{}
+    }
+  }
+
+  function addSaveButtons(){
+    document.querySelectorAll('.result').forEach(img=>{
+      if(img.dataset.saveBound)return;
+      img.dataset.saveBound='1';
+      const wrap=img.parentElement;if(!wrap)return;
+      const tools=document.createElement('div');
+      tools.className='iconiaImageTools';
+      tools.innerHTML='<button type="button" class="iconiaImageTool save">⬇️ 保存 / 共有</button><button type="button" class="iconiaImageTool zoom">🔍 拡大</button>';
+      img.insertAdjacentElement('afterend',tools);
+      tools.querySelector('.save').onclick=e=>{e.preventDefault();e.stopPropagation();saveImage(img.dataset.image||img.currentSrc||img.src)};
+      tools.querySelector('.zoom').onclick=e=>{e.preventDefault();e.stopPropagation();if(typeof window.openLight==='function')window.openLight(img.dataset.image||img.currentSrc||img.src);else{const lb=$('lightbox'),li=$('lightImg');if(lb&&li){li.src=img.dataset.image||img.currentSrc||img.src;lb.classList.add('show')}}};
+    });
+  }
+
+  function addStyles(){
+    if(document.getElementById('iconia-v13-style'))return;
+    const s=document.createElement('style');s.id='iconia-v13-style';s.textContent=`
+      .iconiaImageTools{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+      .iconiaImageTool{border:1px solid #34394b;background:#242938;color:#f6f7fb;border-radius:12px;padding:9px 12px;font-size:11px;font-weight:750}
+      .iconiaImageTool:active{transform:scale(.97);opacity:.85}
+      @media(max-width:700px){.iconiaImageTools{gap:6px}.iconiaImageTool{padding:9px 11px;font-size:10px}}
+    `;document.head.appendChild(s);
+  }
+
+  function loadHistoryEnhancements(){
+    if(window.__iconiaHistoryEnhancementsLoaded)return;
+    window.__iconiaHistoryEnhancementsLoaded=true;
+    const s=document.createElement('script');s.src='/history-enhancements.js';s.async=false;document.body.appendChild(s);
+  }
+
+  function run(){
+    requestAnimationFrame(()=>{bind();addStyles();addSaveButtons();loadHistoryEnhancements();});
+  }
+
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run,{once:true});else run();
-  [100,500,1500,3000].forEach(t=>setTimeout(run,t));addEventListener('resize',run,{passive:true});
+  [100,500,1500,3000].forEach(t=>setTimeout(run,t));
+  addEventListener('resize',run,{passive:true});
+  new MutationObserver(()=>{addSaveButtons();stabilize()}).observe(document.body,{childList:true,subtree:true});
 })();
