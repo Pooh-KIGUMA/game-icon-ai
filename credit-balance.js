@@ -11,25 +11,52 @@
   el.innerHTML = '🪙 残高 <b>—</b>';
   actions.insertBefore(el, actions.firstChild);
 
+  let refreshInFlight = null;
   async function refreshCredits() {
-    try {
-      const r = await fetch('/api/credits', {
-        method: 'GET',
-        credentials: 'same-origin',
-        cache: 'no-store'
-      });
-      const data = await r.json();
-      if (!r.ok) throw new Error('credits');
-      el.classList.remove('loading');
-      el.innerHTML = `🪙 残高 <b>${Number(data.credits ?? 0)}</b>`;
-      el.title = `現在 ${Number(data.credits ?? 0)} クレジット`;
-    } catch {
-      el.classList.remove('loading');
-      el.innerHTML = '🪙 残高 <b>—</b>';
-    }
+    if (refreshInFlight) return refreshInFlight;
+    refreshInFlight = (async () => {
+      try {
+        const r = await fetch('/api/credits', {
+          method: 'GET',
+          credentials: 'same-origin',
+          cache: 'no-store'
+        });
+        const data = await r.json();
+        if (!r.ok) throw new Error('credits');
+        el.classList.remove('loading');
+        el.innerHTML = `🪙 残高 <b>${Number(data.credits ?? 0)}</b>`;
+        el.title = `現在 ${Number(data.credits ?? 0)} クレジット`;
+      } catch {
+        el.classList.remove('loading');
+        el.innerHTML = '🪙 残高 <b>—</b>';
+      } finally {
+        refreshInFlight = null;
+      }
+    })();
+    return refreshInFlight;
   }
+
+  // Expose a small hook so the generation UI can request an immediate refresh.
+  window.IconiaRefreshCredits = refreshCredits;
 
   refreshCredits();
   window.addEventListener('pageshow', refreshCredits);
   window.addEventListener('focus', refreshCredits);
+
+  // Also watch fetch responses so the balance updates immediately after a
+  // successful image generation, without requiring a page reload or navigation.
+  const originalFetch = window.fetch.bind(window);
+  window.fetch = async (...args) => {
+    const response = await originalFetch(...args);
+    try {
+      const input = args[0];
+      const url = typeof input === 'string' ? input : input?.url || '';
+      if (/\/api\/generate(?:[/?]|$)/.test(url)) {
+        let ok = response.ok;
+        if (response.status >= 400) ok = false;
+        if (ok) setTimeout(refreshCredits, 0);
+      }
+    } catch {}
+    return response;
+  };
 })();
