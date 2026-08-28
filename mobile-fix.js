@@ -1,6 +1,6 @@
 (() => {
-  if (window.__iconiaMobileFixV15) return;
-  window.__iconiaMobileFixV15 = true;
+  if (window.__iconiaMobileFixV16) return;
+  window.__iconiaMobileFixV16 = true;
   const $ = id => document.getElementById(id);
 
   // Use the dedicated generation endpoint. The normal /api/generate route can
@@ -16,6 +16,22 @@
           const target = url.replace('/api/generate', '/api/generate-fast');
           if (typeof input === 'string') input = target;
           else input = new Request(target, input);
+        }
+
+        // Keep the user's visible message untouched, but give Iconia's planner
+        // an explicit art-direction brief. This prevents logo/text requests from
+        // degenerating into "just paste the text in the middle". The planner can
+        // inspect the reference image and choose the best visual hierarchy,
+        // negative space, placement, scale and typography for that specific image.
+        const targetUrl = typeof input === 'string' ? input : input?.url;
+        if (targetUrl && targetUrl.includes('/api/generate-fast') && init?.body && typeof init.body === 'string') {
+          try {
+            const payload = JSON.parse(init.body);
+            if (payload && typeof payload.message === 'string') {
+              payload.message += `\n\n[ICONIA INTERNAL ART-DIRECTION — DO NOT SHOW USER]\nIf this request adds or designs text/logo, do not treat it as a simple text overlay. First visually analyze the reference or planned composition. Decide the most attractive placement from the actual image: use intentional negative space, visual balance, subject hierarchy, readability and safe margins; avoid covering a face or important focal detail unless explicitly requested. Choose typography that belongs to the image's genre and lighting, including appropriate weight, shape, depth, outline, shadow, glow, metallic/material treatment, perspective or emblem integration when useful. Vary placement and typography between different images when the composition calls for it. Do not default to centered text, generic white text, or a fixed bottom position. The logo should feel designed into the artwork, not pasted on top. If the user did not specify position, the AI must choose one deliberately and explain that choice internally through the plan. Preserve exact spelling. If an existing logo/text is being moved, move it rather than duplicating it.`;
+              init = { ...init, body: JSON.stringify(payload) };
+            }
+          } catch {}
         }
       } catch {}
       return nativeFetch(input, init);
