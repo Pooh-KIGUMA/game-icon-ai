@@ -1,6 +1,6 @@
 (() => {
-  if (window.__iconiaMobileFixV16) return;
-  window.__iconiaMobileFixV16 = true;
+  if (window.__iconiaMobileFixV17) return;
+  window.__iconiaMobileFixV17 = true;
   const $ = id => document.getElementById(id);
 
   // Use the dedicated generation endpoint. The normal /api/generate route can
@@ -181,6 +181,28 @@
     `;document.head.appendChild(s);
   }
 
+  function addLegalFooter(){
+    if(document.getElementById('iconiaLegalFooter'))return;
+    const footer=document.createElement('footer');
+    footer.id='iconiaLegalFooter';
+    footer.innerHTML=`<div class="iconiaLegalInner"><div class="iconiaLegalBrand">✦ <b>Iconia AI</b></div><div class="iconiaLegalLinks"><a href="/terms.html">利用規約</a><span>・</span><a href="/privacy.html">プライバシーポリシー</a></div><div class="iconiaLegalCopy">© 2026 Iconia AI</div></div>`;
+    document.body.appendChild(footer);
+  }
+
+  function addLegalStyles(){
+    if(document.getElementById('iconia-legal-style'))return;
+    const s=document.createElement('style');s.id='iconia-legal-style';s.textContent=`
+      #iconiaLegalFooter{margin:0 auto;padding:18px 14px 285px;text-align:center;color:#737b8e;font-size:10px}
+      .iconiaLegalInner{max-width:980px;margin:auto;border-top:1px solid #242938;padding-top:16px}
+      .iconiaLegalBrand{color:#cfd3df;margin-bottom:7px}
+      .iconiaLegalLinks{display:flex;justify-content:center;align-items:center;gap:6px;flex-wrap:wrap}
+      .iconiaLegalLinks a{color:#a99bff;text-decoration:none}
+      .iconiaLegalLinks a:hover{text-decoration:underline}
+      .iconiaLegalCopy{margin-top:7px;color:#555d70}
+      @media(max-width:700px){#iconiaLegalFooter{padding-bottom:300px}}
+    `;document.head.appendChild(s);
+  }
+
   function loadHistoryEnhancements(){
     if(window.__iconiaHistoryEnhancementsLoaded)return;
     window.__iconiaHistoryEnhancementsLoaded=true;
@@ -188,7 +210,7 @@
   }
 
   function run(){
-    requestAnimationFrame(()=>{recoverInterruptedGeneration();bind();addStyles();addSaveButtons();loadHistoryEnhancements();});
+    requestAnimationFrame(()=>{recoverInterruptedGeneration();bind();addStyles();addSaveButtons();addLegalStyles();addLegalFooter();loadHistoryEnhancements();});
   }
 
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run,{once:true});else run();
