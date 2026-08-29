@@ -1,1 +1,24 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600"><defs><linearGradient id="bg" x2="1" y2="1"><stop stop-color="#09050d"/><stop offset=".5" stop-color="#4d0d27"/><stop offset="1" stop-color="#ff4b2f"/></linearGradient><linearGradient id="coat" x2="1" y2="1"><stop stop-color="#080b14"/><stop offset=".6" stop-color="#3b102b"/><stop offset="1" stop-color="#b51f45"/></linearGradient><filter id="glow"><feGaussianBlur stdDeviation="12"/></filter></defs><rect width="600" height="600" rx="70" fill="url(#bg)"/><circle cx="465" cy="120" r="115" fill="#ff563d" opacity=".22" filter="url(#glow)"/><path d="M55 525L155 285 220 205 300 125 380 205 445 285 545 525Z" fill="#07060b" opacity=".8"/><path d="M160 520Q165 340 220 270L300 215 380 270Q435 340 440 520Z" fill="url(#coat)" stroke="#ff5261" stroke-width="7"/><path d="M205 275Q210 145 300 95Q390 145 395 275L350 315 300 265 250 315Z" fill="#11121d" stroke="#ff6570" stroke-width="5"/><path d="M220 220L300 165 380 220 350 255 300 235 250 255Z" fill="#9d254d"/><path d="M255 245L285 240M315 240L345 245" stroke="#fff" stroke-width="9" stroke-linecap="round"/><path d="M280 285Q300 300 320 285" fill="none" stroke="#ff8791" stroke-width="6"/><path d="M190 355L100 430M410 355L500 430" stroke="#ff4757" stroke-width="13"/><path d="M120 455Q300 410 480 455" fill="none" stroke="#ff9b72" stroke-width="2" opacity=".7"/><text x="300" y="475" fill="#fff" font-size="64" font-family="Arial,sans-serif" font-weight="900" text-anchor="middle" letter-spacing="7">RAVEN</text><text x="300" y="520" fill="#ffd0bc" font-size="22" font-family="Arial,sans-serif" font-weight="700" text-anchor="middle" letter-spacing="7">BLOOD HUNTER</text></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800">
+<defs>
+ <radialGradient id="bg" cx="78%" cy="20%"><stop stop-color="#6f1838"/><stop offset=".38" stop-color="#250918"/><stop offset="1" stop-color="#06060b"/></radialGradient>
+ <linearGradient id="coat" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#080b14"/><stop offset=".5" stop-color="#2c1028"/><stop offset=".78" stop-color="#8d173d"/><stop offset="1" stop-color="#1a0714"/></linearGradient>
+ <linearGradient id="mask" x1="0" x2="1"><stop stop-color="#1b1b2b"/><stop offset=".5" stop-color="#080912"/><stop offset="1" stop-color="#5d1536"/></linearGradient>
+ <filter id="glow"><feGaussianBlur stdDeviation="18"/></filter><filter id="glow2"><feGaussianBlur stdDeviation="5"/></filter>
+</defs>
+<rect width="800" height="800" rx="92" fill="url(#bg)"/>
+<circle cx="620" cy="155" r="150" fill="#ff365f" opacity=".16" filter="url(#glow)"/><circle cx="620" cy="155" r="92" fill="#ff496a" opacity=".08"/>
+<path d="M65 665L170 335 300 145 400 92 500 145 630 335 735 665Z" fill="#030308" opacity=".92"/>
+<path d="M132 666Q145 438 225 330L300 278 400 278 475 330Q555 438 568 666Z" fill="url(#coat)" stroke="#ff4864" stroke-width="5"/>
+<path d="M185 375L300 306 415 375 382 460 300 505 218 460Z" fill="#0b0a14" stroke="#a3224c" stroke-width="4"/>
+<path d="M205 365L300 322 395 365 365 402 300 387 235 402Z" fill="#48112d" stroke="#ff6177" stroke-width="3"/>
+<path d="M216 283Q226 140 300 88Q374 140 384 283L347 337 300 288 253 337Z" fill="url(#mask)" stroke="#ff566d" stroke-width="7"/>
+<path d="M244 232L300 192 356 232 339 277 300 264 261 277Z" fill="#a3204c"/><path d="M265 270L290 266M310 266L335 270" stroke="#fff" stroke-width="10" stroke-linecap="round"/>
+<path d="M278 296Q300 315 322 296" fill="none" stroke="#ff7385" stroke-width="5"/>
+<path d="M220 416L100 535M480 416L600 535" stroke="#ff405b" stroke-width="20" stroke-linecap="round"/><path d="M105 535L72 592M595 535L628 592" stroke="#7e183d" stroke-width="10"/>
+<path d="M150 594Q300 555 550 594" fill="none" stroke="#ff8a79" stroke-opacity=".6" stroke-width="2"/>
+<path d="M170 620H530" stroke="#ff4e68" stroke-opacity=".4"/>
+<circle cx="100" cy="535" r="9" fill="#ffb1aa" filter="url(#glow2)"/><circle cx="600" cy="535" r="9" fill="#ffb1aa" filter="url(#glow2)"/>
+<text x="400" y="660" fill="#fff" font-size="88" font-family="Arial,sans-serif" font-weight="900" text-anchor="middle" letter-spacing="16">RAVEN</text>
+<text x="400" y="712" fill="#ffb9ad" font-size="24" font-family="Arial,sans-serif" font-weight="800" text-anchor="middle" letter-spacing="10">BLOOD HUNTER // VII</text>
+<path d="M145 742H655" stroke="#ff526c" stroke-width="2" opacity=".6"/><path d="M205 742L225 732 245 742 225 752Z" fill="#ff526c"/><path d="M555 742L575 732 595 742 575 752Z" fill="#ff526c"/>
+</svg>
