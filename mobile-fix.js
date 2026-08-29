@@ -2,11 +2,6 @@
   if (window.__iconiaMobileFixV18) return;
   window.__iconiaMobileFixV18 = true;
   const $ = id => document.getElementById(id);
-
-  // Use the dedicated generation endpoint. The normal /api/generate route can
-  // take too long on mobile and Safari may surface the aborted request as
-  // "Load failed" after a refresh. The fast endpoint has the credit/refund
-  // guard and a longer server-side timeout.
   try {
     const nativeFetch = window.fetch.bind(window);
     window.fetch = (input, init = {}) => {
@@ -14,8 +9,7 @@
         const url = typeof input === 'string' ? input : input?.url;
         if (url && url.startsWith('/api/generate') && !url.includes('/api/generate-fast')) {
           const target = url.replace('/api/generate', '/api/generate-fast');
-          if (typeof input === 'string') input = target;
-          else input = new Request(target, input);
+          if (typeof input === 'string') input = target; else input = new Request(target, input);
         }
         const targetUrl = typeof input === 'string' ? input : input?.url;
         if (targetUrl && targetUrl.includes('/api/generate-fast') && init?.body && typeof init.body === 'string') {
@@ -31,186 +25,25 @@
       return nativeFetch(input, init);
     };
   } catch {}
-
-  function addAdsenseLoader(){
-    if(document.querySelector('script[data-iconia-adsense]')) return;
-    const s=document.createElement('script');
-    s.async=true;
-    s.src='https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3315416823173996';
-    s.crossOrigin='anonymous';
-    s.dataset.iconiaAdsense='1';
-    document.head.appendChild(s);
+  function addAdsenseLoader(){if(document.querySelector('script[data-iconia-adsense]'))return;const s=document.createElement('script');s.async=true;s.src='https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3315416823173996';s.crossOrigin='anonymous';s.dataset.iconiaAdsense='1';document.head.appendChild(s)}
+  function recoverInterruptedGeneration(){try{const nav=performance.getEntriesByType?.('navigation')?.[0];if(nav?.type!=='reload')return;const key='iconia_pro_v6';const raw=localStorage.getItem(key);if(!raw)return;const data=JSON.parse(raw);if(!Array.isArray(data?.messages))return;const hadLoading=data.messages.some(m=>m&&m.loading);if(!hadLoading)return;data.messages=data.messages.filter(m=>!m?.loading);localStorage.setItem(key,JSON.stringify(data));if(!sessionStorage.getItem('iconia_recovered_reload_done')){sessionStorage.setItem('iconia_recovered_reload_done','1');location.reload()}}catch{}}
+  function stabilize(){const h=document.querySelector('.header');if(h&&innerWidth<=700){h.style.setProperty('position','fixed','important');h.style.setProperty('top','0','important');h.style.setProperty('left','0','important');h.style.setProperty('right','0','important');h.style.setProperty('z-index','1100','important');h.style.setProperty('height','64px','important');document.body.style.paddingTop='64px'}const c=document.querySelector('.composerWrap');if(c){c.style.setProperty('position','fixed','important');c.style.setProperty('left','0','important');c.style.setProperty('right','0','important');c.style.setProperty('bottom','0','important');c.style.setProperty('top','auto','important');c.style.setProperty('z-index','1000','important');if(innerWidth<=700){c.style.setProperty('max-height','255px','important');c.style.setProperty('overflow-y','auto','important');c.style.setProperty('overflow-x','hidden','important');c.style.setProperty('padding-top','4px','important');c.style.setProperty('padding-bottom','calc(env(safe-area-inset-bottom) + 5px)','important')}}}
+  async function compress(file){if(!file||!file.type?.startsWith('image/'))return file;try{const b=await createImageBitmap(file),max=1600,s=Math.min(1,max/Math.max(b.width,b.height));const c=document.createElement('canvas');c.width=Math.max(1,Math.round(b.width*s));c.height=Math.max(1,Math.round(b.height*s));c.getContext('2d').drawImage(b,0,0,c.width,c.height);b.close?.();const blob=await new Promise(r=>c.toBlob(r,'image/jpeg',.84));return blob?new File([blob],'iconia-reference.jpg',{type:'image/jpeg'}):file}catch{return file}}
+  function preview(file){const w=$('attach'),img=$('preview');if(!w||!img)return;if(typeof file==='string')img.src=file;else img.src=URL.createObjectURL(file);w.classList.add('show');const l=$('attachLabel');if(l)l.textContent='この画像を元に編集します'}
+  function bind(){const btn=$('attachBtn'),input=$('file');if(btn&&input){btn.type='button';btn.style.display='inline-grid';if(!btn.__v14){btn.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();input.click()},true);btn.__v14=true}if(!input.__v14){input.addEventListener('change',async e=>{const f=e.target.files?.[0];if(!f)return;const out=await compress(f);preview(out);if(out!==f){try{const dt=new DataTransfer();dt.items.add(out);input.files=dt.files}catch{}}const send=$('send');if(send)send.disabled=false;stabilize()},false);input.__v14=true}const rem=$('remove');if(rem&&!rem.__v14){rem.addEventListener('click',()=>{$('attach')?.classList.remove('show');if(input)input.value='';const img=$('preview');if(img)img.removeAttribute('src')});rem.__v14=true}}stabilize()}
+  async function saveImage(src){try{let blob;if(src.startsWith('data:')){const r=await fetch(src);blob=await r.blob()}else{const r=await fetch(src,{mode:'cors'});if(!r.ok)throw new Error('image');blob=await r.blob()}const ext=(blob.type||'image/png').split('/')[1]?.replace('jpeg','jpg')||'png';const file=new File([blob],`iconia-ai-${Date.now()}.${ext}`,{type:blob.type||'image/png'});if(navigator.canShare?.({files:[file]})&&navigator.share){await navigator.share({title:'Iconia AI',text:'Iconia AIで作成した画像',files:[file]});return}const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=file.name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),2000)}catch(e){try{window.open(src,'_blank','noopener')}catch{}}}
+  function addSaveButtons(){document.querySelectorAll('.result').forEach(img=>{if(img.dataset.saveBound)return;img.dataset.saveBound='1';const tools=document.createElement('div');tools.className='iconiaImageTools';tools.innerHTML='<button type="button" class="iconiaImageTool save">⬇️ 保存 / 共有</button><button type="button" class="iconiaImageTool zoom">🔍 拡大</button>';img.insertAdjacentElement('afterend',tools);tools.querySelector('.save').onclick=e=>{e.preventDefault();e.stopPropagation();saveImage(img.dataset.image||img.currentSrc||img.src)};tools.querySelector('.zoom').onclick=e=>{e.preventDefault();e.stopPropagation();if(typeof window.openLight==='function')window.openLight(img.dataset.image||img.currentSrc||img.src);else{const lb=$('lightbox'),li=$('lightImg');if(lb&&li){li.src=img.dataset.image||img.currentSrc||img.src;lb.classList.add('show')}}}})}
+  function addStyles(){if(document.getElementById('iconia-v14-style'))return;const s=document.createElement('style');s.id='iconia-v14-style';s.textContent='.iconiaImageTools{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}.iconiaImageTool{border:1px solid #34394b;background:#242938;color:#f6f7fb;border-radius:12px;padding:9px 12px;font-size:11px;font-weight:750}.iconiaImageTool:active{transform:scale(.97);opacity:.85}@media(max-width:700px){.iconiaImageTools{gap:6px}.iconiaImageTool{padding:9px 11px;font-size:10px}}';document.head.appendChild(s)}
+  function addLegalFooter(){if(document.getElementById('iconiaLegalFooter'))return;const footer=document.createElement('footer');footer.id='iconiaLegalFooter';footer.innerHTML='<div class="iconiaLegalInner"><div class="iconiaLegalBrand">✦ <b>Iconia AI</b></div><div class="iconiaLegalLinks"><a href="/terms.html">利用規約</a><span>・</span><a href="/privacy.html">プライバシーポリシー</a></div><div class="iconiaLegalCopy">© 2026 Iconia AI</div></div>';document.body.appendChild(footer)}
+  function addLegalStyles(){if(document.getElementById('iconia-legal-style'))return;const s=document.createElement('style');s.id='iconia-legal-style';s.textContent='#iconiaLegalFooter{margin:0 auto;padding:18px 14px 285px;text-align:center;color:#737b8e;font-size:10px}.iconiaLegalInner{max-width:980px;margin:auto;border-top:1px solid #242938;padding-top:16px}.iconiaLegalBrand{color:#cfd3df;margin-bottom:7px}.iconiaLegalLinks{display:flex;justify-content:center;align-items:center;gap:6px;flex-wrap:wrap}.iconiaLegalLinks a{color:#a99bff;text-decoration:none}.iconiaLegalCopy{margin-top:7px;color:#555d70}@media(max-width:700px){#iconiaLegalFooter{padding-bottom:300px}}';document.head.appendChild(s)}
+  function loadHistoryEnhancements(){if(window.__iconiaHistoryEnhancementsLoaded)return;window.__iconiaHistoryEnhancementsLoaded=true;const s=document.createElement('script');s.src='/history-enhancements.js';s.async=false;document.body.appendChild(s)}
+  function addWelcomeShowcase(){const w=document.querySelector('.welcome');if(!w||w.dataset.showcase==='1')return;w.dataset.showcase='1';const style=document.createElement('style');style.textContent=`
+.ixHero{max-width:920px;margin:0 auto;text-align:left}.ixEyebrow{display:inline-flex;align-items:center;gap:7px;padding:7px 11px;border:1px solid #383f55;background:#111521;border-radius:999px;color:#cfd3df;font-size:10px;font-weight:800;letter-spacing:.04em;box-shadow:0 8px 28px #0004}.ixDot{width:7px;height:7px;border-radius:50%;background:#5be0bd;box-shadow:0 0 13px #5be0bd}.ixHeroTitle{font-size:clamp(32px,5vw,54px)!important;line-height:1.08;margin:17px 0 12px!important;letter-spacing:-.045em}.ixHeroLead{font-size:15px!important;max-width:760px!important;line-height:1.8!important;color:#b7bfd0!important}.ixDemo{margin:30px auto 24px;display:grid;grid-template-columns:1fr 1.18fr 1fr;gap:10px;align-items:center}.ixPanel{position:relative;border:1px solid #30374a;background:linear-gradient(145deg,#151925,#0c0e15);border-radius:24px;padding:13px;box-shadow:0 18px 55px #0007;overflow:hidden}.ixPanel.main{transform:translateY(-7px);border-color:#5749a0;box-shadow:0 22px 75px #39277d55}.ixPanelLabel{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;color:#9ba4b8;font-size:9px;font-weight:800;letter-spacing:.05em}.ixPill{padding:4px 7px;border-radius:999px;background:#202638;color:#dce1eb}.ixArtwork{aspect-ratio:1;border-radius:17px;overflow:hidden;position:relative;background:#090b12}.ixArtwork svg{width:100%;height:100%;display:block}.ixArrow{font-size:26px;color:#8170ff;text-align:center;font-weight:900;filter:drop-shadow(0 0 12px #5d4aff)}.ixPrompt{margin-top:10px;border:1px solid #2e3548;background:#11141d;border-radius:13px;padding:10px 11px;color:#e7eaf2;font-size:10px;line-height:1.55}.ixPrompt span{color:#8f98ab}.ixResultTag{position:absolute;left:11px;bottom:11px;padding:5px 8px;border-radius:8px;background:#080a10cc;border:1px solid #ffffff18;color:#fff;font-size:9px;font-weight:800}.ixExamples{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin:12px 0 0}.ixExample{border:1px solid #2c3345;background:#11141c;border-radius:16px;padding:12px;text-align:left;transition:.2s transform,.2s border-color}.ixExample:hover{transform:translateY(-2px);border-color:#5145a2}.ixExampleIcon{font-size:19px;margin-bottom:7px}.ixExample b{font-size:11px}.ixExample span{display:block;color:#858ea2;font-size:9px;line-height:1.5;margin-top:3px}.ixSteps{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin:18px auto 0;max-width:850px;text-align:left}.ixStep{padding:13px;border:1px solid #2b3141;background:#10131b;border-radius:15px}.ixNum{display:inline-grid;place-items:center;width:24px;height:24px;border-radius:8px;background:linear-gradient(135deg,#7657ff,#0bc8ff);font-size:10px;font-weight:900;margin-bottom:8px}.ixStep b{display:block;font-size:11px}.ixStep span{display:block;color:#858ea2;font-size:9px;line-height:1.55;margin-top:4px}.ixTry{display:inline-flex;margin-top:18px;padding:10px 14px;border-radius:12px;background:linear-gradient(135deg,#7657ff,#0bc8ff);box-shadow:0 10px 30px #4a3cba55;font-size:11px;font-weight:850}@media(max-width:700px){.ixHero{padding:0 2px}.ixHeroTitle{font-size:31px!important}.ixHeroLead{font-size:13px!important}.ixDemo{grid-template-columns:1fr;gap:7px}.ixPanel.main{transform:none;order:2}.ixPanel.before{order:1}.ixPanel.after{order:3}.ixArrow{transform:rotate(90deg);font-size:20px}.ixExamples,.ixSteps{grid-template-columns:1fr}.ixExample{display:grid;grid-template-columns:34px 1fr;column-gap:8px}.ixExampleIcon{grid-row:1 / span 2;margin:0}.ixTry{width:100%;justify-content:center}}`;
+    document.head.appendChild(style);
+    const before=`<svg viewBox="0 0 500 500" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="b1" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#151a2e"/><stop offset="1" stop-color="#070811"/></linearGradient><radialGradient id="b2"><stop stop-color="#7957ff" stop-opacity=".7"/><stop offset="1" stop-color="#7957ff" stop-opacity="0"/></radialGradient></defs><rect width="500" height="500" fill="url(#b1)"/><circle cx="370" cy="120" r="190" fill="url(#b2)"/><circle cx="255" cy="235" r="115" fill="#101321" stroke="#555e7d" stroke-width="5"/><path d="M170 400c20-90 150-110 205 0" fill="#171c2c" stroke="#7a84a6" stroke-width="7"/><circle cx="218" cy="225" r="13" fill="#dce1eb"/><circle cx="292" cy="225" r="13" fill="#dce1eb"/><path d="M218 300q38 24 75 0" fill="none" stroke="#9da6ba" stroke-width="8" stroke-linecap="round"/><text x="250" y="458" text-anchor="middle" fill="#8e96aa" font-size="25" font-family="sans-serif" font-weight="700">YOUR PHOTO</text></svg>`;
+    const after=`<svg viewBox="0 0 500 500" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="a1" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#17264d"/><stop offset=".55" stop-color="#4a2182"/><stop offset="1" stop-color="#090a12"/></linearGradient><radialGradient id="a2"><stop stop-color="#0bc8ff" stop-opacity=".75"/><stop offset="1" stop-color="#0bc8ff" stop-opacity="0"/></radialGradient></defs><rect width="500" height="500" fill="url(#a1)"/><circle cx="395" cy="105" r="175" fill="url(#a2)"/><circle cx="250" cy="205" r="128" fill="#14182b" stroke="#a9a0ff" stroke-width="5"/><path d="M120 500c20-145 220-185 310 0" fill="#111626" stroke="#7657ff" stroke-width="9"/><path d="M152 172q98-135 200 0" fill="#080a12"/><path d="M170 213h50M280 213h50" stroke="#dce1eb" stroke-width="10" stroke-linecap="round"/><circle cx="195" cy="213" r="7" fill="#0bc8ff"/><circle cx="305" cy="213" r="7" fill="#0bc8ff"/><path d="M195 290q55 42 110 0" fill="none" stroke="#0bc8ff" stroke-width="8" stroke-linecap="round"/><path d="M70 95h95M335 390h95" stroke="#0bc8ff" stroke-width="3" opacity=".7"/><text x="250" y="446" text-anchor="middle" fill="#fff" font-size="38" font-family="sans-serif" font-weight="900" letter-spacing="5">ROKI</text><text x="250" y="475" text-anchor="middle" fill="#b9b0ff" font-size="14" font-family="sans-serif" font-weight="700">GAME ICON</text></svg>`;
+    w.innerHTML=`<div class="ixHero"><div class="ixEyebrow"><i class="ixDot"></i> GAME ICON CREATOR</div><h1 class="ixHeroTitle">「こんな感じにしたい」を、<br>そのままアイコンに。</h1><p class="ixHeroLead">写真を送って、イメージを一言。Iconia AIがゲーム向けにかっこよく仕上げます。キャラ変更、背景変更、名前・クラン名・ロゴ追加まで、会話しながら調整できます。</p><div class="ixDemo"><div class="ixPanel before"><div class="ixPanelLabel"><span>BEFORE</span><span class="ixPill">写真をアップ</span></div><div class="ixArtwork">${before}</div><div class="ixPrompt"><span>参考画像</span><br>「このキャラをゲームアイコン風に」</div></div><div class="ixArrow">→</div><div class="ixPanel main after"><div class="ixPanelLabel"><span>ICONIA AI</span><span class="ixPill">AI EDIT</span></div><div class="ixArtwork">${after}<div class="ixResultTag">1:1 GAME ICON</div></div><div class="ixPrompt"><span>完成イメージ</span><br>「青紫・高級感・名前はROKI」</div></div></div><div class="ixExamples"><div class="ixExample"><div class="ixExampleIcon">🎮</div><div><b>ゲームアイコン</b><span>1:1でキャラを主役に。名前やクラン名も追加。</span></div></div><div class="ixExample"><div class="ixExampleIcon">✨</div><div><b>写真 → イラスト</b><span>写真を元に、アニメ・ファンタジー・近未来などへ。</span></div></div><div class="ixExample"><div class="ixExampleIcon">🪄</div><div><b>あとから修正</b><span>「もっと青く」「背景だけ変えて」も会話でOK。</span></div></div></div><div class="ixSteps"><div class="ixStep"><span class="ixNum">01</span><b>写真を送る</b><span>下の＋から参考画像を選択。</span></div><div class="ixStep"><span class="ixNum">02</span><b>希望を話す</b><span>「青系でかっこよく」など自由に入力。</span></div><div class="ixStep"><span class="ixNum">03</span><b>納得するまで調整</b><span>何度でも会話で細かく修正。</span></div></div><div class="ixTry">↓ 下の入力欄から、まずは作りたいイメージを書いてみよう</div></div>`;
   }
-
-  function recoverInterruptedGeneration(){
-    try{
-      const nav=performance.getEntriesByType?.('navigation')?.[0];
-      if(nav?.type!=='reload') return;
-      const key='iconia_pro_v6';
-      const raw=localStorage.getItem(key); if(!raw)return;
-      const data=JSON.parse(raw); if(!Array.isArray(data?.messages))return;
-      const hadLoading=data.messages.some(m=>m&&m.loading);
-      if(!hadLoading)return;
-      data.messages=data.messages.filter(m=>!m?.loading);
-      localStorage.setItem(key,JSON.stringify(data));
-      if(!sessionStorage.getItem('iconia_recovered_reload_done')){
-        sessionStorage.setItem('iconia_recovered_reload_done','1');
-        location.reload();
-      }
-    }catch{}
-  }
-
-  function stabilize(){
-    const h=document.querySelector('.header');
-    if(h&&innerWidth<=700){
-      h.style.setProperty('position','fixed','important');
-      h.style.setProperty('top','0','important');
-      h.style.setProperty('left','0','important');
-      h.style.setProperty('right','0','important');
-      h.style.setProperty('z-index','1100','important');
-      h.style.setProperty('height','64px','important');
-      document.body.style.paddingTop='64px';
-    }
-    const c=document.querySelector('.composerWrap');
-    if(c){
-      c.style.setProperty('position','fixed','important');
-      c.style.setProperty('left','0','important');
-      c.style.setProperty('right','0','important');
-      c.style.setProperty('bottom','0','important');
-      c.style.setProperty('top','auto','important');
-      c.style.setProperty('z-index','1000','important');
-      if(innerWidth<=700){
-        c.style.setProperty('max-height','255px','important');
-        c.style.setProperty('overflow-y','auto','important');
-        c.style.setProperty('overflow-x','hidden','important');
-        c.style.setProperty('padding-top','4px','important');
-        c.style.setProperty('padding-bottom','calc(env(safe-area-inset-bottom) + 5px)','important');
-      }
-    }
-  }
-
-  async function compress(file){
-    if(!file||!file.type?.startsWith('image/'))return file;
-    try{
-      const b=await createImageBitmap(file),max=1600,s=Math.min(1,max/Math.max(b.width,b.height));
-      const c=document.createElement('canvas');c.width=Math.max(1,Math.round(b.width*s));c.height=Math.max(1,Math.round(b.height*s));
-      c.getContext('2d').drawImage(b,0,0,c.width,c.height);b.close?.();
-      const blob=await new Promise(r=>c.toBlob(r,'image/jpeg',.84));
-      return blob?new File([blob],'iconia-reference.jpg',{type:'image/jpeg'}):file;
-    }catch{return file;}
-  }
-
-  function preview(file){
-    const w=$('attach'),img=$('preview');if(!w||!img)return;
-    if(typeof file==='string') img.src=file; else img.src=URL.createObjectURL(file);
-    w.classList.add('show');
-    const l=$('attachLabel');if(l)l.textContent='この画像を元に編集します';
-  }
-
-  function bind(){
-    const btn=$('attachBtn'),input=$('file');
-    if(btn&&input){
-      btn.type='button';btn.style.display='inline-grid';
-      if(!btn.__v14){
-        btn.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();input.click();},true);
-        btn.__v14=true;
-      }
-      if(!input.__v14){
-        input.addEventListener('change',async e=>{
-          const f=e.target.files?.[0];if(!f)return;
-          const out=await compress(f);preview(out);
-          if(out!==f){try{const dt=new DataTransfer();dt.items.add(out);input.files=dt.files;}catch{}}
-          const send=$('send');if(send)send.disabled=false;
-          stabilize();
-        },false);
-        input.__v14=true;
-      }
-      const rem=$('remove');
-      if(rem&&!rem.__v14){
-        rem.addEventListener('click',()=>{$('attach')?.classList.remove('show');if(input)input.value='';const img=$('preview');if(img)img.removeAttribute('src');});
-        rem.__v14=true;
-      }
-    }
-    stabilize();
-  }
-
-  async function saveImage(src){
-    try{
-      let blob;
-      if(src.startsWith('data:')){
-        const r=await fetch(src);blob=await r.blob();
-      }else{
-        const r=await fetch(src,{mode:'cors'});if(!r.ok)throw new Error('image');blob=await r.blob();
-      }
-      const ext=(blob.type||'image/png').split('/')[1]?.replace('jpeg','jpg')||'png';
-      const file=new File([blob],`iconia-ai-${Date.now()}.${ext}`,{type:blob.type||'image/png'});
-      if(navigator.canShare?.({files:[file]}) && navigator.share){
-        await navigator.share({title:'Iconia AI',text:'Iconia AIで作成した画像',files:[file]});
-        return;
-      }
-      const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=file.name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),2000);
-    }catch(e){
-      try{window.open(src,'_blank','noopener');}catch{}
-    }
-  }
-
-  function addSaveButtons(){
-    document.querySelectorAll('.result').forEach(img=>{
-      if(img.dataset.saveBound)return;
-      img.dataset.saveBound='1';
-      const tools=document.createElement('div');
-      tools.className='iconiaImageTools';
-      tools.innerHTML='<button type="button" class="iconiaImageTool save">⬇️ 保存 / 共有</button><button type="button" class="iconiaImageTool zoom">🔍 拡大</button>';
-      img.insertAdjacentElement('afterend',tools);
-      tools.querySelector('.save').onclick=e=>{e.preventDefault();e.stopPropagation();saveImage(img.dataset.image||img.currentSrc||img.src)};
-      tools.querySelector('.zoom').onclick=e=>{e.preventDefault();e.stopPropagation();if(typeof window.openLight==='function')window.openLight(img.dataset.image||img.currentSrc||img.src);else{const lb=$('lightbox'),li=$('lightImg');if(lb&&li){li.src=img.dataset.image||img.currentSrc||img.src;lb.classList.add('show')}}};
-    });
-  }
-
-  function addStyles(){
-    if(document.getElementById('iconia-v14-style'))return;
-    const s=document.createElement('style');s.id='iconia-v14-style';s.textContent=`
-      .iconiaImageTools{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
-      .iconiaImageTool{border:1px solid #34394b;background:#242938;color:#f6f7fb;border-radius:12px;padding:9px 12px;font-size:11px;font-weight:750}
-      .iconiaImageTool:active{transform:scale(.97);opacity:.85}
-      @media(max-width:700px){.iconiaImageTools{gap:6px}.iconiaImageTool{padding:9px 11px;font-size:10px}}
-    `;document.head.appendChild(s);
-  }
-
-  function addLegalFooter(){
-    if(document.getElementById('iconiaLegalFooter'))return;
-    const footer=document.createElement('footer');
-    footer.id='iconiaLegalFooter';
-    footer.innerHTML=`<div class="iconiaLegalInner"><div class="iconiaLegalBrand">✦ <b>Iconia AI</b></div><div class="iconiaLegalLinks"><a href="/terms.html">利用規約</a><span>・</span><a href="/privacy.html">プライバシーポリシー</a></div><div class="iconiaLegalCopy">© 2026 Iconia AI</div></div>`;
-    document.body.appendChild(footer);
-  }
-
-  function addLegalStyles(){
-    if(document.getElementById('iconia-legal-style'))return;
-    const s=document.createElement('style');s.id='iconia-legal-style';s.textContent=`
-      #iconiaLegalFooter{margin:0 auto;padding:18px 14px 285px;text-align:center;color:#737b8e;font-size:10px}
-      .iconiaLegalInner{max-width:980px;margin:auto;border-top:1px solid #242938;padding-top:16px}
-      .iconiaLegalBrand{color:#cfd3df;margin-bottom:7px}
-      .iconiaLegalLinks{display:flex;justify-content:center;align-items:center;gap:6px;flex-wrap:wrap}
-      .iconiaLegalLinks a{color:#a99bff;text-decoration:none}
-      .iconiaLegalLinks a:hover{text-decoration:underline}
-      .iconiaLegalCopy{margin-top:7px;color:#555d70}
-      @media(max-width:700px){#iconiaLegalFooter{padding-bottom:300px}}
-    `;document.head.appendChild(s);
-  }
-
-  function loadHistoryEnhancements(){
-    if(window.__iconiaHistoryEnhancementsLoaded)return;
-    window.__iconiaHistoryEnhancementsLoaded=true;
-    const s=document.createElement('script');s.src='/history-enhancements.js';s.async=false;document.body.appendChild(s);
-  }
-
-  function run(){
-    requestAnimationFrame(()=>{recoverInterruptedGeneration();bind();addStyles();addSaveButtons();addLegalStyles();addLegalFooter();addAdsenseLoader();loadHistoryEnhancements();});
-  }
-
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run,{once:true});else run();
-  [100,500,1500,3000].forEach(t=>setTimeout(run,t));
-  addEventListener('resize',run,{passive:true});
-  new MutationObserver(()=>{addSaveButtons();stabilize()}).observe(document.body,{childList:true,subtree:true});
+  function run(){requestAnimationFrame(()=>{recoverInterruptedGeneration();bind();addStyles();addSaveButtons();addLegalStyles();addLegalFooter();addAdsenseLoader();loadHistoryEnhancements();addWelcomeShowcase()})}
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run,{once:true});else run();[100,500,1500,3000].forEach(t=>setTimeout(run,t));addEventListener('resize',run,{passive:true});new MutationObserver(()=>{addSaveButtons();stabilize();addWelcomeShowcase()}).observe(document.body,{childList:true,subtree:true});
 })();
