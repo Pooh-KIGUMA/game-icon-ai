@@ -1,1 +1,25 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600"><defs><radialGradient id="bg"><stop stop-color="#5d3fc0"/><stop offset=".58" stop-color="#20123f"/><stop offset="1" stop-color="#080611"/></radialGradient><linearGradient id="armor" x2="1" y2="1"><stop stop-color="#24184b"/><stop offset=".55" stop-color="#704bd0"/><stop offset="1" stop-color="#d7a8ff"/></linearGradient><filter id="glow"><feGaussianBlur stdDeviation="10"/></filter></defs><rect width="600" height="600" rx="70" fill="url(#bg)"/><circle cx="455" cy="125" r="105" fill="#e9d8ff" opacity=".3" filter="url(#glow)"/><circle cx="455" cy="125" r="70" fill="#f7efff" opacity=".85"/><path d="M55 525L145 300 220 220 300 130 380 220 455 300 545 525Z" fill="#0b0717" opacity=".75"/><path d="M160 520Q165 340 220 270L300 215 380 270Q435 340 440 520Z" fill="url(#armor)" stroke="#d9a8ff" stroke-width="7"/><path d="M205 270Q210 135 300 90Q390 135 395 270L350 315 300 265 250 315Z" fill="#19122f" stroke="#c88cff" stroke-width="5"/><path d="M225 215Q300 165 375 215L350 255 300 240 250 255Z" fill="#f0d9ff"/><path d="M255 245L285 240M315 240L345 245" stroke="#503179" stroke-width="9" stroke-linecap="round"/><path d="M280 285Q300 300 320 285" fill="none" stroke="#b26de5" stroke-width="6"/><path d="M190 355L105 430M410 355L495 430" stroke="#e0b3ff" stroke-width="13"/><path d="M120 455Q300 410 480 455" fill="none" stroke="#e4b8ff" stroke-width="2" opacity=".75"/><text x="300" y="475" fill="#fff" font-size="66" font-family="Arial,sans-serif" font-weight="900" text-anchor="middle" letter-spacing="7">LUNAR</text><text x="300" y="520" fill="#ead7ff" font-size="23" font-family="Arial,sans-serif" font-weight="700" text-anchor="middle" letter-spacing="8">ECLIPSE</text></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800">
+<defs>
+ <radialGradient id="bg" cx="70%" cy="17%"><stop stop-color="#754fe0"/><stop offset=".42" stop-color="#27164d"/><stop offset="1" stop-color="#07050f"/></radialGradient>
+ <linearGradient id="robe" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#17102e"/><stop offset=".5" stop-color="#6840b7"/><stop offset=".8" stop-color="#b56cff"/><stop offset="1" stop-color="#24143f"/></linearGradient>
+ <linearGradient id="silver" x1="0" x2="1"><stop stop-color="#fff"/><stop offset=".45" stop-color="#d8c8ff"/><stop offset="1" stop-color="#8e6bdf"/></linearGradient>
+ <filter id="glow"><feGaussianBlur stdDeviation="18"/></filter><filter id="glow2"><feGaussianBlur stdDeviation="6"/></filter>
+</defs>
+<rect width="800" height="800" rx="92" fill="url(#bg)"/>
+<circle cx="610" cy="150" r="155" fill="#d5b8ff" opacity=".18" filter="url(#glow)"/><circle cx="610" cy="150" r="88" fill="#f6efff" opacity=".9"/><circle cx="585" cy="125" r="88" fill="#6e49cf"/>
+<path d="M68 665L170 340 300 155 400 95 500 155 630 340 732 665Z" fill="#080510" opacity=".88"/>
+<path d="M130 666Q145 432 225 325L300 272 400 272 475 325Q555 432 570 666Z" fill="url(#robe)" stroke="#d49aff" stroke-width="5"/>
+<path d="M190 390L300 310 410 390 372 478 300 515 228 478Z" fill="#1a1036" stroke="#a873ef" stroke-width="4"/>
+<path d="M210 376L300 325 390 376 358 410 300 395 242 410Z" fill="#7c4cc8" stroke="#e3c8ff" stroke-width="3"/>
+<path d="M216 286Q226 143 300 88Q374 143 384 286L347 339 300 290 253 339Z" fill="#15102a" stroke="#d29aff" stroke-width="7"/>
+<path d="M238 231L300 184 362 231 343 276 300 260 257 276Z" fill="url(#silver)"/>
+<path d="M266 270L290 265M310 265L334 270" stroke="#4d2e7c" stroke-width="10" stroke-linecap="round"/>
+<path d="M279 298Q300 318 321 298" fill="none" stroke="#c17cff" stroke-width="5"/>
+<path d="M220 420L92 535M480 420L608 535" stroke="#dba1ff" stroke-width="19" stroke-linecap="round"/><path d="M95 535L67 587M605 535L633 587" stroke="#7744c4" stroke-width="10"/>
+<path d="M145 593Q300 548 555 593" fill="none" stroke="#e2bcff" stroke-opacity=".7" stroke-width="2"/>
+<circle cx="92" cy="535" r="9" fill="#fff" filter="url(#glow2)"/><circle cx="608" cy="535" r="9" fill="#fff" filter="url(#glow2)"/>
+<path d="M165 620H535" stroke="#c68cff" stroke-opacity=".45"/>
+<text x="400" y="660" fill="url(#silver)" font-size="88" font-family="Arial,sans-serif" font-weight="900" text-anchor="middle" letter-spacing="16">LUNAR</text>
+<text x="400" y="712" fill="#eadbff" font-size="24" font-family="Arial,sans-serif" font-weight="800" text-anchor="middle" letter-spacing="11">ECLIPSE // ARCANE</text>
+<path d="M145 742H655" stroke="#c58bff" stroke-width="2" opacity=".65"/><circle cx="135" cy="742" r="5" fill="#fff"/><circle cx="665" cy="742" r="5" fill="#fff"/>
+</svg>
