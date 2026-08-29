@@ -1,1 +1,28 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600"><defs><linearGradient id="bg" x2="1" y2="1"><stop stop-color="#050816"/><stop offset=".55" stop-color="#0b3b78"/><stop offset="1" stop-color="#14c8ff"/></linearGradient><linearGradient id="armor" x2="1" y2="1"><stop stop-color="#10213e"/><stop offset=".5" stop-color="#1672c9"/><stop offset="1" stop-color="#55e7ff"/></linearGradient><linearGradient id="visor"><stop stop-color="#bdf8ff"/><stop offset="1" stop-color="#20a9ff"/></linearGradient><filter id="glow"><feGaussianBlur stdDeviation="10"/></filter></defs><rect width="600" height="600" rx="70" fill="url(#bg)"/><circle cx="470" cy="120" r="125" fill="#38d9ff" opacity=".18" filter="url(#glow)"/><path d="M55 520L140 270 300 115 460 270 545 520Z" fill="#02040b" opacity=".72"/><path d="M165 520Q170 330 215 265L300 205 385 265Q430 330 435 520Z" fill="url(#armor)" stroke="#75efff" stroke-width="6"/><path d="M205 270Q215 130 300 90Q385 130 395 270L350 315 300 270 250 315Z" fill="#081426" stroke="#35dfff" stroke-width="5"/><path d="M225 215Q300 160 375 215L350 255 300 240 250 255Z" fill="url(#visor)"/><path d="M258 245L288 238M312 238L342 245" stroke="#06213d" stroke-width="8" stroke-linecap="round"/><path d="M190 360L115 430M410 360L485 430" stroke="#6befff" stroke-width="12"/><path d="M145 455H455" stroke="#6befff" stroke-width="2" opacity=".6"/><text x="300" y="475" fill="#fff" font-size="66" font-family="Arial,sans-serif" font-weight="900" text-anchor="middle" letter-spacing="7">NOVA</text><text x="300" y="520" fill="#bff8ff" font-size="23" font-family="Arial,sans-serif" font-weight="700" text-anchor="middle" letter-spacing="8">INFINITY</text></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800">
+<defs>
+ <radialGradient id="bg" cx="72%" cy="18%"><stop stop-color="#173f91"/><stop offset=".45" stop-color="#07142f"/><stop offset="1" stop-color="#02050e"/></radialGradient>
+ <linearGradient id="suit" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#101d3b"/><stop offset=".42" stop-color="#147bd0"/><stop offset=".72" stop-color="#35dfff"/><stop offset="1" stop-color="#09204d"/></linearGradient>
+ <linearGradient id="visor" x1="0" x2="1"><stop stop-color="#dfffff"/><stop offset=".45" stop-color="#52efff"/><stop offset="1" stop-color="#1685ff"/></linearGradient>
+ <linearGradient id="text" x1="0" x2="1"><stop stop-color="#fff"/><stop offset=".5" stop-color="#75efff"/><stop offset="1" stop-color="#fff"/></linearGradient>
+ <filter id="glow"><feGaussianBlur stdDeviation="18"/></filter>
+ <filter id="glow2"><feGaussianBlur stdDeviation="6"/></filter>
+ <pattern id="grid" width="48" height="48" patternUnits="userSpaceOnUse"><path d="M48 0H0V48" fill="none" stroke="#61dfff" stroke-opacity=".1"/></pattern>
+</defs>
+<rect width="800" height="800" rx="92" fill="url(#bg)"/>
+<rect x="18" y="18" width="764" height="764" rx="78" fill="url(#grid)" stroke="#62eaff" stroke-opacity=".18" stroke-width="2"/>
+<circle cx="620" cy="155" r="155" fill="#27dfff" opacity=".15" filter="url(#glow)"/>
+<circle cx="620" cy="155" r="92" fill="none" stroke="#66efff" stroke-opacity=".25" stroke-width="2"/><circle cx="620" cy="155" r="72" fill="none" stroke="#66efff" stroke-opacity=".2"/>
+<path d="M72 650L170 318 300 148 400 95 500 148 630 318 728 650Z" fill="#02040a" opacity=".85"/>
+<path d="M145 650Q155 430 220 326L300 270 400 270 480 326Q545 430 555 650Z" fill="url(#suit)" stroke="#63edff" stroke-width="5"/>
+<path d="M205 350L300 295 395 350 370 435 300 472 230 435Z" fill="#0a1631" stroke="#2bdcff" stroke-width="4"/>
+<path d="M225 352L300 318 375 352 348 382 300 369 252 382Z" fill="#183c70" stroke="#65efff" stroke-width="3"/>
+<path d="M218 282Q225 137 300 90Q375 137 382 282L345 333 300 286 255 333Z" fill="#071225" stroke="#52eaff" stroke-width="6"/>
+<path d="M238 228Q300 182 362 228L344 273 300 260 256 273Z" fill="url(#visor)"/>
+<path d="M270 271L291 264M309 264L330 271" stroke="#02182d" stroke-width="10" stroke-linecap="round"/>
+<path d="M208 404L100 505M492 404L600 505" stroke="#64efff" stroke-width="18" stroke-linecap="round"/><path d="M115 507L75 555M585 507L625 555" stroke="#1489d7" stroke-width="8"/>
+<path d="M168 570H532" stroke="#65efff" stroke-width="2" opacity=".8"/><path d="M215 602H485" stroke="#65efff" stroke-width="2" opacity=".35"/>
+<circle cx="115" cy="507" r="8" fill="#b7fbff" filter="url(#glow2)"/><circle cx="600" cy="507" r="8" fill="#b7fbff" filter="url(#glow2)"/>
+<text x="400" y="664" fill="url(#text)" font-size="88" font-family="Arial,sans-serif" font-weight="900" text-anchor="middle" letter-spacing="16">NOVA</text>
+<text x="400" y="714" fill="#b8f8ff" font-size="24" font-family="Arial,sans-serif" font-weight="800" text-anchor="middle" letter-spacing="11">INFINITY // ELITE</text>
+<path d="M160 744H640" stroke="#3de7ff" stroke-width="2" opacity=".55"/><circle cx="148" cy="744" r="5" fill="#fff"/><circle cx="652" cy="744" r="5" fill="#fff"/>
+</svg>
