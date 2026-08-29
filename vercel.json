@@ -1,7 +1,6 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": null,
-  "buildCommand": "node inject-adsense.mjs",
   "outputDirectory": ".",
   "functions": {
     "api/**/*.js": {
