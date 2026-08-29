@@ -20,8 +20,31 @@ async function resolveUser(req,res){ const existing=decodeCookie(cookie(req,'ico
 async function rpc(name,userId){ const url=process.env.SUPABASE_URL,key=secretKey(); const r=await fetch(`${url}/rest/v1/rpc/${name}`,{method:'POST',headers:apiHeaders(key),body:JSON.stringify({p_user_id:userId})}); if(!r.ok)throw new Error(await r.text()); const data=await r.json(); return Array.isArray(data)?(data[0]||null):data; }
 function formatInfo(key){ return ({icon:{size:'1024x1024',w:1024,h:1024,label:'ゲームアイコン 1:1'},xheader:{size:'1536x1024',w:1500,h:500,label:'X / Twitter ヘッダー 3:1'},youtube:{size:'1536x1024',w:1280,h:720,label:'YouTube 16:9'},portrait:{size:'1024x1536',w:1024,h:1536,label:'縦長 2:3'}})[key]||({size:'1024x1024',w:1024,h:1024,label:'ゲームアイコン 1:1'}); }
 function chooseFormat(body){ return ['icon','xheader','youtube','portrait'].includes(body?.format)?body.format:'icon'; }
-function dataImageToBuffer(value){ const m=String(value||'').match(/^data:image\/([^;]+);base64,(.+)$/); if(!m)throw new Error('参考画像を読み込めませんでした。'); const mime=`image/${m[1].toLowerCase()}`; if(!['image/jpeg','image/png','image/webp'].includes(mime))throw new Error('参考画像はJPG・PNG・WebPに対応しています。'); return {buffer:Buffer.from(m[2],'base64'),mime}; }
-async function fit(dataUrl,fmt){ const {buffer}=dataImageToBuffer(dataUrl); const out=await sharp(buffer).resize(fmt.w,fmt.h,{fit:'cover',position:'attention'}).jpeg({quality:92}).toBuffer(); return `data:image/jpeg;base64,${out.toString('base64')}`; }
+function dataImageToBuffer(value){ const m=String(value||'').match(/^data:image\/([^;]+),base64,(.+)$/); if(!m)throw new Error('参考画像を読み込めませんでした。'); const mime=`image/${m[1].toLowerCase()}`; if(!['image/jpeg','image/png','image/webp'].includes(mime))throw new Error('参考画像はJPG・PNG・WebPに対応しています。'); return {buffer:Buffer.from(m[2],'base64'),mime}; }
+
+// Vercel Functions have a 4.5 MB response payload limit. Returning a full
+// base64 JPEG at high quality can exceed that limit and Safari reports it as
+// "Load failed" even when the function itself completed with HTTP 200.
+// Keep the exact requested canvas size, but compress the JPEG until the data
+// URL is comfortably below the platform limit.
+async function fit(dataUrl,fmt){
+  const {buffer}=dataImageToBuffer(dataUrl);
+  const qualities=[82,76,70,64,58,52];
+  for(const quality of qualities){
+    const out=await sharp(buffer)
+      .resize(fmt.w,fmt.h,{fit:'cover',position:'attention'})
+      .jpeg({quality,progressive:true,mozjpeg:true})
+      .toBuffer();
+    const encoded=`data:image/jpeg;base64,${out.toString('base64')}`;
+    if(encoded.length<=3_700_000)return encoded;
+  }
+  const out=await sharp(buffer)
+    .resize(fmt.w,fmt.h,{fit:'cover',position:'attention'})
+    .jpeg({quality:45,progressive:true,mozjpeg:true})
+    .toBuffer();
+  return `data:image/jpeg;base64,${out.toString('base64')}`;
+}
+
 function hasDesignRequest(message){ return /(文字|テキスト|ロゴ|名前|チーム名|クラン名|同盟名|ギルド名|入れて|書いて|デザイン|かっこよく|おしゃれ|ロゴ風)/iu.test(String(message||'')); }
 function designVariant(message='',image=''){
   const variants=[
@@ -32,9 +55,6 @@ function designVariant(message='',image=''){
     'INTERLOCK: create a compact custom wordmark that interlocks with a non-critical frame, weapon, energy ring or ornament. The letters may overlap the frame but must remain away from eyes and facial features.',
     'ASYMMETRIC BADGE: deliberately avoid symmetry. Choose the visually quieter side of the image and build a small premium esports badge/wordmark there, using the image palette and lighting.'
   ];
-  // Use the actual reference image as part of the deterministic seed so different
-  // artworks can naturally choose different compositions even when the user repeats
-  // the same short request such as "AxLFをかっこよく入れて".
   const imageSeed=String(image||'').slice(0,220000);
   const seed=crypto.createHash('sha256').update(String(message||'')).update('|').update(imageSeed).digest().readUInt32BE(0);
   return variants[seed%variants.length];
@@ -115,9 +135,6 @@ export default async function handler(req,res){
     if(!message&&!image)throw new Error('画像またはメッセージを入力してください。');
     if(image&&image.length>9_500_000)return res.status(413).json({success:false,error:'参考画像が大きすぎます。もう少し小さい画像を使ってください。'});
 
-    // Fast design path: image + text/logo requests use the image model directly.
-    // The art direction is image-aware: the same request can choose different layouts
-    // for different artworks, while retrying the same artwork/request remains stable.
     if(image&&hasDesignRequest(message)){
       const {buffer,mime}=dataImageToBuffer(image);
       const ext=mime==='image/png'?'png':mime==='image/webp'?'webp':'jpg';
@@ -127,7 +144,7 @@ export default async function handler(req,res){
       const b64=result?.data?.[0]?.b64_json;
       if(!b64)throw new Error('画像データがAIから返されませんでした。');
       const output=await withTimeout(fit(`data:image/jpeg;base64,${b64}`,fmt),8000,'画像仕上げ');
-      console.log('[Iconia] direct design response ready',Date.now()-started,'ms');
+      console.log('[Iconia] direct design response ready',Date.now()-started,'ms',Math.round(output.length/1024),'KB');
       return res.status(200).json({success:true,image:output,reply:'できました。画像全体を分析し、今回の画像に合うロゴ構成・文字デザインで仕上げました。',plan:{mode:'AI_DESIGN_MEDIUM',format:key,formatLabel:fmt.label,designVariant:variant}});
     }
 
@@ -137,7 +154,7 @@ export default async function handler(req,res){
       const b64=result?.data?.[0]?.b64_json;
       if(!b64)throw new Error('画像データがAIから返されませんでした。');
       const output=await withTimeout(fit(`data:image/jpeg;base64,${b64}`,fmt),8000,'画像仕上げ');
-      console.log('[Iconia] direct response ready',Date.now()-started,'ms');
+      console.log('[Iconia] direct response ready',Date.now()-started,'ms',Math.round(output.length/1024),'KB');
       return res.status(200).json({success:true,image:output,reply:'できました。',plan:{mode:'FAST_GENERATE',format:key,formatLabel:fmt.label}});
     }
 
