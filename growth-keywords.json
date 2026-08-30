@@ -1,0 +1,23 @@
+{
+  "purpose": "AI-assisted organic growth backlog for Iconia AI. No personal social accounts.",
+  "updated": "2026-08-30",
+  "rules": {
+    "brand": "Iconia AI",
+    "personal_accounts": false,
+    "publish_without_review": false,
+    "priority": "search intent + clear path to image generation"
+  },
+  "keywords": [
+    {"keyword":"ゲームアイコン AI","intent":"transactional","priority":1,"page":"/game-icon-ai.html","status":"existing"},
+    {"keyword":"ゲーム アイコン 作成 AI","intent":"transactional","priority":1,"page":"/game-icon-ai.html","status":"existing"},
+    {"keyword":"クラン アイコン 作成 AI","intent":"transactional","priority":1,"page":"/clan-icon-ai.html","status":"existing"},
+    {"keyword":"Discord アイコン AI","intent":"transactional","priority":1,"page":"/discord-icon-ai.html","status":"existing"},
+    {"keyword":"アニメ風 ゲームアイコン AI","intent":"transactional","priority":1,"page":"/anime-game-icon-ai.html","status":"existing"},
+    {"keyword":"ゲーム アイコン おしゃれ 作り方","intent":"informational","priority":2,"page":"/guide.html","status":"candidate"},
+    {"keyword":"クラン ロゴ AI 作成","intent":"transactional","priority":2,"page":"/clan-icon-ai.html","status":"candidate"},
+    {"keyword":"配信用 アイコン 作成 AI","intent":"transactional","priority":2,"page":"/game-icon-ai.html","status":"candidate"},
+    {"keyword":"スマホ ゲーム アイコン 作成","intent":"transactional","priority":2,"page":"/game-icon-ai.html","status":"candidate"},
+    {"keyword":"AI キャラクター アイコン 作成","intent":"transactional","priority":2,"page":"/game-icon-ai.html","status":"candidate"}
+  ],
+  "next_action": "Validate demand and publish only high-value landing pages; avoid thin duplicate pages."
+}
