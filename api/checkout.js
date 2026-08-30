@@ -11,6 +11,7 @@ function sign(id){return crypto.createHmac('sha256',cookieSecret()).update(id).d
 function decodeCookie(value){const m=String(value||'').match(/^([0-9a-f-]{36})\.([0-9a-f]{64})$/i);if(!m)return null;const expected=sign(m[1]);try{return crypto.timingSafeEqual(Buffer.from(m[2],'hex'),Buffer.from(expected,'hex'))?m[1]:null}catch{return null}}
 function setCookie(res,id){res.setHeader('Set-Cookie',`${cookieName}=${encodeURIComponent(`${id}.${sign(id)}`)}; Path=/; Max-Age=31536000; HttpOnly; Secure; SameSite=Lax`)}
 function resolveAnonymousId(req){return decodeCookie(cookie(req,cookieName))||crypto.randomUUID()}
+function safeNext(value){const next=String(value||'/');return next.startsWith('/')&&!next.startsWith('//')?next:'/'}
 async function stripeCheckout(params,secret){const controller=new AbortController();const timer=setTimeout(()=>controller.abort(),15000);try{const r=await fetch('https://api.stripe.com/v1/checkout/sessions',{method:'POST',headers:{Authorization:`Bearer ${secret}`,'Content-Type':'application/x-www-form-urlencoded'},body:params,signal:controller.signal});const data=await r.json().catch(()=>({}));return{ok:r.ok,status:r.status,data}}finally{clearTimeout(timer)}}
 export default async function handler(req,res){
   if(req.method!=='GET'&&req.method!=='POST')return send(res,405,{error:'GET or POST only'});
@@ -18,10 +19,10 @@ export default async function handler(req,res){
   const body=req.method==='GET'?(req.query||{}):(req.body||{}),type=body.type==='subscription'?'subscription':'credits',key=String(body.product||body.pack||body.plan||''),product=(type==='subscription'?PLANS:PACKS)[key];
   if(!product)return send(res,400,{error:'Invalid product.',product:key,type});
   try{
-    const userId=resolveAnonymousId(req),origin=canonicalOrigin(),params=new URLSearchParams();
+    const userId=resolveAnonymousId(req),origin=canonicalOrigin(),next=safeNext(body.next),params=new URLSearchParams();
     params.set('mode',type==='subscription'?'subscription':'payment');
-    params.set('success_url',`${origin}/api/reconcile?session_id={CHECKOUT_SESSION_ID}&next=/pricing.html`);
-    params.set('cancel_url',`${origin}/pricing.html?checkout=cancelled`);
+    params.set('success_url',`${origin}/api/reconcile?session_id={CHECKOUT_SESSION_ID}&next=${encodeURIComponent(next)}`);
+    params.set('cancel_url',`${origin}${next}${next.includes('?')?'&':'?'}checkout=cancelled`);
     params.set('line_items[0][quantity]','1');params.set('line_items[0][price_data][currency]','jpy');params.set('line_items[0][price_data][unit_amount]',String(product.amount));
     params.set('line_items[0][price_data][product_data][name]',type==='subscription'?`Iconia AI ${key}`:`Iconia AI ${product.credits} Credits`);
     params.set('metadata[user_id]',userId);params.set('metadata[type]',type);params.set('metadata[product]',key);params.set('metadata[credits]',String(product.credits));
