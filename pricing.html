@@ -20,7 +20,7 @@ body{background:radial-gradient(900px 500px at 50% -260px,#2a1b63 0,#07080d 65%)
 @media(max-width:700px){.hero h1{font-size:29px}.packgrid,.plans{grid-template-columns:1fr}.packs{padding:14px}.pack{padding:14px}.top{margin-bottom:28px}}
 </style>
 </head>
-<body><main class="wrap"><div class="top"><div class="logo">✦ Iconia AI</div><a class="back" href="/">画像生成へ</a></div>
+<body><main class="wrap"><div class="top"><div class="logo">✦ Iconia AI</div><a id="backLink" class="back" href="/">画像生成へ</a></div>
 <section class="hero"><div id="status" class="status"></div><div id="balance" class="balance loading">🪙 現在の残高 <strong>確認中…</strong></div><h1>必要な分だけ、自由に使える。</h1><p>無料3クレジットからスタート。<b>クレジットは1回ずつ個別購入</b>できます。たくさん使う方は月額プランも選べます。</p></section>
 <section class="section"><div class="sectionTitle"><h2>🪙 クレジットを個別購入</h2><p>月額契約なし。必要な分だけ、その都度購入できます。</p></div><div class="packs"><div class="packgrid">
 <div class="pack"><div><b>5クレジット</b><span>¥150</span></div><a class="buy" href="/api/checkout?type=credits&amp;product=credits_5">購入</a></div>
@@ -40,6 +40,20 @@ body{background:radial-gradient(900px 500px at 50% -260px,#2a1b63 0,#07080d 65%)
 const q=new URLSearchParams(location.search);
 const statusEl=document.getElementById('status');
 const balanceEl=document.getElementById('balance');
+const backLink=document.getElementById('backLink');
+function validNext(value){const next=String(value||'/');return next.startsWith('/')&&!next.startsWith('//')?next:'/'}
+function pathFromReferrer(){
+  try{
+    const ref=document.referrer;
+    if(!ref)return '/';
+    const u=new URL(ref);
+    if(u.origin!==location.origin)return '/';
+    return validNext(u.pathname+(u.search||''));
+  }catch{return '/'}
+}
+const next=validNext(q.get('next')||pathFromReferrer());
+backLink.href=next;
+backLink.textContent=next==='/logo-maker.html'?'AIロゴメーカーへ戻る':'画像生成へ';
 async function loadBalance(){
   try{
     const response=await fetch('/api/credits',{method:'GET',credentials:'same-origin',cache:'no-store'});
@@ -65,13 +79,15 @@ document.querySelectorAll('a.buy[href^="/api/checkout"]').forEach((button)=>{
     button.textContent='準備中…';
     statusEl.className='status';
     try{
-      const separator=button.href.includes('?')?'&':'?';
-      const response=await fetch(button.href+separator+'json=1',{method:'GET',credentials:'same-origin',cache:'no-store'});
+      const base=button.getAttribute('href');
+      const separator=base.includes('?')?'&':'?';
+      const target=base+separator+'next='+encodeURIComponent(next)+'&json=1';
+      const response=await fetch(target,{method:'GET',credentials:'same-origin',cache:'no-store'});
       const data=await response.json().catch(()=>({}));
       if(!response.ok || !data.url) throw new Error(data.error || '決済ページを開けませんでした。');
       window.location.assign(data.url);
     }catch(error){
-      statusEl.textContent=error.message || '決済ページを開けませんでした。';
+      statusEl.textContent=error.message || '決済ページを開けませんでした.';
       statusEl.classList.add('show','error');
       button.classList.remove('loading');
       button.textContent=original;
